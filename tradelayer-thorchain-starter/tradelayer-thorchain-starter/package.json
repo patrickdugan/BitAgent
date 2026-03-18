@@ -1,0 +1,27 @@
+{
+  "name": "tradelayer-thorchain-starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "test:smoke": "tsx --test test/integration.test.ts",
+    "quote": "tsx scripts/quote-thorchain.ts",
+    "deposit:erc20": "tsx scripts/deposit-erc20.ts",
+    "deposit:eth": "tsx scripts/deposit-eth.ts",
+    "demo:onboard": "tsx scripts/demo-onboard.ts",
+    "demo:phantom": "tsx scripts/demo-onboard.ts",
+    "activity:feed": "tsx scripts/activity-feed.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.2.0",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "hardhat": "^2.22.18",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
