@@ -1,0 +1,123 @@
+{
+  "schema": "bitagent_tradelayer_collateral_lifecycle_v1",
+  "mode": "simulated",
+  "lifecycleId": "scripted-lifecycle-001",
+  "network": "bitcoin-testnet4",
+  "walletSessionId": "scripted-wallet-session-001",
+  "deposit": {
+    "status": "confirmed",
+    "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "vout": 0,
+    "amountSats": "250000",
+    "confirmations": 3,
+    "requiredConfirmations": 2,
+    "utxoRef": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "source": "scripted-evaluation"
+  },
+  "collateral": {
+    "status": "mapped",
+    "fundingRoot": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "amountSats": "250000"
+  },
+  "signal": {
+    "status": "verified",
+    "codebaseDigest": "42546a6e14e9309b248bae6a80ac60206a9d5301060932976a5c3906a0ce6fad",
+    "payloadHash": "1111111111111111111111111111111111111111111111111111111111111111",
+    "producerKeyId": "scripted-producer",
+    "strategyId": "committed-limit-signal-v1"
+  },
+  "order": {
+    "status": "verified",
+    "positionOrOrderState": "filled",
+    "simulationHash": "1212121212121212121212121212121212121212121212121212121212121212",
+    "effectsHash": "1313131313131313131313131313131313131313131313131313131313131313",
+    "feesHash": "1414141414141414141414141414141414141414141414141414141414141414",
+    "approval": {
+      "id": "order-approval-001",
+      "status": "approved",
+      "simulationHash": "1212121212121212121212121212121212121212121212121212121212121212"
+    },
+    "execution": {
+      "id": "order-execution-001",
+      "status": "submitted",
+      "simulationHash": "1212121212121212121212121212121212121212121212121212121212121212",
+      "txids": [
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    },
+    "verification": {
+      "status": "verified",
+      "txids": [
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "source": "scripted-tradelayer-observer"
+    }
+  },
+  "pnl": {
+    "status": "settled",
+    "settledPnlSats": "5000",
+    "evidenceHash": "2222222222222222222222222222222222222222222222222222222222222222",
+    "transactionIds": [
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    "source": "scripted-balance-observer",
+    "valuationSource": "scripted-independent-price"
+  },
+  "pnlRelease": {
+    "status": "verified",
+    "amountSats": "5000",
+    "destinationWalletSessionId": "scripted-wallet-session-001",
+    "releaseReceiptHash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "simulationHash": "3434343434343434343434343434343434343434343434343434343434343434",
+    "effectsHash": "3535353535353535353535353535353535353535353535353535353535353535",
+    "feesHash": "3636363636363636363636363636363636363636363636363636363636363636",
+    "approval": {
+      "id": "release-approval-001",
+      "status": "approved",
+      "simulationHash": "3434343434343434343434343434343434343434343434343434343434343434"
+    },
+    "execution": {
+      "id": "release-execution-001",
+      "status": "submitted",
+      "simulationHash": "3434343434343434343434343434343434343434343434343434343434343434",
+      "txids": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ]
+    },
+    "verification": {
+      "status": "verified",
+      "txids": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "source": "scripted-release-observer"
+    }
+  },
+  "withdrawal": {
+    "status": "verified",
+    "amountSats": "4000",
+    "destinationAddress": "tb1qscripteddestination000000000000000000000000",
+    "simulationHash": "4545454545454545454545454545454545454545454545454545454545454545",
+    "effectsHash": "4646464646464646464646464646464646464646464646464646464646464646",
+    "feesHash": "4747474747474747474747474747474747474747474747474747474747474747",
+    "approval": {
+      "id": "withdrawal-approval-001",
+      "status": "approved",
+      "simulationHash": "4545454545454545454545454545454545454545454545454545454545454545"
+    },
+    "execution": {
+      "id": "withdrawal-execution-001",
+      "status": "submitted",
+      "simulationHash": "4545454545454545454545454545454545454545454545454545454545454545",
+      "txids": [
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ]
+    },
+    "verification": {
+      "status": "verified",
+      "txids": [
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ],
+      "source": "scripted-bitcoin-observer"
+    }
+  }
+}

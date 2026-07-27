@@ -1,0 +1,4 @@
+interface:
+  display_name: "TradeLayer Collateral Lifecycle"
+  short_description: "Deposit, trade, settle PnL, and withdraw"
+  default_prompt: "Use $tradelayer-collateral-lifecycle to run or audit the bounded Bitcoin-to-TradeLayer collateral, signal-order, PnL-settlement, and withdrawal flow."
