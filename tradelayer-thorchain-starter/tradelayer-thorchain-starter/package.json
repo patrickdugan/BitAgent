@@ -1,17 +1,41 @@
 {
-  "name": "tradelayer-thorchain-starter",
+  "name": "bitagent-tradelayer-starter",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "hardhat compile",
-    "test": "hardhat test",
+    "test": "hardhat test test/starter.hardhat.cjs",
     "test:smoke": "tsx --test test/integration.test.ts",
+    "quote:near": "tsx scripts/quote-near-intents.ts",
     "quote": "tsx scripts/quote-thorchain.ts",
     "deposit:erc20": "tsx scripts/deposit-erc20.ts",
     "deposit:eth": "tsx scripts/deposit-eth.ts",
+    "deposit:template": "tsx scripts/deposit-template.ts",
     "demo:onboard": "tsx scripts/demo-onboard.ts",
+    "demo:near": "tsx scripts/demo-near-intents.ts",
+    "demo:launch": "tsx scripts/demo-launch-kernel.ts",
+    "launch": "tsx scripts/bitagent-server.ts",
+    "eval:launch": "tsx eval/run-evaluations.ts",
+    "test:launch": "tsx --test test/launch-kernel.e2e.test.ts test/agent-eval.test.ts test/launch-server.test.ts",
+    "test:near": "tsx --test test/near-chain-abstraction.test.ts",
     "demo:phantom": "tsx scripts/demo-onboard.ts",
+    "demo:survival": "tsx scripts/demo-survival.ts",
+    "demo:sovereign": "tsx scripts/demo-sovereign.ts",
+    "demo:testnet-agent": "tsx scripts/demo-testnet-agent.ts",
+    "demo:live-testnet-agent": "tsx scripts/demo-live-testnet-agent.ts",
+    "demo:live-testnet-agent:simulated": "tsx scripts/demo-live-testnet-agent.ts --simulate-settlement",
+    "prepare:local-testnet-tx": "tsx scripts/prepare-local-testnet-tx.ts",
+    "hash:signal-codebase": "tsx scripts/hash-signal-codebase.ts",
+    "demo:signals": "tsx scripts/demo-committed-signal.ts",
+    "test:signals": "tsx --test test/committed-signal.test.ts",
+    "eval:signals": "tsx eval/run-signal-evaluations.ts",
+    "export:bonsai-data": "tsx scripts/export-bonsai-role-data.ts",
+    "broker:testnet": "tsx scripts/testnet-signer-broker.ts",
+    "observe:pnl": "tsx scripts/observe-tradelayer-pnl.ts",
+    "test:sovereign": "tsx --test test/sovereign.test.ts",
+    "test:economic": "tsx --test test/economic-agent.test.ts",
+    "test:live": "tsx --test test/live-testnet-agent.test.ts",
     "activity:feed": "tsx scripts/activity-feed.ts"
   },
   "devDependencies": {
@@ -23,5 +47,9 @@
     "hardhat": "^2.22.18",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@defuse-protocol/one-click-sdk-typescript": "^0.1.25",
+    "chainsig.js": "^1.1.16"
   }
 }

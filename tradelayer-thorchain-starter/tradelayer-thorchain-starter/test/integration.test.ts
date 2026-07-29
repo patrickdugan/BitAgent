@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import { buildObservedReceipt, normalizeReceipt } from "../src/receipt.js";
+import { verifyReceiptAgainstCommitment } from "../src/adapters/commitmentVerifier.js";
 import { buildEvmTemplateCommitment } from "../src/adapters/evmTemplateAdapter.js";
 import { mapReceiptToCanonicalUtxo } from "../src/adapters/utxoRefAdapter.js";
 import { buildOrSubmitAbsorb } from "../src/adapters/tradelayerAdapter.js";
@@ -48,15 +49,17 @@ test("observed receipt env mapping produces a confirmed UTXO receipt", () => {
 test("UTXO mapping produces deterministic ref and bigint value", () => {
   const mapped = mapReceiptToCanonicalUtxo({
     ...baseReceipt,
-    destinationTxid: "cafebabe",
+    destinationTxid: "ca".repeat(32),
     destinationVout: 2,
     valueSats: "400000",
+    destinationScriptPubKey: "0014" + "11".repeat(20),
     status: "utxo_confirmed"
   });
 
-  assert.equal(mapped.txid, "cafebabe");
+  assert.equal(mapped.txid, "ca".repeat(32));
   assert.equal(mapped.valueSats, 400000n);
   assert.equal(mapped.utxoRef.length, 64);
+  assert.equal(mapped.utxoRef, mapped.fundingRoot);
 });
 
 test("TradeLayer build path is callable in build-only mode", async () => {
@@ -128,6 +131,32 @@ test("evm template commitment derives deterministic deposit binding hashes", () 
   assert.ok(commitment.templateHash.startsWith("0x"));
   assert.ok(commitment.destinationScriptCommitment.startsWith("0x"));
   assert.ok(commitment.thorMemoHash.startsWith("0x"));
+});
+
+test("commitment verifier accepts matching receipt and template", () => {
+  const receipt = {
+    ...baseReceipt,
+    destinationAddress: "bc1qexample",
+    thorchainMemo: "=:b:bc1qexample:0/1/0",
+    status: "quote_obtained" as const
+  };
+  const procedural = buildProceduralTemplateContext();
+  const commitment = buildEvmTemplateCommitment({
+    receipt,
+    procedural,
+    depositor: "0x0000000000000000000000000000000000000001",
+    nonce: 7n
+  });
+
+  const verified = verifyReceiptAgainstCommitment({
+    receipt,
+    procedural,
+    commitment,
+    depositor: "0x0000000000000000000000000000000000000001",
+    nonce: 7n
+  });
+
+  assert.equal(verified.depositId, commitment.depositId);
 });
 
 test("wallet activity serialization persists JSON feed", async () => {

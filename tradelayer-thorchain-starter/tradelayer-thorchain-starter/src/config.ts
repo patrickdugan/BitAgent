@@ -4,6 +4,9 @@ const projectRoot = process.cwd();
 
 export const runtimeDir = path.join(projectRoot, ".runtime");
 export const activityFeedPath = path.join(runtimeDir, "onboarding-activity.json");
+export const survivalJournalPath = path.join(runtimeDir, "financial-survival.jsonl");
+export const testnetAgentRuntimeDir = path.join(runtimeDir, "testnet-agent");
+export const committedSignalRuntimeDir = path.join(runtimeDir, "committed-signals");
 
 export const externalRepos = {
   utxoRef: process.env.UTXO_REF_REPO || "C:\\projects\\UTXORef\\UTXO-Ref",
@@ -12,7 +15,18 @@ export const externalRepos = {
   ark: process.env.ARK_TRADELAYER_REPO || "C:\\projects\\Ark-TradeLayer"
 } as const;
 
+export const infrastructureConfig = {
+  filecoinCalibrationRpc: process.env.FILECOIN_CALIBRATION_RPC || "https://api.calibration.node.glif.io/rpc/v1",
+  akashMode: process.env.AKASH_MODE || "mock",
+  nearAccountId: process.env.NEAR_ACCOUNT_ID,
+  nearNetwork: (process.env.NEAR_NETWORK || "mainnet") as "mainnet" | "testnet",
+  nearIntentsMode: (process.env.NEAR_INTENTS_MODE || "scripted") as "scripted" | "live",
+  nearIntentsJwt: process.env.NEAR_INTENTS_JWT,
+  nearIntentsBaseUrl: process.env.NEAR_INTENTS_BASE_URL || "https://1click.chaindefuser.com"
+} as const;
+
 export const demoDefaults = {
+  crossChainRail: (process.env.CROSS_CHAIN_RAIL || "near_intents") as "near_intents" | "thorchain",
   sourceChain: (process.env.SOURCE_CHAIN_NAME || "ethereum") as
     | "ethereum"
     | "base"

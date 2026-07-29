@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { externalRepos } from "../config.js";
@@ -13,43 +12,40 @@ export function getUtxoRefExports() {
 }
 
 export function mapReceiptToCanonicalUtxo(receipt: InboundUtxoReceipt): CanonicalUtxoReference {
-  if (!receipt.destinationTxid || receipt.destinationVout === undefined || !receipt.valueSats) {
+  if (
+    !receipt.destinationTxid ||
+    receipt.destinationVout === undefined ||
+    !receipt.valueSats ||
+    !receipt.destinationScriptPubKey
+  ) {
     throw new IntegrationBoundaryError(
       "utxo_ref_map_error",
-      "Receipt is missing destination txid, vout, or valueSats required for UTXO mapping",
+      "Receipt is missing destination txid, vout, valueSats, or scriptPubKey required by UTXO-Ref V2",
       receipt
     );
   }
 
-  const utxoRef = crypto
-    .createHash("sha256")
-    .update(`${receipt.destinationTxid}:${receipt.destinationVout}`)
-    .digest("hex");
-
-  const canonical: CanonicalUtxoReference = {
-    txid: receipt.destinationTxid,
-    vout: receipt.destinationVout,
-    valueSats: BigInt(receipt.valueSats),
-    address: receipt.destinationAddress,
-    scriptPubKey: receipt.destinationScriptPubKey,
-    utxoRef
-  };
-
-  if (canonical.scriptPubKey) {
-    try {
-      new utxoRefModule.PayoutLeaf({
-        epochId: 0n,
-        recipientScriptPubKey: canonical.scriptPubKey,
-        amountSats: canonical.valueSats
-      });
-    } catch (error) {
-      throw new IntegrationBoundaryError(
-        "utxo_parse_error",
-        "UTXO-Ref rejected the mapped payout leaf representation",
-        error
-      );
-    }
+  try {
+    const fundingSet = utxoRefModule.v2.settlement.buildFundingSetV2([
+      {
+        txid: receipt.destinationTxid,
+        vout: receipt.destinationVout,
+        amountSats: receipt.valueSats,
+        scriptPubKeyHex: receipt.destinationScriptPubKey
+      }
+    ]);
+    const funding = fundingSet.funding[0];
+    return {
+      txid: funding.txid,
+      vout: funding.vout,
+      valueSats: BigInt(funding.amountSats),
+      address: receipt.destinationAddress,
+      scriptPubKey: funding.scriptPubKeyHex,
+      utxoRef: fundingSet.fundingRoot,
+      fundingRoot: fundingSet.fundingRoot,
+      fundingIndex: funding.index
+    };
+  } catch (error) {
+    throw new IntegrationBoundaryError("utxo_parse_error", "UTXO-Ref V2 rejected the inbound funding outpoint", error);
   }
-
-  return canonical;
 }

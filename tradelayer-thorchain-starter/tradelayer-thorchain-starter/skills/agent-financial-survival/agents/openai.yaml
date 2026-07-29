@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Financial Survival"
+  short_description: "Policy-gate decentralized agent expenses"
+  default_prompt: "Use $agent-financial-survival to evaluate an essential expense and emit an unsigned policy decision; use $hermes-skill-building when maintaining this portable package."

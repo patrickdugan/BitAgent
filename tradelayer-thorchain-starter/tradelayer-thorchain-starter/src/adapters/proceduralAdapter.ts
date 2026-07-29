@@ -18,8 +18,8 @@ function getTemplateSource() {
 
 export function buildProceduralTemplateContext(): ProceduralTemplateContext {
   const template = getTemplateSource();
-  const templateId = process.env.TL_DLC_TEMPLATE_ID || template.templateId || "thorchain-inbound";
-  const contractId = process.env.TL_DLC_CONTRACT_ID || "thorchain-inbound-contract";
+  const templateId = process.env.TL_DLC_TEMPLATE_ID || template.templateId || "bitagent-crosschain-inbound";
+  const contractId = process.env.TL_DLC_CONTRACT_ID || "bitagent-crosschain-inbound";
   const settlementState = (process.env.TL_DLC_SETTLEMENT_STATE || "FUNDED").toUpperCase();
   const templateHash =
     process.env.TL_DLC_TEMPLATE_HASH ||
@@ -31,7 +31,7 @@ export function buildProceduralTemplateContext(): ProceduralTemplateContext {
   const collateralPropertyId = process.env.TL_COLLATERAL_PROPERTY_ID ? Number(process.env.TL_COLLATERAL_PROPERTY_ID) : undefined;
   const issuePayload = txEncoder.encodeTokenIssue({
     initialAmount: 1,
-    ticker: process.env.TL_RECEIPT_TICKER || "THORU",
+    ticker: process.env.TL_RECEIPT_TICKER || "BITAU",
     whitelists: [],
     managed: true,
     backupAddress: process.env.TL_BACKUP_ADDRESS || "",
@@ -65,7 +65,7 @@ export async function maybeSeedProceduralRegistry(context: ProceduralTemplateCon
   });
 
   await ProceduralRegistry.upsertContract(context.contractId, context.templateId, context.settlementState, {
-    source: "thorchain-starter"
+    source: "bitagent-chain-abstraction"
   });
 
   return { seeded: true };

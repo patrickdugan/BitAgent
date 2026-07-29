@@ -1,0 +1,121 @@
+# Live Testnet Agent Runbook
+
+## Authority Boundary
+
+The agent process may construct TradeLayer tx5 payloads, market proposals, infrastructure intents, and broker requests. It cannot select wallet inputs, sign, or broadcast.
+
+The Bitcoin Core broker is a separate process. It accepts only Bitcoin testnet4 requests whose request hash, policy fingerprint, expiry, sender address, payloads, and aggregate fee cap validate. Every PSBT input and change output must use the approved TradeLayer sender address. Signing additionally requires the exact approval hash emitted during preparation.
+
+Confirmed TradeLayer transactions are not PnL evidence. Revenue becomes settled only when:
+
+1. Both tx5 legs are confirmed at the configured depth.
+2. Their observed OP_RETURN bytes match the approved payloads.
+3. `tradelayer.js/src/txDecoder.js` decodes reciprocal property and amount fields.
+4. A TradeLayer before/after balance receipt proves a positive address-level PnL delta and references every broadcast txid.
+
+## Prerequisites
+
+- Synchronized Bitcoin Core with testnet4 enabled.
+- Loaded wallet named by `BTCTEST_WALLET`.
+- At least six confirmed UTXOs owned by the TradeLayer sender address, sufficient for the six tx5 transactions and fees.
+- TradeLayer testnet state with tx5 active and the sender funded with the required tlBTC/tlUSD inventory.
+- Running TradeLayer wallet listener exposing `tl_getAllBalancesForAddress`.
+
+No private key, WIF, mnemonic, or seed belongs in this repository or its `.env` file.
+
+## 1. Prepare The Agent Request
+
+```powershell
+npm run demo:live-testnet-agent
+```
+
+Inspect:
+
+- `.runtime/testnet-agent/live-latest/summary.json`
+- `.runtime/testnet-agent/live-latest/broker-request.json`
+- The printed `policyFingerprint`
+- Sender address, six payloads, expiry, and `maxTotalFeeSats`
+
+The request expires after 15 minutes. Generate a new request if preparation cannot complete within that window.
+
+## 2. Capture The Pre-Trade Balance
+
+```powershell
+$env:TRADELAYER_AGENT_ADDRESS="<approved sender address>"
+$env:TRADELAYER_API_URL="http://127.0.0.1:3000"
+npm run observe:pnl -- --action=snapshot --output=.runtime/testnet-agent/balance-before.json
+```
+
+## 3. Prepare Funded PSBTs
+
+```powershell
+$env:TESTNET_BROKER_POLICY_FINGERPRINT="<policyFingerprint>"
+$env:BITCOIN_BIN="<directory containing bitcoin-cli>"
+$env:BTCTEST_DATADIR="<Bitcoin testnet data directory>"
+$env:BTCTEST_WALLET="utxoref-testnet"
+$env:BTCTEST_RPC_CONNECT="127.0.0.1"
+$env:BTCTEST_RPC_PORT="<configured testnet4 RPC port, if non-default>"
+npm run broker:testnet -- --action=prepare --input=.runtime/testnet-agent/live-latest/broker-request.json --output=.runtime/testnet-agent/prepared-batch.json
+```
+
+Inspect `prepared-batch.json`, especially input addresses, change addresses, each fee, total fee, payloads, and `approvalHash`.
+
+For the smallest single-transaction local preflight, use the same environment
+with:
+
+```powershell
+npm run prepare:local-testnet-tx
+```
+
+This chooses one confirmed safe wallet UTXO deterministically, constructs one
+TradeLayer tx5 OP_RETURN through the sibling planner, maps the funding outpoint
+through UTXORef v2, and stops with
+`.runtime/testnet-agent/local-testnet4/simulation.json` in
+`awaiting_wallet_approval`. It never signs or broadcasts.
+
+## 4. Sign And Broadcast
+
+Only after inspecting the prepared batch:
+
+```powershell
+$env:TL_TESTNET_SUBMIT="true"
+$env:TESTNET_BROKER_APPROVAL_HASH="<approvalHash>"
+npm run broker:testnet -- --action=broadcast --input=.runtime/testnet-agent/prepared-batch.json --output=.runtime/testnet-agent/broadcast-receipt.json
+```
+
+The receipt contains txids, fees, payload bindings, and a receipt hash. It contains no key material.
+
+## 5. Observe TradeLayer Balances
+
+Wait for Bitcoin confirmations and TradeLayer processing, then capture the post-trade balance:
+
+```powershell
+npm run observe:pnl -- --action=snapshot --output=.runtime/testnet-agent/balance-after.json
+npm run observe:pnl -- --action=evidence --before=.runtime/testnet-agent/balance-before.json --after=.runtime/testnet-agent/balance-after.json --receipt=.runtime/testnet-agent/broadcast-receipt.json --price=65000 --output=.runtime/testnet-agent/pnl-evidence.json
+```
+
+The valuation price must come from an independently accepted market/oracle observation. The starter does not infer it from the agent's own orders.
+
+## 6. Reconcile
+
+```powershell
+$env:BROKER_REQUEST_PATH=".runtime/testnet-agent/live-latest/broker-request.json"
+$env:BROKER_RECEIPT_PATH=".runtime/testnet-agent/broadcast-receipt.json"
+$env:TRADELAYER_PNL_EVIDENCE_PATH=".runtime/testnet-agent/pnl-evidence.json"
+npm run demo:live-testnet-agent
+```
+
+The acceptance object in `live-latest/summary.json` must be entirely true. Any missing transaction, payload mismatch, insufficient confirmation, reorg, invalid PnL receipt, fee-cap violation, expired request, or policy mismatch leaves PnL unrealized.
+
+## Deterministic Failure Demo
+
+```powershell
+npm run demo:live-testnet-agent:simulated
+npm run test:live
+```
+
+Simulation exercises matching and accounting without asserting that a wallet was funded or that transactions were signed.
+
+## Akash Broker Isolation
+
+The current `@akashnetwork/chain-sdk@1.0.0-alpha.0` package requires Node 22.14. It is isolated under `brokers/akash` and is not installed in the root agent runtime. Install and audit it in a disposable Node 22 broker environment before running `validate-sdl.mjs`. The broker should use scoped AuthZ or fee grants and return lifecycle receipts; it must not expose its mnemonic to the agent.

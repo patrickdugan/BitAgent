@@ -1,6 +1,7 @@
 export type SourceChain = "ethereum" | "base" | "arbitrum" | "optimism";
 export type SourceAsset = "ETH" | "USDC";
 export type DestinationChain = "bitcoin" | "litecoin";
+export type CrossChainRail = "near_intents" | "thorchain";
 
 export type ReceiptStatus =
   | "quote_obtained"
@@ -13,10 +14,19 @@ export type ReceiptStatus =
 
 export type ActivityPhase =
   | "deposit"
+  | "near_intents_swap"
   | "thorchain_swap"
   | "utxo_detection"
   | "tradelayer_absorb"
-  | "dlc_ready";
+  | "dlc_ready"
+  | "financial_survival"
+  | "sovereign_harness"
+  | "testnet_trade"
+  | "storage_market"
+  | "compute_market"
+  | "settlement"
+  | "treasury"
+  | "market_agent";
 
 export type ActivityStatus = "pending" | "success" | "error";
 
@@ -30,12 +40,35 @@ export type IntegrationErrorCode =
   | "tradelayer_build_error"
   | "tradelayer_submit_error"
   | "wallet_sync_error"
-  | "dlc_prepare_error";
+  | "dlc_prepare_error"
+  | "tradelayer_trade_error"
+  | "filecoin_quote_error"
+  | "filecoin_deal_error"
+  | "compute_quote_error"
+  | "compute_lease_error"
+  | "chain_abstraction_error"
+  | "near_intents_quote_error"
+  | "near_intents_status_error"
+  | "near_chain_signature_error"
+  | "settlement_error"
+  | "ledger_error"
+  | "signer_broker_error"
+  | "market_risk_error"
+  | "recovery_error";
 
 export type InboundUtxoReceipt = {
   sourceChain: SourceChain;
   sourceAsset: SourceAsset;
+  swapRail?: CrossChainRail;
+  swapQuoteId?: string;
+  swapTxid?: string;
+  swapDepositAddress?: string;
+  swapDepositMemo?: string;
+  swapStatus?: string;
+  swapRouteCommitment?: string;
+  /** @deprecated Compatibility field for the optional THORChain rail. */
   thorchainSwapTx?: string;
+  /** @deprecated Compatibility field for the optional THORChain rail. */
   thorchainMemo?: string;
   destinationChain: DestinationChain;
   destinationTxid?: string;
@@ -119,6 +152,8 @@ export type CanonicalUtxoReference = {
   address?: string;
   scriptPubKey?: string;
   utxoRef: string;
+  fundingRoot?: string;
+  fundingIndex?: number;
 };
 
 export class IntegrationBoundaryError extends Error {

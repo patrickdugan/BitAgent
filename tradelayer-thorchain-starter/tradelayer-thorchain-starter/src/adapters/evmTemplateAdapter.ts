@@ -21,7 +21,9 @@ export function buildEvmTemplateCommitment(input: {
   depositor?: string;
   nonce?: bigint;
 }): EvmTemplateCommitment {
-  const memo = String(input.receipt.thorchainMemo || "");
+  // The deployed compatibility contract calls this a THOR memo hash, but new
+  // rails bind the same field to a deterministic route/quote commitment.
+  const memo = String(input.receipt.swapRouteCommitment || input.receipt.thorchainMemo || input.receipt.swapQuoteId || "");
   const destinationAddress = String(input.receipt.destinationAddress || "");
   const destinationScriptCommitment = ethers.keccak256(ethers.toUtf8Bytes(destinationAddress));
   const thorMemoHash = ethers.keccak256(ethers.toUtf8Bytes(memo));

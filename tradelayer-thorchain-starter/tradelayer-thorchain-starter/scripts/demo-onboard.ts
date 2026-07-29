@@ -13,7 +13,6 @@ async function main() {
         activities
       },
       (_key, value) => (typeof value === "bigint" ? value.toString() : value),
-      null,
       2
     )
   );

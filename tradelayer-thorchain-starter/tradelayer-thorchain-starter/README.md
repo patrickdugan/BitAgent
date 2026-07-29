@@ -1,13 +1,108 @@
-# TradeLayer × THORChain starter
+# BitAgent × TradeLayer chain-abstraction starter
 
-Minimal starter repo for:
+## BitAgent Launch Kernel
 
-- taking ETH-side assets (ETH or ERC-20 like USDC)
-- querying live THORChain quote + inbound routing data
-- depositing into the live THORChain router with `depositWithExpiry`
-- leaving a narrow mock seam for your existing UTXO-ref / TradeLayer absorb flow
+BitAgent now includes a narrow, referral-driven Bitcoin onboarding workflow
+with exactly three supported natural-language intents:
 
-This repo does **not** pretend to know your full existing codebase. Instead it gives you a thin starter around the parts that are stable enough to scaffold now.
+- “Help me deposit Bitcoin.”
+- “Use part of my Bitcoin in the starter TradeLayer strategy.”
+- “Help me withdraw my Bitcoin.”
+
+The starter strategy is one post-only tlBTC-for-tlUSD type-5 limit order. Every
+state-changing path is simulation-first and follows:
+
+```text
+explain → simulate → display exact effects and fees → request approval → execute → verify
+```
+
+Run the complete scripted testnet journey:
+
+```powershell
+npm install
+npm run launch
+```
+
+Open `http://127.0.0.1:8790/`, or test referral routing directly:
+
+```text
+http://127.0.0.1:8790/?ref=demo-referrer&campaign=launch&workflow=starter_strategy&strategy=starter-v1
+```
+
+The browser keeps only a workflow pointer; the workflow itself is stored
+server-side and resumes after refresh. The demo never asks for or accepts seed
+phrases, mnemonics, WIFs, or private keys.
+
+Run the reliability checks:
+
+```powershell
+npm run test:launch
+npm run eval:launch
+npm run demo:launch
+```
+
+The launch suite currently contains 24 end-to-end trajectories, 50 focused
+agent cases, an HTTP surface test, sanitized failure-trace fixtures, and a
+machine-readable evaluation report under `eval/artifacts/`.
+
+Important: the included broker and hosted browser path are deterministic
+testnet simulations. `BITAGENT_PRODUCTION=true` fails closed until a real
+wallet-owned opaque approval/sign/broadcast/verification broker is configured.
+See [docs/operator-guide.md](docs/operator-guide.md),
+[docs/launch-kernel-architecture.md](docs/launch-kernel-architecture.md), and
+[docs/launch-readiness.md](docs/launch-readiness.md).
+
+Owner-only hosted demo:
+[bitagent-launch-kernel.duganist875063.chatgpt.site](https://bitagent-launch-kernel.duganist875063.chatgpt.site).
+
+## Committed algorithmic TradeLayer signals
+
+BitAgent also has a separate, fail-closed execution lane for signals produced
+by one operator-approved hashed codebase. It accepts only post-only
+TLBTC/TLUSD limit orders, maps wallet-observed confirmed UTXOs through the real
+UTXO-Ref V2 funding-root builder, encodes the exact order with the real
+`tradelayer.js` tx5 encoder, verifies an Ed25519 signature from the approved
+signal producer, and requires wallet approval before execution.
+
+```powershell
+npm run hash:signal-codebase -- "C:\projects\Trading Algos"
+npm run demo:signals
+npm run test:signals
+npm run eval:signals
+```
+
+The algorithm is never imported and receives no signing authority. Production
+starts with an empty codebase allowlist and an unavailable execution broker,
+so funded execution is disabled until the exact digest and a wallet-owned
+broker are configured. See
+[docs/committed-signal-execution.md](docs/committed-signal-execution.md).
+
+The default EVM-to-Bitcoin onboarding rail is now **NEAR Intents**, not
+THORChain. BitAgent uses:
+
+- `@defuse-protocol/one-click-sdk-typescript` for current token discovery,
+  exact quotes, deposit registration, status, destination txids, and refunds
+- `chainsig.js` for NEAR-controlled native Bitcoin/EVM account preparation
+- a persisted approval state machine that binds wallet approval to the exact
+  quote hash and rejects preview-only or stale quotes
+- the existing UTXO-Ref and TradeLayer adapters after native BTC/LTC arrives
+
+THORChain remains available only as `CROSS_CHAIN_RAIL=thorchain` and through
+the legacy `quote` / `deposit:*` scripts. It is not part of the default
+BitAgent onboarding path.
+
+Run the deterministic NEAR path:
+
+```powershell
+npm run demo:near
+npm run test:near
+```
+
+For a live, non-funding preview quote, set `NEAR_INTENTS_MODE=live` and provide
+the exact recipient/refund addresses. Executable quotes require
+`NEAR_INTENTS_JWT`; funded execution still fails closed until a wallet-owned
+origin-chain broker replaces the scripted broker. See
+[docs/chain-abstraction.md](docs/chain-abstraction.md).
 
 ## What is included
 
@@ -21,6 +116,8 @@ This repo does **not** pretend to know your full existing codebase. Instead it g
   - approves the live THORChain router and calls `depositWithExpiry` for ERC-20 swaps
 - `scripts/deposit-eth.ts`
   - same for native ETH
+- `scripts/deposit-template.ts`
+  - routes through `TemplateBoundThorchainDepositAdapter` so the EVM-side deposit commits the DLC template hash and destination script commitment before swap submission
 - `contracts/MockUTXORegistry.sol`
   - a placeholder UTXO registry for demo use
 - `contracts/MockTradeLayerIngress.sol`
@@ -44,17 +141,21 @@ This does not force THORChain itself to manufacture a specific Bitcoin or Liteco
 
 ## Architecture assumptions
 
-The intended path is:
+The default path is:
 
 ```text
 USDC / ETH on EVM
-→ live THORChain quote
-→ live Asgard inbound vault + live router
-→ THORChain executes swap to native BTC
-→ your existing UTXO-ref / TradeLayer tx type absorbs that UTXO into protocol logic
+→ live NEAR Intents token discovery and exact quote
+→ display deposit address, minimum output, fees, refund address, and expiry
+→ explicit origin-wallet approval and deposit
+→ solver settlement to native BTC/LTC
+→ independently observed UTXO
+→ UTXO-Ref mapping and TradeLayer intake
 ```
 
-The last step is intentionally mocked because you already have context and code here that I do not.
+NEAR Intents supplies swap liquidity/settlement. Chain Signatures are a
+separate account-control library and are never treated as a liquidity source.
+Omni Bridge remains appropriate for transfers, not price discovery.
 
 ## Important caveats
 
@@ -72,12 +173,15 @@ npm install
 cp .env.example .env
 ```
 
-Fill in:
+For NEAR Intents, fill in:
 
-- `PRIVATE_KEY`
-- chain RPC URL
 - destination BTC address
-- source token address if using ERC-20
+- origin-wallet refund address
+- `NEAR_INTENTS_JWT` only when requesting an executable live quote
+
+BitAgent does not accept a private key, seed phrase, mnemonic, or WIF.
+
+### Optional legacy THORChain scripts
 
 ### Get a quote
 
@@ -98,6 +202,54 @@ npm run deposit:erc20
 ```bash
 npm run deposit:eth
 ```
+
+### Deposit Through Template-Bound Adapter
+
+```bash
+npm run deposit:template
+```
+
+Required env in addition to the normal quote/deposit fields:
+
+- `TEMPLATE_BOUND_ADAPTER_ADDRESS`
+- `TL_RECEIPT_PROPERTY_ID`
+- `TL_DLC_TEMPLATE_ID`
+
+Recommended:
+
+- `TL_COLLATERAL_PROPERTY_ID`
+- `EVM_DEPOSITOR_ADDRESS`
+
+## Sovereign Agent Harness
+
+The sovereign harness treats models and learned skills as untrusted proposers. It evaluates bounded policy configurations against expected financial flows, rejects candidates with unsafe authorizations, updates a host-owned self-model only after a clean promotion, and issues an exact one-shot capability lease for the selected safe action.
+
+```powershell
+npm run demo:sovereign
+npm run test:sovereign
+```
+
+The demo exports hash-linked DAS-style events and a MeTTa inspection snapshot under `.runtime/sovereign-demo/latest/`. Its NEAR Chain Signature adapter prepares an unsigned request envelope only; signing and broadcast remain external capabilities. See `docs/sovereign-agent-harness.md` for the authority model and build arc.
+
+## Testnet Economic Agent
+
+The economic-loop demo invokes the real sibling `tradelayer.js` BTC testnet4 VWAP planner in dry-run mode, evaluates a declared mock spread against Filecoin and Akash costs, prepares provider-neutral compute fallback state, and emits non-relayable chain-abstraction envelopes.
+
+```powershell
+npm run demo:testnet-agent
+npm run test:economic
+```
+
+Outputs are stored under `.runtime/testnet-agent/`. Projected profit remains separate from spendable treasury until transaction settlement is independently observed. Filecoin deal publication, Akash lease creation, NEAR signing, and TradeLayer broadcast remain external capabilities. See `docs/testnet-economic-agent.md` for the live-testnet arc.
+
+The next-stage two-process testnet loop is available through:
+
+```powershell
+npm run demo:live-testnet-agent
+npm run test:live
+```
+
+It emits an exact PSBT broker request, decodes confirmed tx5 pairs through the sibling TradeLayer decoder, requires separate address-level PnL evidence, and records balanced treasury postings. Live signing is intentionally a separate `broker:testnet` command. See `docs/live-testnet-runbook.md` before enabling `TL_TESTNET_SUBMIT`.
 
 ## Environment notes
 
