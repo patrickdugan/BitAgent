@@ -4,7 +4,7 @@ import { IntegrationBoundaryError } from "../types.js";
 
 export type NearChainSignaturePreparation = {
   status: "prepared" | "stub";
-  targetChain: "bitcoin" | "litecoin" | "ethereum" | "filecoin" | "akash";
+  targetChain: "bitcoin" | "litecoin" | "ethereum" | "solana" | "filecoin" | "akash";
   nearAccount?: string;
   derivationPath: string;
   payloadHash: string;
@@ -256,7 +256,7 @@ export class ChainsigBitcoinAdapter {
 
 export function prepareNearChainSignature(input: {
   lease: CapabilityLease;
-  targetChain: "bitcoin" | "litecoin" | "ethereum" | "filecoin" | "akash";
+  targetChain: "bitcoin" | "litecoin" | "ethereum" | "solana" | "filecoin" | "akash";
   derivationPath: string;
   payloadHash: string;
   nearAccount?: string;

@@ -26,6 +26,7 @@
     "demo:live-testnet-agent": "tsx scripts/demo-live-testnet-agent.ts",
     "demo:live-testnet-agent:simulated": "tsx scripts/demo-live-testnet-agent.ts --simulate-settlement",
     "prepare:local-testnet-tx": "tsx scripts/prepare-local-testnet-tx.ts",
+    "prepare:multichain-testnet": "tsx scripts/prepare-multichain-testnet-plans.ts",
     "hash:signal-codebase": "tsx scripts/hash-signal-codebase.ts",
     "demo:signals": "tsx scripts/demo-committed-signal.ts",
     "test:signals": "tsx --test test/committed-signal.test.ts",

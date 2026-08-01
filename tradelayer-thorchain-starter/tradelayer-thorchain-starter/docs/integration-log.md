@@ -131,6 +131,24 @@
 
 ## Resolved
 
+- 2026-08-01 multichain wallet authority now has two explicit browser
+  providers: Phantom first and MetaMask second. Phantom uses the official
+  injected Browser SDK for Ethereum and Solana; MetaMask uses one CAIP-25
+  multichain session. Only public Sepolia/devnet account metadata is persisted.
+- `chainsig.js` now has narrow TradeLayer-side adapters for Ethereum and
+  Solana in addition to Bitcoin. Local deterministic preparation produced a
+  valid EIP-1559 Sepolia envelope and a serialized Solana devnet native-transfer
+  envelope, both tied to NEAR testnet derivation paths, exact fees, expiry, and
+  simulation hashes. No signature or broadcast was requested.
+- The local Bitcoin testnet4 broker was exercised again on 2026-08-01. It
+  prepared a fresh unsigned tx5 PSBT against a confirmed taproot UTXO and
+  reported a 296 sat fee. The result stopped at `awaiting_wallet_approval`;
+  signing and broadcasting remained false.
+- The browser dependency pass upgraded Next.js to the current 16.2.12 release
+  and pins patched Axios 1.19.0 and ws 8.21.1 overrides. This reduced the new
+  wallet surface's production audit from 11 high findings to 3; no critical
+  advisory remains.
+
 - 2026-07-29 local Bitcoin testnet4 preflight found an existing synchronized
   `utxoref-testnet` descriptor wallet with confirmed test funds. The live CLI
   broker and receipt observer now accept explicit `BTCTEST_RPC_CONNECT` and
@@ -181,6 +199,20 @@
 
 ## Unresolved
 
+- The browser connector is not yet a live NEAR 1Click deposit builder. A
+  trusted host still needs to turn the current quote's asset/deposit fields
+  into an independently simulated native or token transfer before the typed
+  Phantom/MetaMask execution methods may run.
+- Phantom and MetaMask extension prompts cannot be automated in headless tests.
+  Local tests cover emitted browser bundles, CAIP session persistence,
+  secret-field rejection, exact-plan hashing, and provider/account mismatch;
+  extension interaction remains a manual localhost test.
+- The current npm registry audit still reports three high findings through the
+  latest Next.js 16.2.12 (`next`, bundled `postcss`, and `sharp`) with no safe
+  current-version fix, plus moderate no-fix findings in the official wallet and
+  Solana dependency trees. This is a production deployment blocker even though
+  the local testnet build and tests pass.
+
 - `tradelayer.js` does not currently expose a dedicated inbound absorb transaction builder; tx11 grant-managed is a provisional bridge seam.
 - The tx11 build-only adapter currently emits payload bytes, not a fully funded/signed TradeLayer transaction. Its `tlTxHex` name is provisional.
 - Live THORChain egress detection still needs either a chain indexer or a vetted THORChain tx-status lookup path.
@@ -194,8 +226,9 @@
   TradeLayer transaction still requires a fresh exact PSBT simulation and
   explicit approval before the wallet broker may sign or broadcast. Akash,
   Filecoin, and NEAR live credentials remain unavailable.
-- No wallet-owned origin-chain broker or 1Click production JWT is configured.
-  Live executable NEAR deposits therefore remain fail-closed.
+- No production 1Click JWT or live quote-to-origin-transaction simulator is
+  configured. Live executable NEAR deposits therefore remain fail-closed even
+  when a public origin-wallet session is connected.
 - `chainsig.js@1.1.16` works as a runtime package, but its public declarations
   pull unrelated chain types with strict-check failures. BitAgent isolates it
   behind a narrow local runtime interface rather than enabling project-wide
@@ -216,7 +249,9 @@
 
 - `egress_not_found` path can be bypassed in demo mode by providing observed destination tx details explicitly.
 - TradeLayer absorb submission falls back to payload build-only mode when wallet/RPC credentials are missing.
-- Phantom/TLWeb integration is emitted as a typed signing intent plus procedural template metadata.
+- The older Phantom/TLWeb intent remains a compatibility payload. New browser
+  authority uses official Phantom and MetaMask libraries behind typed
+  Ethereum/Solana plans; neither path grants the model generic wallet RPC.
 - Financial survival output is a deterministic unsigned `SpendIntent` and `PolicyDecision`; signature and broadcast remain explicit external capabilities.
 - Sovereign harness capability leases are process-local, one-shot test/demo records. Durable lease storage and transactional claim/consume belong in an IronClaw-style host service.
 - The MeTTa snapshot and DAS-compatible atom events are export formats for the vertical slice; live MeTTa inference and remote DAS persistence remain adapters.

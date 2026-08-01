@@ -1,5 +1,5 @@
-export type SourceChain = "ethereum" | "base" | "arbitrum" | "optimism";
-export type SourceAsset = "ETH" | "USDC";
+export type SourceChain = "ethereum" | "base" | "arbitrum" | "optimism" | "solana";
+export type SourceAsset = "ETH" | "SOL" | "USDC";
 export type DestinationChain = "bitcoin" | "litecoin";
 export type CrossChainRail = "near_intents" | "thorchain";
 

@@ -17,7 +17,9 @@ Bitcoin withdrawal path.
 | --- | --- | --- |
 | Swap liquidity and routing | `@defuse-protocol/one-click-sdk-typescript` | Live token list, exact quote, deposit address/memo, deposit tx registration, status, refund, destination txids |
 | Direct intent construction | `@defuse-protocol/intents-sdk` | Not needed for the first 1Click vertical slice |
-| Native cross-chain account control | `chainsig.js` | Derive NEAR-controlled Bitcoin accounts, build PSBTs, request wallet-approved MPC signatures, finalize/relay |
+| Native cross-chain account control | `chainsig.js` | Derive NEAR-controlled Bitcoin, Ethereum, and Solana accounts; prepare exact unsigned transactions; request wallet-approved MPC signatures; finalize/relay |
+| Phantom browser authority | `@phantom/browser-sdk` | Injected wallet only; public Ethereum/Solana accounts; Sepolia/devnet switching; exact-plan submission |
+| MetaMask browser authority | `@metamask/connect-multichain` | CAIP-25 session for Sepolia and Solana devnet; exact typed method submission |
 | Asset transfer without a swap | `@omni-bridge/*` | Deliberately not used as a swap router |
 
 ## State-changing sequence
@@ -47,17 +49,41 @@ must be replaced.
   use the non-routable `scripted://` scheme and must never receive funds.
 - `NEAR_INTENTS_MODE=live` calls the official 1Click API.
 - A live executable quote requires `NEAR_INTENTS_JWT`.
-- Live deposits remain fail-closed until an authenticated wallet-owned broker
-  implements `OriginWalletBroker`. The core process never receives a key.
+- The browser surface can persist a public Phantom or MetaMask multichain
+  session. Live deposits remain fail-closed until an executable 1Click quote is
+  converted into a chain-specific transaction simulation by a trusted host.
+  Merely connecting a wallet never authorizes a deposit.
 - `CROSS_CHAIN_RAIL=thorchain` enables the older quote path for compatibility.
+
+## Wallet authority matrix
+
+| Provider | Ethereum | Solana | Mode | Constraint |
+| --- | --- | --- | --- | --- |
+| Phantom | Sepolia | Devnet | Injected extension | No embedded EVM and no auto-confirm |
+| MetaMask | Sepolia | Devnet | Multichain CAIP session | Only `eth_sendTransaction` or Solana `signAndSendTransaction` for an exact approved plan |
+| NEAR Chain Signatures | Sepolia | Devnet | `v1.signer-prod.testnet` | A NEAR wallet approves the MPC contract action; BitAgent never holds its key |
+
+The direct-wallet and NEAR-controlled account paths are different custody
+paths. A Phantom or MetaMask account is not silently treated as a NEAR account,
+and a NEAR-derived Ethereum/Solana address is not silently replaced by a
+connected origin-wallet address.
+
+The browser connector exposes no generic `request()` or `invokeMethod()` handle
+to the model. It accepts only a typed `DirectWalletActionPlan`; the provider,
+network, source account, destination, value, serialized bytes, fee ceiling,
+expiry, and simulation hash must still match at execution time. Solana native
+transfer bytes are decoded again immediately before the wallet prompt.
 
 ## Chain Signatures
 
-`ChainsigBitcoinAdapter` uses the current `chainsig.js` contract API. The MPC
+`ChainsigBitcoinAdapter`, `ChainsigEvmAdapter`, and
+`ChainsigSolanaAdapter` use the current `chainsig.js` contract API. The MPC
 contract request accepts a public `accountId` and a wallet-provided
 `signAndSendTransactions` callback. BitAgent refuses secret-bearing fields,
-prepares the exact PSBT and fee first, requires explicit approval, checks
-expiry and account identity, then optionally broadcasts.
+prepares the exact PSBT or transaction and fee first, requires explicit
+approval, checks the simulation hash, expiry, and account identity, then
+optionally broadcasts. EVM uses ECDSA; Solana uses the signer contract's
+Ed25519 domain.
 
 The `chainsig.js` 1.1.16 declaration bundle currently fails strict checking
 because unrelated Cosmos/Aptos/Sui declarations are inconsistent or have
@@ -69,8 +95,15 @@ interface instead of disabling TypeScript checks for the project.
 ```powershell
 npm run demo:near
 npm run test:near
+npm run prepare:multichain-testnet
 npx tsc --noEmit
 ```
 
 The demo persists to `.runtime/near-intents-workflows.json` and redacts the
 wallet approval token from public output.
+
+`prepare:multichain-testnet` writes deterministic unsigned Sepolia and Solana
+devnet transaction plans to `.runtime/multichain-testnet-plans.json`. It uses
+local RPC fixtures so it is reproducible; fees, nonce, quote, and blockhash must
+be refreshed from live RPCs before approval. The artifact explicitly records
+that no signature or broadcast was requested.

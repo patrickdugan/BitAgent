@@ -77,6 +77,7 @@ const chainNames: Record<SourceChain | DestinationChain, string> = {
   base: "base",
   arbitrum: "arb",
   optimism: "op",
+  solana: "sol",
   bitcoin: "btc",
   litecoin: "ltc"
 };

@@ -242,7 +242,10 @@ not part of this user journey.
 - Primary wallet runtime seam: `C:\projects\TLWallet\tradelayer-wallet\packages\wallet-fe\src\app\@core\services\bitvm-runtime.service.ts`
 - Server/API seam: `C:\projects\TLWallet\tradelayer-wallet\packages\wallet-server\src\routes\main.route.ts` and `packages\wallet-fe\src\app\@core\apis\main-api.service.ts`
 - Reusable state: `BitvmStatus`, its `BehaviorSubject`, local persistence, watchtower loop, pending-escrow caps, per-DLC caps, and sweep-window caps.
-- Provisional browser seam: the starter-local `TlWebPhantomIntent` remains useful for unsigned intent transport.
+- Browser origin-wallet seam: `web/app/wallets/phantom.ts` uses the official
+  Phantom Browser SDK and `web/app/wallets/metamask.ts` uses the official
+  MetaMask multichain client. Public sessions persist through the existing D1
+  workflow record. The older `TlWebPhantomIntent` remains compatibility-only.
 - Security constraint: the wallet server's current `sign-tx` and `sign-psbt` routes accept WIF material. The financial survival harness must not call these from an agent process. Signing belongs behind a separate policy broker/HSM/guardian boundary.
 
 ## DLC, Ark, And Relayer Hooks
@@ -279,7 +282,9 @@ not part of this user journey.
 ## Missing Or Provisional Pieces
 
 - Missing: explicit TradeLayer `absorb` builder for inbound UTXOs in `tradelayer.js`
-- Missing: local `tlweb` checkout or existing Phantom integration package
+- Missing: local `tlweb` checkout. The browser origin-wallet dependency itself
+  is no longer missing, but TLWeb/TradeLayer action encoding still needs a
+  source-of-truth package rather than a starter-local reconstruction.
 - Missing: a live NEAR Intents destination-txid to confirmed outpoint/vout
   observer in the starter repo
 - Missing: descriptor-aware watch-only Bitcoin wallet adapter and Bitcoin Core/BDK chain source
@@ -296,7 +301,9 @@ not part of this user journey.
 
 - Egress detection is stubbed through explicit observed env values when live chain indexing is unavailable.
 - TradeLayer intake uses tx11 grant-managed as the provisional absorb path until a dedicated inbound absorb builder is exposed upstream.
-- Phantom/TLWeb integration is exposed as a starter-local intent payload because there is no local `tlweb` package to import directly.
+- Phantom/TLWeb compatibility remains a starter-local intent payload because
+  there is no local `tlweb` package to import directly. This is separate from
+  the new Phantom/MetaMask origin-wallet connectors.
 - The financial survival slice emits unsigned, policy-evaluated intents only. It does not sign or broadcast value transfers.
 - Testnet trading uses the real sibling-repo planner in dry-run mode. Its profit is projected, never booked as settled treasury.
 - Filecoin and Akash integrations prepare bounded orders only; mock provider costs are planning inputs rather than invoices.

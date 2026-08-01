@@ -55,7 +55,7 @@ export type InfrastructurePlan = {
 
 export type ChainAbstractionEnvelope = {
   envelopeId: string;
-  targetChain: "bitcoin" | "litecoin" | "ethereum" | "filecoin" | "akash";
+  targetChain: "bitcoin" | "litecoin" | "ethereum" | "solana" | "filecoin" | "akash";
   actionType: string;
   payloadHash: string;
   relayable: false;

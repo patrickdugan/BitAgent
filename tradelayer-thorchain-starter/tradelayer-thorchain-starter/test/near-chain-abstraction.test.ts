@@ -4,6 +4,14 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ChainsigBitcoinAdapter } from "../src/adapters/nearChainSignatureAdapter.js";
+import { ChainsigEvmAdapter } from "../src/adapters/nearChainSignatureEvmAdapter.js";
+import { ChainsigSolanaAdapter } from "../src/adapters/nearChainSignatureSolanaAdapter.js";
+import {
+  assertExecutableWalletPlan,
+  buildEvmWalletPlan,
+  buildSolanaWalletPlan,
+  createPublicWalletSession
+} from "../src/multichain/planner.js";
 import {
   assertExecutableNearIntentsQuote,
   resolveNearIntentsAsset,
@@ -155,5 +163,156 @@ test("chain-signature adapter rejects secret-bearing inputs before SDK access", 
         privateKey: "prohibited"
       } as { nearAccount: string; derivationPath: string }),
     /Secret-bearing field/
+  );
+});
+
+test("Phantom and MetaMask sessions are public, typed, and network-bound", () => {
+  const connectedAt = "2026-07-23T12:00:00.000Z";
+  const phantom = createPublicWalletSession({
+    provider: "phantom",
+    connectedAt,
+    accounts: [{
+      environment: "ethereum",
+      network: "sepolia",
+      address: "0x1111111111111111111111111111111111111111",
+      caip2: "eip155:11155111"
+    }]
+  });
+  const metamask = createPublicWalletSession({
+    provider: "metamask",
+    connectedAt,
+    accounts: [{
+      environment: "solana",
+      network: "devnet",
+      address: "11111111111111111111111111111111",
+      caip2: "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
+    }]
+  });
+  assert.equal(phantom.accounts[0]?.caip10, "eip155:11155111:0x1111111111111111111111111111111111111111");
+  assert.equal(metamask.accounts[0]?.environment, "solana");
+  assert.throws(
+    () => createPublicWalletSession({ ...phantom, accounts: phantom.accounts, seedPhrase: "prohibited" } as never),
+    /Secret-bearing field/
+  );
+});
+
+test("EVM plans bind exact upper-bound fees, provider, account, and simulation hash", () => {
+  const expiresAt = new Date(Date.now() + 60_000).toISOString();
+  const session = createPublicWalletSession({
+    provider: "phantom",
+    connectedAt: now.toISOString(),
+    accounts: [{
+      environment: "ethereum",
+      network: "sepolia",
+      address: "0x1111111111111111111111111111111111111111",
+      caip2: "eip155:11155111"
+    }]
+  });
+  const plan = buildEvmWalletPlan({
+    provider: "phantom",
+    network: "sepolia",
+    action: "native_transfer",
+    from: session.accounts[0]!.address,
+    to: "0x2222222222222222222222222222222222222222",
+    valueWei: "1000000000000000",
+    gasLimit: "21000",
+    maxFeePerGasWei: "2000000000",
+    maxPriorityFeePerGasWei: "1000000000",
+    effects: [{ label: "Send ETH", amount: "0.001 ETH" }],
+    expiresAt
+  });
+  assert.equal(plan.maximumNetworkFeeWei, "42000000000000");
+  assert.doesNotThrow(() => assertExecutableWalletPlan(plan, session, now));
+  assert.throws(() => assertExecutableWalletPlan({ ...plan, valueWei: "2" }, session, now), /changed after simulation/);
+  assert.throws(
+    () => assertExecutableWalletPlan(plan, { ...session, provider: "metamask" }, now),
+    /provider does not match/
+  );
+});
+
+test("Solana plans reject stale approvals and malformed serialized transactions", () => {
+  const expiresAt = new Date(Date.now() + 60_000).toISOString();
+  const session = createPublicWalletSession({
+    provider: "metamask",
+    connectedAt: now.toISOString(),
+    accounts: [{
+      environment: "solana",
+      network: "devnet",
+      address: "11111111111111111111111111111111",
+      caip2: "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
+    }]
+  });
+  const plan = buildSolanaWalletPlan({
+    provider: "metamask",
+    network: "devnet",
+    from: session.accounts[0]!.address,
+    to: "SysvarRent111111111111111111111111111111111",
+    valueLamports: "1000000",
+    networkFeeLamports: "5000",
+    recentBlockhash: "11111111111111111111111111111111",
+    lastValidBlockHeight: 123,
+    serializedTransactionBase64: Buffer.from([1, 2, 3]).toString("base64"),
+    effects: [{ label: "Send SOL", amount: "0.001 SOL" }],
+    expiresAt
+  });
+  assert.doesNotThrow(() => assertExecutableWalletPlan(plan, session, now));
+  assert.throws(() => assertExecutableWalletPlan(plan, session, new Date(Date.parse(expiresAt) + 1)), /stale/);
+  assert.throws(
+    () => buildSolanaWalletPlan({ ...plan, serializedTransactionBase64: "not base64***" }),
+    /canonical base64/
+  );
+});
+
+test("chainsig.js prepares concrete offline Sepolia and Solana devnet transactions", async () => {
+  const expiresAt = new Date(Date.now() + 60_000).toISOString();
+  const evm = await new ChainsigEvmAdapter({
+    network: "sepolia",
+    nearNetwork: "testnet",
+    publicClient: {
+      estimateGas: async () => 21_000n,
+      estimateFeesPerGas: async () => ({ maxFeePerGas: 2_000_000_000n, maxPriorityFeePerGas: 1_000_000_000n }),
+      getTransactionCount: async () => 1,
+      getChainId: async () => 11_155_111
+    }
+  }).prepareTransfer({
+    nearAccount: "bitagent.testnet",
+    derivationPath: "bitagent/ethereum/0",
+    to: "0x1111111111111111111111111111111111111111",
+    valueWei: "1000000000000000",
+    expiresAt
+  });
+  assert.equal(evm.chainId, 11_155_111);
+  assert.equal(evm.maximumNetworkFeeWei, "42000000000000");
+  assert.match(evm.serializedTransaction, /^0x/);
+
+  const solana = await new ChainsigSolanaAdapter({
+    network: "devnet",
+    nearNetwork: "testnet",
+    solanaConnection: {
+      getLatestBlockhash: async () => ({ blockhash: "11111111111111111111111111111111", lastValidBlockHeight: 1 }),
+      getFeeForMessage: async () => ({ value: 5000 })
+    } as never
+  }).prepareTransfer({
+    nearAccount: "bitagent.testnet",
+    derivationPath: "bitagent/solana/0",
+    to: "11111111111111111111111111111111",
+    valueLamports: "1000000",
+    expiresAt
+  });
+  assert.equal(solana.networkFeeLamports, "5000");
+  assert.ok(Buffer.from(solana.serializedTransaction, "base64").length > 0);
+  await assert.rejects(
+    () => new ChainsigSolanaAdapter({
+      network: "devnet",
+      nearNetwork: "testnet",
+      solanaConnection: { getFeeForMessage: async () => ({ value: 5000 }) }
+    }).prepareTransfer({
+      nearAccount: "bitagent.testnet",
+      derivationPath: "bitagent/solana/0",
+      to: "11111111111111111111111111111111",
+      valueLamports: (BigInt(Number.MAX_SAFE_INTEGER) + 1n).toString(),
+      expiresAt
+    }),
+    /safe integer limit/
   );
 });
