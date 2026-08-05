@@ -131,6 +131,46 @@ keyless signing/broadcast, and independent order/position verification. The
 legacy algorithm folder is hashed as provenance only and is never executed by
 BitAgent.
 
+## Strategy Covenant update (2026-08-05)
+
+Decision: **ready for scripted candidate-only and shadow evaluation; not ready
+for delegated or funded execution**.
+
+Passed:
+
+- 38/38 focused and adversarial covenant cases;
+- 131/131 tests across covenant, launch, committed-signal, NEAR/multichain,
+  UTXO/TradeLayer smoke, sovereign, economic, and live-shadow suites;
+- 14/14 sanitized covenant failure traces and an eight-dimension deterministic
+  evaluator score of 1.0; no LLM judge was used;
+- Bonsai/Hermes candidate-only seed corpus regenerated at 97 rows with no raw
+  transcripts or detected secret values;
+- exact covenant hash and wallet-approval binding;
+- strategy weights totaling exactly 10,000 bps;
+- committed adapter, market, portfolio, oracle, channel, fee, and expiry
+  checks;
+- deterministic capital, order-size, net-delta, loss, drawdown, and leverage
+  projection;
+- exact manifest plus candidate recomputation;
+- effect-free, content-addressed replay receipt persistence;
+- corrupt stored evidence is not overwritten;
+- unsigned bridge into the existing committed-signal input schema;
+- four-mode local p50/p95/p99 benchmark with direct mode explicitly
+  ineligible and omitted signature/counterparty/settlement stages disclosed.
+- offline `chainsig.js` Sepolia/Solana preparation no longer waits on NEAR RPC
+  derivation retries; the focused 12-case suite passes in about 5.8 seconds.
+
+The candidate lane does not alter the earlier production decision. It has no
+live market source, funded channel, production covenant approval, channel
+signer, independent verifier implementation, counterparty, broadcast, fill,
+or settlement authority. Per-candidate wallet approval remains required.
+
+The Nigeria-first Operator Beta may recruit for supervised testnet research
+only. Public copy must describe the three currently supported launch intents,
+not the planned twelve-action backlog. The TradeLayer Maker Pilot remains
+shadow-only until the funded launch gates and local legal/compliance review
+pass.
+
 ## Exit criteria for funded launch
 
 Funded launch may proceed only after all seven blockers above are implemented

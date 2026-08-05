@@ -1,0 +1,59 @@
+{
+  "schema": "bitagent_strategy_covenant_benchmark_manifest_v1",
+  "manifestVersion": 1,
+  "frozenAt": "2026-08-05T00:00:00.000Z",
+  "claim": "Measure directional local-process latency overhead of deterministic allocation and verification modes without making a funded execution or network-latency claim.",
+  "primaryCandidate": "single_enclave",
+  "baseline": "direct_baseline",
+  "comparisonModes": [
+    "direct_baseline",
+    "single_enclave",
+    "sharded_verification",
+    "hybrid_fast_path"
+  ],
+  "independentUnit": "one complete local candidate construction and configured verifier path",
+  "defaultIterationsPerMode": 250,
+  "warmupIterationsPerMode": 50,
+  "heldoutStatus": "not_applicable_deterministic_microbenchmark",
+  "contaminationCheck": "not_applicable_no_model_or_training_data",
+  "timingStages": [
+    "proposal_validation",
+    "deterministic_allocation",
+    "policy_verification",
+    "asynchronous_audit_simulation",
+    "local_total"
+  ],
+  "unmeasuredStages": [
+    "TEE transition",
+    "channel signature",
+    "counterparty cosign",
+    "network transport",
+    "Bitcoin confirmation",
+    "TradeLayer state update"
+  ],
+  "deterministicHardChecks": [
+    "covenant and approval hash binding",
+    "proposal identity, adapter hash, expiry, and market-root binding",
+    "market and portfolio freshness",
+    "channel, oracle, action, capital, leverage, delta, loss, drawdown, order, slippage, and fee limits",
+    "candidate canonical recomputation",
+    "effect is none",
+    "signingPerformed is false",
+    "broadcastPerformed is false"
+  ],
+  "subjectiveDimensions": [],
+  "judges": [],
+  "decodingSettings": null,
+  "repetitions": "iterations estimate local timing distributions and do not increase independent task sample size",
+  "identityBlinding": "not_applicable",
+  "counterbalancing": "not_applicable",
+  "tieRule": "not_applicable",
+  "uncertaintyRule": "Report local-process-only reliability and do not extrapolate omitted stages.",
+  "escalationRule": "Any deterministic hard-check failure rejects the mode result regardless of latency.",
+  "effectThreshold": "No release threshold; p50, p95, and p99 are descriptive.",
+  "confidenceLevel": "not_declared_for_microbenchmark",
+  "reliabilityLimit": "One machine, one process, one verifier implementation, scripted state.",
+  "rowLevelLog": ".runtime/strategy-covenant/latency-benchmark.json",
+  "deterministicLog": "test/strategy-covenant.test.ts",
+  "operationalDecisionRule": "Continue candidate-only shadow testing. No mode becomes execution-eligible from this benchmark."
+}

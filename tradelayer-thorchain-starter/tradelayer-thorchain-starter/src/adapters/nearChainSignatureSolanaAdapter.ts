@@ -85,8 +85,22 @@ export class ChainsigSolanaAdapter {
       solanaConnection: SolanaConnection;
       contractId?: string;
       fallbackNearRpcUrls?: string[];
-    }
+    },
+    private readonly accountResolver?: (input: {
+      nearAccount: string;
+      derivationPath: string;
+    }) => Promise<{ address: string; publicKey: string }>
   ) {}
+
+  private async resolveAccount(solana: ChainsigSolana, input: { nearAccount: string; derivationPath: string }) {
+    const account = await (this.accountResolver
+      ? this.accountResolver(input)
+      : solana.deriveAddressAndPublicKey(input.nearAccount, input.derivationPath));
+    if (!addressPattern.test(account.address)) {
+      throw new IntegrationBoundaryError("near_chain_signature_error", "Derived Solana account is malformed");
+    }
+    return account;
+  }
 
   private async createAdapter() {
     const moduleName: string = "chainsig.js";
@@ -108,7 +122,7 @@ export class ChainsigSolanaAdapter {
       throw new IntegrationBoundaryError("near_chain_signature_error", "NEAR account and derivation path are required");
     }
     try {
-      return await (await this.createAdapter()).solana.deriveAddressAndPublicKey(input.nearAccount, input.derivationPath);
+      return await this.resolveAccount((await this.createAdapter()).solana, input);
     } catch (error) {
       throw new IntegrationBoundaryError("near_chain_signature_error", "Unable to derive the NEAR-controlled Solana account", cause(error));
     }
@@ -122,6 +136,9 @@ export class ChainsigSolanaAdapter {
     expiresAt: string;
   }): Promise<ChainsigSolanaTransferPlan> {
     rejectSecretBearingFields(input);
+    if (!input.nearAccount.trim() || !input.derivationPath.trim()) {
+      throw new IntegrationBoundaryError("near_chain_signature_error", "NEAR account and derivation path are required");
+    }
     if (!addressPattern.test(input.to)) {
       throw new IntegrationBoundaryError("near_chain_signature_error", "Malformed Solana destination address");
     }
@@ -136,7 +153,7 @@ export class ChainsigSolanaAdapter {
     }
     try {
       const { solana } = await this.createAdapter();
-      const account = await solana.deriveAddressAndPublicKey(input.nearAccount, input.derivationPath);
+      const account = await this.resolveAccount(solana, input);
       const prepared = await solana.prepareTransactionForSigning({
         from: account.address,
         to: input.to,

@@ -87,8 +87,22 @@ export class ChainsigEvmAdapter {
       publicClient: unknown;
       contractId?: string;
       fallbackNearRpcUrls?: string[];
-    }
+    },
+    private readonly accountResolver?: (input: {
+      nearAccount: string;
+      derivationPath: string;
+    }) => Promise<{ address: string; publicKey: string }>
   ) {}
+
+  private async resolveAccount(evm: ChainsigEvm, input: { nearAccount: string; derivationPath: string }) {
+    const account = await (this.accountResolver
+      ? this.accountResolver(input)
+      : evm.deriveAddressAndPublicKey(input.nearAccount, input.derivationPath));
+    if (!addressPattern.test(account.address)) {
+      throw new IntegrationBoundaryError("near_chain_signature_error", "Derived EVM account is malformed");
+    }
+    return account;
+  }
 
   private async createAdapter() {
     const moduleName: string = "chainsig.js";
@@ -110,7 +124,7 @@ export class ChainsigEvmAdapter {
       throw new IntegrationBoundaryError("near_chain_signature_error", "NEAR account and derivation path are required");
     }
     try {
-      return await (await this.createAdapter()).evm.deriveAddressAndPublicKey(input.nearAccount, input.derivationPath);
+      return await this.resolveAccount((await this.createAdapter()).evm, input);
     } catch (error) {
       throw new IntegrationBoundaryError("near_chain_signature_error", "Unable to derive the NEAR-controlled EVM account", cause(error));
     }
@@ -124,6 +138,9 @@ export class ChainsigEvmAdapter {
     expiresAt: string;
   }): Promise<ChainsigEvmTransferPlan> {
     rejectSecretBearingFields(input);
+    if (!input.nearAccount.trim() || !input.derivationPath.trim()) {
+      throw new IntegrationBoundaryError("near_chain_signature_error", "NEAR account and derivation path are required");
+    }
     if (!addressPattern.test(input.to)) {
       throw new IntegrationBoundaryError("near_chain_signature_error", "Malformed EVM destination address");
     }
@@ -135,7 +152,7 @@ export class ChainsigEvmAdapter {
     }
     try {
       const { evm } = await this.createAdapter();
-      const account = await evm.deriveAddressAndPublicKey(input.nearAccount, input.derivationPath);
+      const account = await this.resolveAccount(evm, input);
       const prepared = await evm.prepareTransactionForSigning({
         from: account.address as `0x${string}`,
         to: input.to as `0x${string}`,

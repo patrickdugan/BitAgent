@@ -256,3 +256,66 @@
 - Sovereign harness capability leases are process-local, one-shot test/demo records. Durable lease storage and transactional claim/consume belong in an IronClaw-style host service.
 - The MeTTa snapshot and DAS-compatible atom events are export formats for the vertical slice; live MeTTa inference and remote DAS persistence remain adapters.
 - Filecoin storage requests and Akash deployment orders are typed preparations. Submission adapters are deliberately absent until a capability broker can verify and sign exact provider transactions.
+
+## Strategy Covenant candidate lane - 2026-08-05
+
+### Resolved
+
+- Added a strict `bitagent_strategy_covenant_v1` contract binding the public
+  wallet account, tlUSD capital cap, channel allowlist, four weighted strategy
+  modules, adapter hashes, action classes, risk limits, oracle/counterparty
+  policies, runtime hashes, activation, expiry, and canonical covenant hash.
+- Wallet approval of the covenant is a separate typed object. It activates the
+  policy only; it does not pre-approve a future order.
+- Added deterministic weighted-target allocation, integer-satoshi conversion,
+  drift handling, capital/order caps, net-delta projection, and leverage,
+  daily-loss, and drawdown circuit breakers.
+- Every non-hold output includes an exact manifest and stops at
+  `nextAuthority: wallet_user`. Every candidate and decision receipt records
+  `effect: none`, `signingPerformed: false`, and `broadcastPerformed: false`.
+- Added a verifier that recomputes the candidate from the exact covenant,
+  approval, proposal set, market root, portfolio root, fee, and timestamp.
+- Added content-addressed local replay receipts. Existing corrupt evidence is
+  rejected and never overwritten.
+- Added an unsigned bridge draft into the existing committed-signal schema.
+  The draft binds the covenant, proposal, market, portfolio, candidate, and
+  verifier-attestation hashes, then stops at the approved signal producer.
+- Added 38 focused/adversarial cases. TypeScript and the complete focused suite
+  pass.
+- Repaired the existing offline chain-signature test timeout. The adapters now
+  accept an optional host-constructor public-account resolver, validate its
+  returned address, and otherwise retain the normal SDK derivation path. Tests
+  use known public derived accounts while `chainsig.js` still constructs the
+  EVM/Solana transactions; the 12-case suite fell from a stale failure after
+  about 95 seconds to a pass in about 5.8 seconds.
+- Added a frozen local benchmark manifest and four paths. At 250 measured plus
+  50 warm-up iterations per mode, local p99 total times were approximately
+  1.625 ms direct, 3.773 ms single verifier, 4.319 ms three-pass verification,
+  and 3.974 ms hybrid local audit. These are local-process directional values,
+  not execution latency.
+- Added the Nigeria-first Operator Beta runbook with separate retail and maker
+  programs, testnet missions, compensation rules, hard safety gates, legal
+  workstreams, and a Philippines second-cohort gate.
+- Added 14 sanitized covenant failure traces and a deterministic evaluation
+  report. All eight candidate-only safety dimensions score 1.0 with no LLM
+  judge. The Bonsai/Hermes seed export now contains 97 examples: 50 intent, 10
+  UTXO/TradeLayer specialist, 25 risk/approval guard, and 12 recovery rows.
+  Raw transcripts and secret values remain excluded. The covenant trace source
+  hash is `9e6ac260423f0c78a08fb8b27ba2643d89298d8b904bb5ef5f46ac9fcd4d53ec`.
+
+### Unresolved
+
+- The covenant demo uses a scripted opaque wallet approval. No production
+  wallet session cryptographically verifies covenant activation.
+- No live TradeLayer market/oracle/channel source feeds the allocator.
+- The committed-signal bridge is unsigned and its allocator codebase/producer
+  is not in a production allowlist.
+- There is no channel-key signer, TEE attestation, one-shot capability lease,
+  counterparty cosign, fill observer, or settlement path for covenant orders.
+- The three sharded verifier passes use one implementation and do not provide
+  independent compromise resistance.
+- T6 signature, T7 counterparty, and T8 TradeLayer update latency are
+  unmeasured.
+- The claimed August 27-29 Web3Lagos 2026 schedule could not be confirmed from
+  an accessible official organizer source and must not be advertised as
+  confirmed until the community lead obtains written verification.

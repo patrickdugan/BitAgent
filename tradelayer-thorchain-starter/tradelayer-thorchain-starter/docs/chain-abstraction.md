@@ -90,6 +90,14 @@ because unrelated Cosmos/Aptos/Sui declarations are inconsistent or have
 missing transitive types. The runtime SDK is isolated behind a narrow local
 interface instead of disabling TypeScript checks for the project.
 
+For deterministic tests, the EVM and Solana adapters accept an optional
+constructor-only public-account resolver. It is a host dependency, not a model
+tool, and its returned address is validated. Without that dependency,
+production keeps the normal `chainsig.js`/NEAR derivation path. Focused tests
+inject previously derived public testnet accounts so the official transaction
+builders are exercised without waiting on NEAR RPC retries or expiring an
+otherwise offline plan.
+
 ## Commands
 
 ```powershell

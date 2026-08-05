@@ -77,6 +77,24 @@ so funded execution is disabled until the exact digest and a wallet-owned
 broker are configured. See
 [docs/committed-signal-execution.md](docs/committed-signal-execution.md).
 
+## Strategy Covenant
+
+The Strategy Covenant layer combines several committed strategy-adapter
+targets under exact capital weights and deterministic risk limits. It produces
+only a candidate, exact transaction manifest, verifier attestation, replay
+receipt, and unsigned bridge draft for the existing committed-signal lane.
+It cannot sign or broadcast.
+
+```powershell
+npm run test:covenant
+npm run demo:covenant
+npm run bench:covenant -- --iterations=1000
+```
+
+See [docs/strategy-covenant.md](docs/strategy-covenant.md) for the authority
+model and [docs/operator-beta-launch.md](docs/operator-beta-launch.md) for the
+Nigeria-first supervised testnet launch plan.
+
 The default EVM-to-Bitcoin onboarding rail is now **NEAR Intents**, not
 THORChain. BitAgent uses:
 

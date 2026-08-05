@@ -264,7 +264,7 @@ test("Solana plans reject stale approvals and malformed serialized transactions"
 });
 
 test("chainsig.js prepares concrete offline Sepolia and Solana devnet transactions", async () => {
-  const expiresAt = new Date(Date.now() + 60_000).toISOString();
+  const expiresAt = new Date(Date.now() + 300_000).toISOString();
   const evm = await new ChainsigEvmAdapter({
     network: "sepolia",
     nearNetwork: "testnet",
@@ -274,7 +274,10 @@ test("chainsig.js prepares concrete offline Sepolia and Solana devnet transactio
       getTransactionCount: async () => 1,
       getChainId: async () => 11_155_111
     }
-  }).prepareTransfer({
+  }, async () => ({
+    address: "0x7d4B12c3baD3478F845077103868D16e609b19b7",
+    publicKey: "offline-test-derived-key"
+  })).prepareTransfer({
     nearAccount: "bitagent.testnet",
     derivationPath: "bitagent/ethereum/0",
     to: "0x1111111111111111111111111111111111111111",
@@ -292,7 +295,10 @@ test("chainsig.js prepares concrete offline Sepolia and Solana devnet transactio
       getLatestBlockhash: async () => ({ blockhash: "11111111111111111111111111111111", lastValidBlockHeight: 1 }),
       getFeeForMessage: async () => ({ value: 5000 })
     } as never
-  }).prepareTransfer({
+  }, async () => ({
+    address: "3akJJ5baGu5fzdes1Kdsf6spipMJSCd5RfMUtQjLpjZg",
+    publicKey: "offline-test-derived-key"
+  })).prepareTransfer({
     nearAccount: "bitagent.testnet",
     derivationPath: "bitagent/solana/0",
     to: "11111111111111111111111111111111",

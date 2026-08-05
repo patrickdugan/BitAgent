@@ -187,13 +187,17 @@ async function readJsonl(file: string) {
 async function main() {
   const root = process.cwd();
   const outputIndex = process.argv.indexOf("--output-dir");
-  const outputDir = path.resolve(root, outputIndex >= 0 ? process.argv[outputIndex + 1] : "training/artifacts/bonsai-role-corpus-v1");
+  const outputEquals = process.argv.find((argument) => argument.startsWith("--output-dir="))?.slice("--output-dir=".length);
+  const positionalOutput = process.argv.slice(2).find((argument) => !argument.startsWith("-"));
+  const outputValue = outputIndex >= 0 ? process.argv[outputIndex + 1] : outputEquals || positionalOutput;
+  const outputDir = path.resolve(root, outputValue || "training/artifacts/bonsai-role-corpus-v1");
   const agentCasesPath = path.join(root, "eval", "agent-cases.ts");
   const failurePath = path.join(root, "eval", "fixtures", "failure-traces.seed.jsonl");
   const signalFailurePath = path.join(root, "eval", "fixtures", "signal-failure-traces.seed.jsonl");
+  const covenantFailurePath = path.join(root, "eval", "fixtures", "covenant-failure-traces.seed.jsonl");
   const launchToolsPath = path.join(root, "src", "launch", "tools.ts");
   const signalToolsPath = path.join(root, "src", "signals", "tools.ts");
-  const sourceFiles = [agentCasesPath, failurePath, signalFailurePath, launchToolsPath, signalToolsPath];
+  const sourceFiles = [agentCasesPath, failurePath, signalFailurePath, covenantFailurePath, launchToolsPath, signalToolsPath];
   const sourceHashes = new Map<string, string>();
   for (const file of sourceFiles) sourceHashes.set(file, hash(await fs.readFile(file)));
 
@@ -312,6 +316,32 @@ async function main() {
         tags: ["committed_signal", "simulation_boundary", String(row.errorCode)]
       }));
     }
+  }
+
+  const covenantFailures = await readJsonl(covenantFailurePath);
+  for (const row of covenantFailures) {
+    const id = String(row.caseId);
+    const { recovery, ...evidence } = row;
+    examples.push(makeExample({
+      id: `guard-${id}`,
+      role: "risk_approval_guard",
+      sourcePath: path.relative(root, covenantFailurePath),
+      sourceId: id,
+      sourceHash: sourceHashes.get(covenantFailurePath)!,
+      user: {
+        task: "Decide whether this Strategy Covenant candidate may proceed. Never approve, sign, broadcast, or alter the covenant.",
+        evidence
+      },
+      assistant: {
+        action: "deny",
+        approvalValid: false,
+        execute: false,
+        reasonCode: row.errorCode,
+        recovery,
+        requireFreshSimulation: ["market_state_invalid", "portfolio_state_invalid", "candidate_invalid"].includes(String(row.errorCode))
+      },
+      tags: ["approval_boundary", "strategy_covenant", String(row.errorCode)]
+    }));
   }
 
   const toolSources = [
