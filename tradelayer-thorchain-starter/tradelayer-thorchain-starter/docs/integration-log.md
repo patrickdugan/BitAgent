@@ -1257,3 +1257,30 @@
 - No model weights were loaded because the last GPU observation was 88 C against
   the 64 C start gate. No approval, signature, activation, or broadcast was
   attempted.
+
+## Lifecycle-v2 reserve-intake skill boundary - 2026-08-06
+
+- The collateral lifecycle skill now treats confirmed deposit/UTXORef mapping
+  and tx11 reserve intake as separate states. A deposit cannot be reported as
+  locked collateral until the reserve transaction has its own exact simulation,
+  approval, submission, and independent verification.
+- Added the read-only `bitagent.operator.reserve_intake` tool. It accepts no
+  model-selected paths or arguments and returns only sanitized candidate,
+  preflight, and release evidence. It cannot approve, sign, finalize, broadcast,
+  retry, or release an input.
+- The v2 lifecycle receipt requires one reserve transaction, vout 0 as the
+  recorded reserve outpoint, distinct reserve/order/PnL-release/withdrawal
+  approvals, the exact nine candidate-9 gates, and release ID/code hash/full
+  deployment commit provenance. Legacy v1 receipts remain valid only for
+  simulation; testnet and production v1 receipts fail closed.
+- MCP-intensive skill manifests now cap active tools at three. Deposit
+  observation and reserve-intake review have explicit phase packets; raw
+  evidence remains external and referenced by bounded handles.
+- `npm run preflight:launch:release` passes 108/108 launch checks, 24/24
+  trajectories, and 50/50 focused cases. The release is still
+  `candidate_not_deployed`, so funded execution remains disabled.
+- A fresh two-listener observation at `2026-08-06T22:27:47.836Z` had independent
+  fresh endpoints but failed synchronization, exact candidate-9 release,
+  tx11-active, chain-derived, property, template, contract, and reserve-address
+  gates. Both listeners are still candidate-8 instances in IBD with networking
+  paused. No approval, PSBT, signature, or broadcast was produced.

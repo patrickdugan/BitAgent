@@ -11,6 +11,10 @@ import {
   readReserveOperatorEvidence,
   type ReserveOperatorEvidencePaths
 } from "./operatorEvidence.js";
+import {
+  ReserveOperatorToolRegistry,
+  reserveOperatorToolSchemas
+} from "./operatorTools.js";
 import { launchToolSchemas, LaunchToolRegistry } from "./tools.js";
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -72,13 +76,15 @@ export function createBitAgentServer(options: {
   const uiDir = options.uiDir || defaultUiDir;
   const evidencePaths = options.reserveOperatorEvidencePaths
     || defaultReserveOperatorEvidencePaths(path.resolve(moduleDir, "..", ".."));
+  const operatorTools = new ReserveOperatorToolRegistry(evidencePaths);
+  const publicToolSchemas = { ...launchToolSchemas, ...reserveOperatorToolSchemas };
 
   return http.createServer(async (request, response) => {
     if (request.method === "OPTIONS") return json(response, 204, {});
     const url = new URL(request.url || "/", "http://localhost");
     try {
       if (request.method === "GET" && url.pathname === "/api/tools") {
-        return json(response, 200, { tools: launchToolSchemas });
+        return json(response, 200, { tools: publicToolSchemas });
       }
       if (request.method === "GET" && url.pathname === "/api/operator/reserve-intake") {
         return json(response, 200, { data: await readReserveOperatorEvidence(evidencePaths) });
@@ -108,6 +114,9 @@ export function createBitAgentServer(options: {
       if (request.method === "POST" && toolMatch) {
         const body = await readBody(request);
         const name = decodeURIComponent(toolMatch[1]);
+        if (name in reserveOperatorToolSchemas) {
+          return json(response, 200, { result: await operatorTools.call(name, body) });
+        }
         const workflowId = String(body.workflowId || "");
         try {
           const result = await tools.call(name, body);

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import test from "node:test";
 import type { AddressInfo } from "node:net";
 import { ScriptedWalletBroker } from "../src/launch/broker.js";
@@ -6,7 +7,15 @@ import { createTestLaunchKernel } from "../src/launch/factory.js";
 import { createBitAgentServer } from "../src/launch/server.js";
 
 test("HTTP launch surface exposes typed tools, referral workflow state, and the non-secret UI", async () => {
-  const server = createBitAgentServer({ kernel: createTestLaunchKernel() });
+  const missingEvidenceRoot = path.join(process.cwd(), "test", "fixtures", "missing-operator-evidence");
+  const server = createBitAgentServer({
+    kernel: createTestLaunchKernel(),
+    reserveOperatorEvidencePaths: {
+      candidatePath: path.join(missingEvidenceRoot, "candidate.json"),
+      preflightPath: path.join(missingEvidenceRoot, "preflight.json"),
+      releasePath: path.join(missingEvidenceRoot, "release.json")
+    }
+  });
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", resolve);
@@ -25,9 +34,35 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
     const tools = await fetch(`${origin}/api/tools`);
     assert.equal(tools.status, 200);
     const toolResult = await tools.json() as { tools: Record<string, unknown> };
-    assert.equal(Object.keys(toolResult.tools).length, 10);
+    assert.equal(Object.keys(toolResult.tools).length, 11);
     assert.ok(toolResult.tools["bitagent.wallet.request_approval"]);
     assert.ok(toolResult.tools["bitagent.action.execute"]);
+    assert.ok(toolResult.tools["bitagent.operator.reserve_intake"]);
+
+    const reserveEvidence = await fetch(
+      `${origin}/api/tools/${encodeURIComponent("bitagent.operator.reserve_intake")}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}"
+      }
+    );
+    assert.equal(reserveEvidence.status, 200);
+    const reserveResult = await reserveEvidence.json() as {
+      result: { safetyBoundary: string; approvalAvailable: boolean };
+    };
+    assert.equal(reserveResult.result.safetyBoundary, "read_only_no_sign_or_broadcast");
+    assert.equal(reserveResult.result.approvalAvailable, false);
+
+    const reserveWithModelPath = await fetch(
+      `${origin}/api/tools/${encodeURIComponent("bitagent.operator.reserve_intake")}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ workflowId: "model-must-not-select-evidence" })
+      }
+    );
+    assert.equal(reserveWithModelPath.status, 400);
 
     const referralLink =
       `${origin}/?ref=alice&campaign=launch&workflow=starter_strategy&strategy=starter-v1`;

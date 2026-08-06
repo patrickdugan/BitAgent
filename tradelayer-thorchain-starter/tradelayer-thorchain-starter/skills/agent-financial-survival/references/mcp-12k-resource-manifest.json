@@ -11,7 +11,7 @@
     "outputReserveTokens": 1024,
     "safetyMarginTokens": 1076,
     "targetActiveTools": 3,
-    "maxActiveTools": 5,
+    "maxActiveTools": 3,
     "maxToolRounds": 3,
     "maxToolCalls": 6,
     "rawResultsInline": false,

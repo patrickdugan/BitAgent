@@ -18,6 +18,11 @@ into the skill.
   - `bitagent.workflow.get`
 - Deposit adapter:
   `src/launch/utxoTool.ts`
+- Read-only reserve operator tool:
+  `src/launch/operatorTools.ts`
+  - `bitagent.operator.reserve_intake`
+  - accepts no model arguments;
+  - returns only sanitized candidate, nine-gate preflight, and release evidence.
 - Wallet authority protocol:
   `src/launch/remoteWalletProtocol.ts`
   - public wallet snapshot and exact-candidate contracts
@@ -35,6 +40,12 @@ positive-proof reconciliation. Execution is disabled by default. Production
 remains unavailable; the current executor is hard-limited to testnet4 and must
 never pass WIF, mnemonic, raw PSBT, grant, signature, or signed transaction
 material through BitAgent.
+
+The current tx11 release is candidate 9 at deployment commit
+`f502236e3e2b8c601c2e8576bb0bcf23b2680892`. Local database activation seeds
+and legacy activation rows are explicitly non-chain-derived. The release is
+still `candidate_not_deployed`, so a complete testnet lifecycle receipt must
+fail closed before reserve execution.
 
 Wallet sources of truth:
 

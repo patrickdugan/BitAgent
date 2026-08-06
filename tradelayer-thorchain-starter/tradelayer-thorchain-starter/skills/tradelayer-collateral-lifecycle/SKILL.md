@@ -10,8 +10,8 @@ description: "Run, resume, or audit BitAgent's bounded Bitcoin-to-TradeLayer lif
 Complete or audit one evidence-linked lifecycle without giving the model custody:
 
 ```text
-wallet -> Bitcoin deposit -> confirmed UTXORef -> committed signal
-  -> TradeLayer simulation -> wallet approval -> order verification
+wallet -> Bitcoin deposit -> confirmed UTXORef -> approved tx11 reserve intake
+  -> committed signal -> TradeLayer simulation -> wallet approval -> order verification
   -> PnL settlement -> PnL release -> Bitcoin withdrawal
 ```
 
@@ -91,7 +91,36 @@ Persist the exact outpoint and funding root.
 An unconfirmed, reorged, malformed, already-reserved, or wallet-mismatched
 outpoint is not collateral.
 
-### 4. Verify the algorithmic signal
+### 4. Map collateral and complete reserve intake
+
+Treat the deposit UTXORef mapping and the tx11 reserve transaction as distinct
+events. Mapping proves the observed deposit; it does not lock Bitcoin into the
+TradeLayer reserve.
+
+Build the exact `bitagent_reserve_intake_plan_v1`, then let the wallet build a
+public `bitagent_wallet_reserve_intake_candidate_v1` while retaining the raw
+PSBT. Display the selected input, P2TR reserve at vout 0, tx11 payload at vout
+1, wallet change at vout 2, exact miner fee, plan/binding hashes, and expiry.
+
+Before approval, `bitagent.operator.reserve_intake` may read only sanitized
+candidate, preflight, and release evidence. Require all nine gates:
+
+- independent listeners and fresh snapshots;
+- tx11 active and chain-derived from an indexed Bitcoin transaction;
+- exact tx11 code hash and intended tlBTC property;
+- template, contract, and reserve-redeem-address parity.
+
+Testnet or production execution also requires the exact release status
+`deployed` and its deployment commit. A local database activation seed,
+`legacy_unknown` provenance, an allowlisted historical commit, or
+`candidate_not_deployed` status cannot authorize reserve intake.
+
+Apply a separate explain/simulate/display/approval/execute/verify sequence.
+After independent verification, persist the intake txid, reserve outpoint
+`txid:0`, plan hash, binding hash, release ID/code hash/deployment commit, and
+preflight evidence hash. Do not reuse this approval for the tx5 order.
+
+### 5. Verify the algorithmic signal
 
 Accept only the narrow `bitagent_tradelayer_signal_v1` contract:
 
@@ -106,10 +135,12 @@ Accept only the narrow `bitagent_tradelayer_signal_v1` contract:
 Recompute the codebase commitment at execution time. Never import or execute
 the legacy algorithm code inside BitAgent.
 
-### 5. Bind collateral and simulate
+### 6. Bind verified reserve collateral and simulate the order
 
 Require the signal workflow's selected UTXO funding root to match the confirmed
-deposit funding root for the single-deposit starter flow.
+deposit funding root for the single-deposit starter flow. Also require the
+verified reserve outpoint and locked amount to match the independently observed
+strategy-funding evidence before constructing the tx5 order.
 
 Build the TradeLayer tx5 payload through the local encoder. Display:
 
@@ -125,7 +156,7 @@ Build the TradeLayer tx5 payload through the local encoder. Display:
 
 Do not treat a funding-root match as a signature or authorization.
 
-### 6. Request approval, execute, and verify the order
+### 7. Request approval, execute, and verify the order
 
 Follow this sequence exactly:
 
@@ -151,7 +182,7 @@ model may only propose reading the persisted workflow. Once it is `submitted`,
 it may propose independent verification. Absence from one observer is not
 positive proof of failure and does not authorize retry or input release.
 
-### 7. Settle PnL
+### 8. Settle PnL
 
 Capture authoritative TradeLayer balances before and after the complete
 trade/close sequence. Require every settlement transaction to be confirmed and
@@ -170,7 +201,7 @@ Continue only when:
 Projected, unrealized, open-order, self-priced, or unconfirmed PnL cannot be
 withdrawn.
 
-### 8. Release PnL into spendable Bitcoin
+### 9. Release PnL into spendable Bitcoin
 
 Require a wallet/TradeLayer-owned release operation that proves the settled
 PnL was converted or released into spendable Bitcoin controlled by the same
@@ -184,7 +215,7 @@ The current local checkout does not provide a production-safe PnL-release
 broker. In production mode, stop here with `pnl_release_unavailable` until that
 broker exists. A simulated release may be used only in simulated mode.
 
-### 9. Withdraw
+### 10. Withdraw
 
 Accept a normal Bitcoin destination address and an amount no greater than the
 verified released PnL balance. Simulate destination, amount, fee, change, and
@@ -202,9 +233,9 @@ enabled by an operator release, stays wallet-owned and testnet4-only.
 
 Never reuse the order approval or PnL-release approval for withdrawal.
 
-### 10. Seal the receipt
+### 11. Seal the receipt
 
-Emit `bitagent_tradelayer_collateral_lifecycle_v1`. Validate it with:
+Emit `bitagent_tradelayer_collateral_lifecycle_v2`. Validate it with:
 
 ```powershell
 node skills/tradelayer-collateral-lifecycle/scripts/validate-lifecycle-receipt.mjs <receipt.json>
@@ -239,6 +270,8 @@ Before declaring completion, require:
 
 - deposit confirmation and canonical UTXORef;
 - matching collateral funding root;
+- separately approved and verified reserve intake with all nine candidate-9
+  gates and exact deployed release provenance;
 - approved codebase and valid signal signature;
 - exact simulation and separate wallet approval;
 - independently verified order/position state;

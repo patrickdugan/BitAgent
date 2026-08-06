@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { launchToolSchemas } from "../src/launch/tools.js";
 import { committedSignalToolSchemas } from "../src/signals/tools.js";
 import { financialSurvivalToolSchemas } from "../src/survival/tools.js";
+import { reserveOperatorToolSchemas } from "../src/launch/operatorTools.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const skillsRoot = path.join(root, "skills");
@@ -91,7 +92,8 @@ test("lifecycle MCP packets expose only implemented candidate tools and known re
   const { value } = await loadManifest("tradelayer-collateral-lifecycle");
   const knownTools = new Set([
     ...Object.keys(launchToolSchemas),
-    ...Object.keys(committedSignalToolSchemas)
+    ...Object.keys(committedSignalToolSchemas),
+    ...Object.keys(reserveOperatorToolSchemas)
   ]);
   const resourceIds = new Set((value.resources || []).map((resource) => resource.id));
   for (const packet of value.phasePackets) {

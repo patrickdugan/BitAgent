@@ -13,7 +13,7 @@
     "externalSummaryMaxTokens": 6000,
     "summarySliceMaxTokens": 800,
     "targetActiveTools": 3,
-    "maxActiveTools": 5,
+    "maxActiveTools": 3,
     "maxToolRounds": 3,
     "maxToolCalls": 6,
     "maxResourceHandles": 5,
@@ -76,6 +76,18 @@
       "role": "intent_planner",
       "tools": ["bitagent.deposit.prepare", "bitagent.workflow.get"],
       "resources": ["lifecycle_contract", "workflow_state", "wallet_public_state"]
+    },
+    {
+      "phase": "deposit_observation",
+      "role": "intent_planner",
+      "tools": ["bitagent.deposit.observe", "bitagent.workflow.get"],
+      "resources": ["lifecycle_contract", "workflow_state", "raw_evidence"]
+    },
+    {
+      "phase": "reserve_intake_review",
+      "role": "risk_approval_guard",
+      "tools": ["bitagent.operator.reserve_intake", "bitagent.workflow.get"],
+      "resources": ["lifecycle_contract", "workflow_state", "wallet_public_state", "raw_evidence"]
     },
     {
       "phase": "signal",

@@ -7,17 +7,21 @@ Use the following monotonic stage order:
 1. `wallet_connected`
 2. `deposit_confirmed`
 3. `collateral_mapped`
-4. `signal_verified`
-5. `order_simulated`
-6. `order_approved`
-7. `order_submitted`
-8. `order_verified`
-9. `pnl_settled`
-10. `pnl_released`
-11. `withdrawal_simulated`
-12. `withdrawal_approved`
-13. `withdrawal_submitted`
-14. `withdrawal_verified`
+4. `reserve_simulated`
+5. `reserve_approved`
+6. `reserve_submitted`
+7. `reserve_verified`
+8. `signal_verified`
+9. `order_simulated`
+10. `order_approved`
+11. `order_submitted`
+12. `order_verified`
+13. `pnl_settled`
+14. `pnl_released`
+15. `withdrawal_simulated`
+16. `withdrawal_approved`
+17. `withdrawal_submitted`
+18. `withdrawal_verified`
 
 Persist cancellations, rejected signatures, stale simulations, pending
 verification, and recovery instructions without advancing the stage.
@@ -37,13 +41,14 @@ stage order:
 
 Emit one JSON object with:
 
-- `schema`: `bitagent_tradelayer_collateral_lifecycle_v1`
+- `schema`: `bitagent_tradelayer_collateral_lifecycle_v2`
 - `mode`: `simulated`, `testnet`, or `production`
 - `lifecycleId`
 - `network`
 - `walletSessionId`: opaque public reference
 - `deposit`
 - `collateral`
+- `reserveIntake`
 - `signal`
 - `order`
 - `pnl`
@@ -54,6 +59,11 @@ Validate the receipt with the bundled script. The checker enforces:
 
 - canonical hashes and integer strings;
 - confirmed deposit and matching funding roots;
+- one separately approved reserve-intake transaction whose vout 0 is the
+  recorded reserve outpoint;
+- a plan-hash-bound preflight with exactly nine passing candidate-9 gates;
+- exact tx11 release ID, code hash, and deployment commit, with `deployed`
+  required outside simulated mode;
 - verified signal provenance;
 - complete order approval/execution/verification gates;
 - closed or filled order state before PnL settlement;
@@ -66,7 +76,7 @@ Validate the receipt with the bundled script. The checker enforces:
 
 ## Gated action shape
 
-Use this shape for `order`, `pnlRelease`, and `withdrawal`:
+Use this shape for `reserveIntake`, `order`, `pnlRelease`, and `withdrawal`:
 
 ```json
 {
@@ -118,6 +128,7 @@ unconfirmed balance delta as settled PnL.
 Production completion requires non-scripted sources for:
 
 - deposit/UTXO observation;
+- reserve-intake verification and chain-derived tx11 activation;
 - order verification;
 - PnL settlement;
 - PnL release;

@@ -9,6 +9,17 @@ const POSITIVE_INTEGER = /^[1-9][0-9]*$/;
 const TXID = HEX_64;
 const FORBIDDEN_KEY = /(?:private.?key|seed.?phrase|mnemonic|(?:^|_)wif(?:$|_)|api.?key|secret)/i;
 const SCRIPTED_SOURCE = /(?:scripted|mock|simulation|dry.?run|fixture)/i;
+const REQUIRED_RESERVE_GATES = [
+  "independentNodeCount",
+  "freshSnapshots",
+  "tx11Active",
+  "tx11ChainDerived",
+  "tx11CodeHash",
+  "intendedTlBtcProperty",
+  "templateParity",
+  "contractParity",
+  "reserveRedeemAddress"
+];
 
 function fail(message) {
   throw new Error(message);
@@ -28,6 +39,11 @@ function text(value, label) {
 
 function hash(value, label) {
   if (!HEX_64.test(String(value || ""))) fail(`${label} must be 32-byte hex`);
+  return String(value).toLowerCase();
+}
+
+function commit(value, label) {
+  if (!/^[0-9a-f]{40}$/i.test(String(value || ""))) fail(`${label} must be a full Git commit`);
   return String(value).toLowerCase();
 }
 
@@ -96,13 +112,17 @@ function gatedAction(value, label, production) {
 function validate(receipt) {
   rejectSecretKeys(receipt);
   object(receipt, "receipt");
-  if (receipt.schema !== "bitagent_tradelayer_collateral_lifecycle_v1") {
+  if (!["bitagent_tradelayer_collateral_lifecycle_v1", "bitagent_tradelayer_collateral_lifecycle_v2"].includes(receipt.schema)) {
     fail("receipt.schema is unsupported");
   }
   if (!["simulated", "testnet", "production"].includes(receipt.mode)) {
     fail("receipt.mode must be simulated, testnet, or production");
   }
   const production = receipt.mode === "production";
+  const currentReceipt = receipt.schema === "bitagent_tradelayer_collateral_lifecycle_v2";
+  if (!currentReceipt && receipt.mode !== "simulated") {
+    fail("legacy v1 lifecycle receipts cannot prove testnet or production reserve intake");
+  }
   text(receipt.lifecycleId, "receipt.lifecycleId");
   if (!["bitcoin-testnet4", "bitcoin"].includes(receipt.network)) {
     fail("receipt.network must be bitcoin-testnet4 or bitcoin");
@@ -127,7 +147,50 @@ function validate(receipt) {
   if (hash(collateral.fundingRoot, "collateral.fundingRoot") !== utxoRef) {
     fail("collateral funding root must match the confirmed deposit UTXORef");
   }
-  positive(collateral.amountSats, "collateral.amountSats");
+  const collateralAmount = positive(collateral.amountSats, "collateral.amountSats");
+
+  let reserveResult = null;
+  if (currentReceipt) {
+    reserveResult = gatedAction(receipt.reserveIntake, "reserveIntake", production);
+    if (reserveResult.submittedTxids.length !== 1) {
+      fail("reserveIntake must submit exactly one Bitcoin transaction");
+    }
+    const reserveAmount = positive(receipt.reserveIntake.amountSats, "reserveIntake.amountSats");
+    if (reserveAmount > collateralAmount) fail("reserveIntake exceeds confirmed collateral");
+    const planHash = hash(receipt.reserveIntake.planHash, "reserveIntake.planHash");
+    hash(receipt.reserveIntake.bindingHash, "reserveIntake.bindingHash");
+    const reserveOutpoint = text(receipt.reserveIntake.reserveOutpoint, "reserveIntake.reserveOutpoint").toLowerCase();
+    if (reserveOutpoint !== `${reserveResult.submittedTxids[0]}:0`) {
+      fail("reserveIntake.reserveOutpoint must be vout 0 of the submitted transaction");
+    }
+
+    const preflight = object(receipt.reserveIntake.preflight, "reserveIntake.preflight");
+    if (preflight.schema !== "bitagent_tradelayer_reserve_preflight_v1"
+      || preflight.status !== "verified") {
+      fail("reserveIntake.preflight must be a verified reserve preflight");
+    }
+    if (hash(preflight.planHash, "reserveIntake.preflight.planHash") !== planHash) {
+      fail("reserveIntake.preflight must bind the exact reserve plan");
+    }
+    hash(preflight.evidenceHash, "reserveIntake.preflight.evidenceHash");
+    const gates = object(preflight.gates, "reserveIntake.preflight.gates");
+    const gateKeys = Object.keys(gates).sort();
+    if (JSON.stringify(gateKeys) !== JSON.stringify([...REQUIRED_RESERVE_GATES].sort())
+      || REQUIRED_RESERVE_GATES.some((gate) => gates[gate] !== true)) {
+      fail("reserveIntake.preflight must pass all nine exact candidate-9 gates");
+    }
+
+    const release = object(receipt.reserveIntake.release, "reserveIntake.release");
+    text(release.releaseId, "reserveIntake.release.releaseId");
+    hash(release.codeHash, "reserveIntake.release.codeHash");
+    commit(release.deploymentCommit, "reserveIntake.release.deploymentCommit");
+    if (receipt.mode !== "simulated" && release.status !== "deployed") {
+      fail("testnet or production reserve intake requires a deployed tx11 release");
+    }
+    if (receipt.mode === "simulated" && !["candidate_not_deployed", "deployed"].includes(release.status)) {
+      fail("simulated reserve intake has an invalid release status");
+    }
+  }
 
   const signal = object(receipt.signal, "signal");
   if (signal.status !== "verified") fail("signal.status must be verified");
@@ -167,12 +230,13 @@ function validate(receipt) {
   text(receipt.withdrawal.destinationAddress, "withdrawal.destinationAddress");
 
   const approvalIds = [
+    ...(currentReceipt ? [receipt.reserveIntake.approval.id] : []),
     receipt.order.approval.id,
     receipt.pnlRelease.approval.id,
     receipt.withdrawal.approval.id
   ];
   if (new Set(approvalIds).size !== approvalIds.length) {
-    fail("order, PnL release, and withdrawal require separate approvals");
+    fail("reserve intake, order, PnL release, and withdrawal require separate approvals");
   }
 
   return {
@@ -186,6 +250,7 @@ function validate(receipt) {
     withdrawnPnlSats: withdrawn.toString(),
     transactionCount: new Set([
       deposit.txid.toLowerCase(),
+      ...(reserveResult ? reserveResult.submittedTxids : []),
       ...orderResult.submittedTxids,
       ...releaseResult.submittedTxids,
       ...withdrawalResult.submittedTxids

@@ -4,6 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { readReserveOperatorEvidence } from "../src/launch/operatorEvidence.js";
+import {
+  ReserveOperatorToolRegistry,
+  reserveOperatorToolSchemas
+} from "../src/launch/operatorTools.js";
 
 async function fixture() {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "bitagent-evidence-"));
@@ -122,6 +126,24 @@ test("missing evidence remains unavailable without enabling approval", async () 
     assert.equal(evidence.approvalAvailable, false);
     assert.equal(evidence.candidate, null);
     assert.deepEqual(evidence.errors, ["candidate:missing", "preflight:missing", "release:missing"]);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("reserve operator tool exposes only sanitized read-only evidence with no model arguments", async () => {
+  const { dir, paths } = await fixture();
+  try {
+    assert.deepEqual(Object.keys(reserveOperatorToolSchemas), ["bitagent.operator.reserve_intake"]);
+    const registry = new ReserveOperatorToolRegistry(paths, () => new Date("2026-08-06T01:00:00.000Z"));
+    const evidence = await registry.call("bitagent.operator.reserve_intake", {});
+    assert.equal(evidence.approvalAvailable, false);
+    assert.equal(evidence.safetyBoundary, "read_only_no_sign_or_broadcast");
+    await assert.rejects(
+      registry.call("bitagent.operator.reserve_intake", { workflowId: "model-must-not-select-paths" }),
+      /accepts no model arguments/
+    );
+    await assert.rejects(registry.call("bitagent.operator.execute", {}), /Unknown operator tool/);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
