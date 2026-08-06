@@ -771,3 +771,23 @@
 - No live testnet transaction was signed or broadcast. The funded source UTXO
   remains outside this approval slice, and strategy approval remains blocked
   by the undeployed tx11 release and failed independent preflight.
+
+## Wallet-owned unsigned withdrawal candidate — 2026-08-06
+
+- Replaced the withdrawal's operator-fixed fee guess with a wallet-owned
+  Bitcoin Core `walletcreatefundedpsbt` candidate. The wallet retains the raw
+  unsigned PSBT and exports only its hash plus exact public inputs, destination,
+  change, decoded fee, fee rate, unsigned txid, workflow/session, and expiry.
+- BitAgent validates candidate hashes, address scripts, output positions,
+  ownership, amounts, fee arithmetic, network, and authority bindings before
+  hashing the candidate into the user-visible transaction simulation.
+- Candidate inputs are released on user rejection, stale simulation,
+  supersession, verifier failure, or the deliberately disabled execution path.
+  Public state includes only sanitized cancellation receipts.
+- Focused tests reject destination, change-owner, fee-cap, input-outpoint, hash,
+  workflow/session, and simulation mutations. The cross-repo HTTP test covers
+  durable reject, approve, HTTP 423 execution denial, and private PSBT cleanup.
+- Live Bitcoin Core 31.0 testnet4 evidence at height 147205: one 302443-sat P2TR
+  input, 50000-sat external destination, 252157-sat wallet change, and 286-sat
+  fee at configured 2 sat/vB. Cancellation released the lock; wallet balance
+  remained 317176 sats. No signature or broadcast was requested or produced.

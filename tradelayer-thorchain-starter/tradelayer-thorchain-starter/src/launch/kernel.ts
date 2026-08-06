@@ -1,4 +1,5 @@
 import { hashObject, opaqueId } from "./canonical.js";
+import { validateBitcoinAddress } from "./bitcoin.js";
 import { LaunchKernelError } from "./errors.js";
 import { parseReferralLink } from "./referral.js";
 import { assertVerifiedStrategyFunding } from "./strategyFunding.js";
@@ -270,15 +271,29 @@ export class BitAgentLaunchKernel {
     const state = await this.get(workflowId);
     this.assertWallet(state);
     const now = this.now();
+    const amountSats = String(input.amountSats || "").trim();
+    if (!/^[1-9][0-9]*$/.test(amountSats)) {
+      throw new LaunchKernelError("validation_error", "Withdrawal amount must be canonical positive satoshis");
+    }
+    if (BigInt(amountSats) >= BigInt(state.wallet.confirmedBalanceSats)) {
+      throw new LaunchKernelError("insufficient_funds", "Confirmed balance cannot cover withdrawal amount and fee");
+    }
+    const destinationAddress = validateBitcoinAddress(
+      input.destinationAddress,
+      state.wallet.network
+    ).address;
     const fee = await this.options.walletBroker.estimateFee({
       action: "withdraw_bitcoin",
-      amountSats: input.amountSats,
+      amountSats,
+      destinationAddress,
       state
     });
     const simulation = simulateBitcoinWithdrawal({
-      ...input,
+      amountSats,
+      destinationAddress,
       balanceSats: state.wallet.confirmedBalanceSats,
       networkFeeSats: fee.networkFeeSats,
+      walletCandidate: fee.candidate,
       network: state.wallet.network,
       now,
       ttlMs: this.simulationTtlMs
@@ -292,8 +307,11 @@ export class BitAgentLaunchKernel {
     this.event(state, "withdrawal.simulated", {
       simulationHash: simulation.hash,
       destinationAddress: simulation.destinationAddress,
-      amountSats: input.amountSats,
+      amountSats,
       feeSource: fee.source,
+      candidateId: simulation.walletCandidate?.candidateId,
+      candidateHash: simulation.walletCandidate?.candidateHash,
+      unsignedTxid: simulation.walletCandidate?.unsignedTxid,
       totalFeeSats: simulation.fees.totalFeeSats
     });
     await this.persist(state);

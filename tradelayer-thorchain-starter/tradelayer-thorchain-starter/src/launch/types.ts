@@ -120,6 +120,42 @@ export type StrategyFundingEvidence = {
   evidenceHash: string;
 };
 
+export type WalletWithdrawalCandidate = {
+  schema: "bitagent_wallet_withdrawal_candidate_v1";
+  candidateId: string;
+  candidateHash: string;
+  workflowId: string;
+  walletSessionId: string;
+  network: "bitcoin-testnet4";
+  preparedAt: string;
+  expiresAt: string;
+  unsignedTxid: string;
+  unsignedPsbtHash: string;
+  inputUtxos: Array<{
+    txid: string;
+    vout: number;
+    valueSats: string;
+    address: string;
+    scriptPubKeyHex: string;
+  }>;
+  destinationOutput: {
+    vout: 0;
+    address: string;
+    scriptPubKeyHex: string;
+    valueSats: string;
+  };
+  changeOutput: {
+    vout: 1;
+    address: string;
+    scriptPubKeyHex: string;
+    valueSats: string;
+  };
+  feeSats: string;
+  feeRateSatVb: number;
+  signingPerformed: false;
+  broadcastPerformed: false;
+};
+
 export type TransactionSimulation = {
   id: string;
   hash: string;
@@ -137,6 +173,7 @@ export type TransactionSimulation = {
   payload?: string;
   payloadHex?: string;
   destinationAddress?: string;
+  walletCandidate?: WalletWithdrawalCandidate;
   quote?: QuoteSnapshot;
   strategy?: StarterStrategyParameters;
   warnings: string[];
@@ -267,8 +304,13 @@ export interface WalletExecutionBroker {
   estimateFee(input: {
     action: TransactionSimulation["action"];
     amountSats: string;
+    destinationAddress?: string;
     state: BitAgentWorkflowState;
-  }): Promise<{ networkFeeSats: string; source: string }>;
+  }): Promise<{
+    networkFeeSats: string;
+    source: string;
+    candidate?: WalletWithdrawalCandidate;
+  }>;
   authorize(input: {
     approval: WalletApproval;
     simulation: TransactionSimulation;

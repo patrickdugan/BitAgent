@@ -19,6 +19,7 @@ import {
   boundedWalletText,
   canonicalWalletSats,
   validatedProviderBitcoinAddress,
+  validatedWithdrawalCandidate,
   walletIsoTime,
   walletRequestContext
 } from "./remoteWalletProtocol.js";
@@ -96,15 +97,36 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
   }
 
   async estimateFee(input: Parameters<WalletExecutionBroker["estimateFee"]>[0]) {
+    const context = walletRequestContext(input.state);
+    const amountSats = canonicalWalletSats(input.amountSats, "amountSats", "validation_error");
+    const destinationAddress = input.action === "withdraw_bitcoin"
+      ? validateBitcoinAddress(String(input.destinationAddress || ""), input.state.wallet.network).address
+      : undefined;
     const data = await this.http.call("/v1/wallet/fee-estimate", {
       schema: "bitagent_wallet_fee_estimate_v1",
-      ...walletRequestContext(input.state),
+      ...context,
       action: input.action,
-      amountSats: canonicalWalletSats(input.amountSats, "amountSats", "validation_error")
+      amountSats,
+      destinationAddress
     });
+    const networkFeeSats = canonicalWalletSats(data.networkFeeSats, "networkFeeSats");
+    const candidate = input.action === "withdraw_bitcoin"
+      ? validatedWithdrawalCandidate({
+        value: data.candidate,
+        ...context,
+        walletAddress: context.bitcoinAddress,
+        destinationAddress: destinationAddress!,
+        amountSats,
+        networkFeeSats
+      })
+      : undefined;
+    if (input.action === "starter_strategy" && data.candidate !== undefined) {
+      throw new LaunchKernelError("state_conflict", "Strategy fee response cannot contain a withdrawal candidate");
+    }
     return {
-      networkFeeSats: canonicalWalletSats(data.networkFeeSats, "networkFeeSats"),
-      source: boundedWalletText(data.source, "fee source")
+      networkFeeSats,
+      source: boundedWalletText(data.source, "fee source"),
+      candidate
     };
   }
 

@@ -558,9 +558,8 @@ Passed:
 
 Remaining:
 
-- replace the explicitly labeled operator-fixed testnet fee candidate with an
-  exact wallet-constructed transaction whose fee and change are rechecked
-  against the approved simulation;
+- retain the now-implemented unsigned withdrawal candidate while adding
+  execution only behind a separately reviewed, explicitly approved release;
 - implement atomic one-time grant consumption, wallet-owned signing,
   `testmempoolaccept`, idempotent broadcast receipts, and independent
   post-submit verification only after an explicit user-approved release;
@@ -569,3 +568,36 @@ Remaining:
   approval;
 - complete a fresh-browser interrupted-session drill against the packaged
   Electron process. No transaction was signed or broadcast in this slice.
+
+## Exact unsigned withdrawal candidate update (2026-08-06)
+
+Decision: **accept exact withdrawal construction, simulation binding, and
+cancellation; keep execution disabled**.
+
+Passed:
+
+- the wallet now builds the withdrawal with Bitcoin Core, decodes it, and
+  rechecks the exact wallet input, destination vout 0, wallet change vout 1,
+  fee cap, fee arithmetic, network, session, workflow, and expiry;
+- only the public candidate and unsigned-PSBT hash cross into BitAgent; the raw
+  unsigned PSBT remains in wallet-private durable state and is deleted after
+  cancellation;
+- BitAgent independently validates the public candidate and includes it in the
+  exact simulation hash presented for approval;
+- rejection, expiry, supersession, and disabled execution release the selected
+  input lock and persist a sanitized cancellation receipt;
+- a funded testnet4 run at height 147205 prepared a 50000-sat output from a
+  302443-sat P2TR input with 252157-sat change and a decoded 286-sat fee;
+- the live candidate was cancelled, `listlockunspent` was empty, confirmed
+  balance remained 317176 sats, and no signing or broadcast occurred;
+- 50/50 launch checks, seven remote/cross-repo wallet tests, wallet authority
+  and candidate verifier tests, and both TypeScript checks pass.
+
+Remaining:
+
+- `/v1/wallet/executions` still returns HTTP 423 and intentionally cannot sign
+  or broadcast;
+- atomic grant consumption, pre-broadcast policy checks, idempotent submission,
+  and independent confirmation remain required before any funded withdrawal;
+- starter-strategy funding is still blocked by the tx11 deployment and
+  independent reserve-preflight requirements.

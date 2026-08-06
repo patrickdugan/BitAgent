@@ -33,7 +33,7 @@ process.
 | --- | --- | --- |
 | `POST /v1/wallet/connect` | `bitagent_wallet_connect_v1` | Connected network, opaque session ID, public address, confirmed sats, all four capabilities, timestamp |
 | `POST /v1/wallet/deposit-address` | `bitagent_wallet_deposit_address_v1` | Wallet-owned address and its exact scriptPubKey |
-| `POST /v1/wallet/fee-estimate` | `bitagent_wallet_fee_estimate_v1` | Exact network fee in sats and public source label |
+| `POST /v1/wallet/fee-estimate` | `bitagent_wallet_fee_estimate_v1` | Strategy fee, or an exact sanitized unsigned Bitcoin withdrawal candidate with decoded fee/change |
 | `POST /v1/wallet/approvals` | `bitagent_wallet_approval_v1` | `pending` plus stable request ID, `rejected`, or `approved` plus an opaque one-time grant |
 | `POST /v1/wallet/executions` | `bitagent_wallet_execution_v1` | Exact action/simulation binding, full txid, public submission time, optional order ID |
 
@@ -43,6 +43,16 @@ same `walletApprovalRequestId` polls the same wallet prompt; it must not create
 a replacement transaction or silently change any effect. A resumed connection
 must return the requested wallet session, and every approval poll must echo the
 same wallet approval request ID; BitAgent rejects either identity changing.
+
+For `withdraw_bitcoin`, the fee request includes the normalized destination.
+The wallet selects and locks one confirmed input, calls Bitcoin Core
+`walletcreatefundedpsbt`, decodes the result, and verifies input ownership,
+destination at vout 0, positive wallet-owned change at vout 1, fee cap, and
+satoshi arithmetic. The response exposes the public input/output material,
+unsigned txid, and hash of the unsigned PSBT, but never the PSBT. BitAgent
+validates that public candidate and includes it in the simulation hash. Reject,
+expiry, supersession, or the currently disabled execution route cancels the
+candidate and verifies that its input lock was released.
 
 The execution request includes a deterministic `idempotencyKey`, the same
 simulation and identifiers, and the opaque approval grant. The wallet must
@@ -97,5 +107,5 @@ $env:BITAGENT_WALLET_BROKER_TIMEOUT_MS="10000"
 
 The conformance fixture in `test/remote-wallet-broker.test.ts` covers bearer
 authentication, pending-to-approved recovery, exact simulation binding,
-idempotency, secret-bearing response rejection, mismatched receipts, and the
-independent-verifier production gate.
+unsigned-candidate tampering, idempotency, secret-bearing response rejection,
+mismatched receipts, and the independent-verifier production gate.

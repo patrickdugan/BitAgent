@@ -3,18 +3,72 @@ import http from "node:http";
 import test from "node:test";
 import type { AddressInfo } from "node:net";
 import { encodeSegwitAddress, validateBitcoinAddress } from "../src/launch/bitcoin.js";
+import { hashObject } from "../src/launch/canonical.js";
 import { createLaunchKernel } from "../src/launch/factory.js";
 import { RemoteWalletExecutionBroker } from "../src/launch/remoteWalletBroker.js";
 import { simulateBitcoinWithdrawal } from "../src/launch/tradelayerTool.js";
 import type {
   BitAgentWorkflowState,
-  WalletApproval
+  WalletApproval,
+  WalletWithdrawalCandidate
 } from "../src/launch/types.js";
 
 const AUTH_TOKEN = "test-wallet-broker-token-12345";
 const ADDRESS = encodeSegwitAddress(Buffer.alloc(20, 29), "bitcoin-testnet4");
 const SCRIPT = validateBitcoinAddress(ADDRESS, "bitcoin-testnet4").scriptPubKeyHex;
+const DESTINATION = encodeSegwitAddress(Buffer.alloc(20, 30), "bitcoin-testnet4");
 const TXID = "ef".repeat(32);
+
+function withdrawalCandidate(input: {
+  workflowId?: string;
+  walletSessionId?: string;
+  amountSats?: string;
+  feeSats?: string;
+  destinationAddress?: string;
+} = {}): WalletWithdrawalCandidate {
+  const amountSats = input.amountSats || "50000";
+  const feeSats = input.feeSats || "600";
+  const destinationAddress = input.destinationAddress || DESTINATION;
+  const core = {
+    schema: "bitagent_wallet_withdrawal_candidate_v1" as const,
+    workflowId: input.workflowId || "remote-wallet-workflow",
+    walletSessionId: input.walletSessionId || "wallet_session_remote_001",
+    network: "bitcoin-testnet4" as const,
+    preparedAt: "2026-08-06T09:00:00.000Z",
+    expiresAt: "2026-08-06T09:05:00.000Z",
+    unsignedTxid: "cd".repeat(32),
+    unsignedPsbtHash: "12".repeat(32),
+    inputUtxos: [{
+      txid: "ab".repeat(32),
+      vout: 0,
+      valueSats: "250000",
+      address: ADDRESS,
+      scriptPubKeyHex: SCRIPT
+    }],
+    destinationOutput: {
+      vout: 0 as const,
+      address: destinationAddress,
+      scriptPubKeyHex: validateBitcoinAddress(destinationAddress, "bitcoin-testnet4").scriptPubKeyHex,
+      valueSats: amountSats
+    },
+    changeOutput: {
+      vout: 1 as const,
+      address: ADDRESS,
+      scriptPubKeyHex: SCRIPT,
+      valueSats: (250000n - BigInt(amountSats) - BigInt(feeSats)).toString()
+    },
+    feeSats,
+    feeRateSatVb: 2,
+    signingPerformed: false as const,
+    broadcastPerformed: false as const
+  };
+  const candidateHash = hashObject(core);
+  return {
+    candidateId: `withdrawal_candidate_${candidateHash.slice(0, 32)}`,
+    candidateHash,
+    ...core
+  };
+}
 
 async function listen(handler: (input: {
   path: string;
@@ -95,7 +149,8 @@ test("remote wallet broker binds authenticated pending approval and execution to
     } } };
     if (request.path === "/v1/wallet/fee-estimate") return { body: { data: {
       networkFeeSats: "600",
-      source: "wallet-fee-source"
+      source: "wallet-fee-source",
+      candidate: withdrawalCandidate()
     } } };
     if (request.path === "/v1/wallet/approvals") {
       approvalCalls++;
@@ -132,13 +187,19 @@ test("remote wallet broker binds authenticated pending approval and execution to
     });
     const state = workflow(wallet);
     assert.deepEqual(await broker.getDepositAddress({ wallet }), { address: ADDRESS, scriptPubKeyHex: SCRIPT });
-    const fee = await broker.estimateFee({ action: "withdraw_bitcoin", amountSats: "50000", state });
+    const fee = await broker.estimateFee({
+      action: "withdraw_bitcoin",
+      amountSats: "50000",
+      destinationAddress: DESTINATION,
+      state
+    });
     const simulation = simulateBitcoinWithdrawal({
-      destinationAddress: ADDRESS,
+      destinationAddress: DESTINATION,
       network: "bitcoin-testnet4",
       amountSats: "50000",
       balanceSats: "250000",
       networkFeeSats: fee.networkFeeSats,
+      walletCandidate: fee.candidate,
       now: new Date("2026-08-06T09:00:00.000Z"),
       ttlMs: 60_000
     });
@@ -165,6 +226,7 @@ test("remote wallet broker binds authenticated pending approval and execution to
     });
 
     assert.equal(execution.txid, TXID);
+    assert.equal(simulation.walletCandidate?.candidateHash, fee.candidate?.candidateHash);
     assert.ok(requests.every((request) => request.authorization === `Bearer ${AUTH_TOKEN}`));
     const approvalRequests = requests.filter((request) => request.path.endsWith("/approvals"));
     assert.equal(approvalRequests[0]!.body.simulationHash, simulation.hash);
@@ -172,8 +234,44 @@ test("remote wallet broker binds authenticated pending approval and execution to
     const executionRequest = requests.find((request) => request.path.endsWith("/executions"))!;
     assert.match(String(executionRequest.body.idempotencyKey), /^[a-f0-9]{64}$/);
     assert.equal(executionRequest.body.walletApprovalToken, approval.walletApprovalToken);
+    const feeRequest = requests.find((request) => request.path.endsWith("/fee-estimate"))!;
+    assert.equal(feeRequest.body.destinationAddress, DESTINATION);
     assert.doesNotMatch(JSON.stringify(requests), /mnemonic|privateKey|\bwif\b|seedPhrase/i);
     await assert.rejects(broker.verify(), /independent TradeLayer and Bitcoin sources/i);
+  } finally {
+    await service.close();
+  }
+});
+
+test("remote wallet broker rejects a tampered unsigned withdrawal candidate", async () => {
+  const changed = withdrawalCandidate();
+  changed.destinationOutput.valueSats = "50001";
+  const service = await listen(() => ({ body: { data: {
+    networkFeeSats: "600",
+    source: "wallet-fee-source",
+    candidate: changed
+  } } }));
+  try {
+    const broker = new RemoteWalletExecutionBroker({ endpoint: service.origin, authToken: AUTH_TOKEN });
+    const state = workflow({
+      status: "connected",
+      mode: "connect",
+      walletSessionId: "wallet_session_remote_001",
+      bitcoinAddress: ADDRESS,
+      network: "bitcoin-testnet4",
+      confirmedBalanceSats: "250000",
+      capabilities: ["deposit", "strategy", "withdraw", "psbt_approval"],
+      connectedAt: "2026-08-06T09:00:00.000Z"
+    });
+    await assert.rejects(
+      broker.estimateFee({
+        action: "withdraw_bitcoin",
+        amountSats: "50000",
+        destinationAddress: DESTINATION,
+        state
+      }),
+      /destination differs|hash is invalid/i
+    );
   } finally {
     await service.close();
   }

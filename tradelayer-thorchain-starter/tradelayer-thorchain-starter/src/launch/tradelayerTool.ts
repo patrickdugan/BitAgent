@@ -7,7 +7,8 @@ import { LaunchKernelError } from "./errors.js";
 import type {
   QuoteSnapshot,
   StarterStrategyParameters,
-  TransactionSimulation
+  TransactionSimulation,
+  WalletWithdrawalCandidate
 } from "./types.js";
 
 const require = createRequire(import.meta.url);
@@ -121,6 +122,7 @@ export function simulateBitcoinWithdrawal(input: {
   amountSats: string;
   balanceSats: string;
   networkFeeSats: string;
+  walletCandidate?: WalletWithdrawalCandidate;
   now: Date;
   ttlMs: number;
 }): TransactionSimulation {
@@ -133,10 +135,25 @@ export function simulateBitcoinWithdrawal(input: {
     throw new LaunchKernelError("insufficient_funds", "Confirmed balance cannot cover withdrawal amount and fee");
   }
 
+  const candidate = input.walletCandidate;
+  if (candidate && (candidate.network !== input.network
+    || candidate.destinationOutput.address !== address.address
+    || candidate.destinationOutput.valueSats !== amount.toString()
+    || candidate.feeSats !== fee.toString()
+    || candidate.signingPerformed !== false
+    || candidate.broadcastPerformed !== false
+    || Date.parse(candidate.expiresAt) <= input.now.getTime())) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate differs from the exact withdrawal effects");
+  }
+  const requestedExpiry = input.now.getTime() + input.ttlMs;
+  const expiresAt = candidate
+    ? new Date(Math.min(requestedExpiry, Date.parse(candidate.expiresAt))).toISOString()
+    : new Date(requestedExpiry).toISOString();
+
   const core = {
     action: "withdraw_bitcoin" as const,
     createdAt: input.now.toISOString(),
-    expiresAt: new Date(input.now.getTime() + input.ttlMs).toISOString(),
+    expiresAt,
     effects: [{
       asset: "BTC" as const,
       direction: "debit" as const,
@@ -152,6 +169,7 @@ export function simulateBitcoinWithdrawal(input: {
     balanceBeforeSats: balance.toString(),
     balanceAfterSats: (balance - amount - fee).toString(),
     destinationAddress: address.address,
+    ...(candidate ? { walletCandidate: candidate } : {}),
     warnings: [
       "Bitcoin withdrawals are irreversible after broadcast.",
       "The wallet must approve the exact destination, amount, fee, and change."

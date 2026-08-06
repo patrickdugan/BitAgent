@@ -1,6 +1,11 @@
 import { LaunchKernelError } from "./errors.js";
+import { hashObject } from "./canonical.js";
 import { validateBitcoinAddress } from "./bitcoin.js";
-import type { BitAgentWorkflowState, LaunchErrorCode } from "./types.js";
+import type {
+  BitAgentWorkflowState,
+  LaunchErrorCode,
+  WalletWithdrawalCandidate
+} from "./types.js";
 
 export const TXID_PATTERN = /^[a-f0-9]{64}$/;
 export const OPAQUE_ID_PATTERN = /^[A-Za-z0-9._:~-]{8,256}$/;
@@ -18,6 +23,14 @@ function record(value: unknown, label: string): Record<string, unknown> {
     throw new LaunchKernelError("provider_unavailable", `Wallet broker returned invalid ${label}`);
   }
   return value as Record<string, unknown>;
+}
+
+function candidateScript(value: unknown, label: string): string {
+  const text = String(value || "").toLowerCase();
+  if (!/^(?:[a-f0-9]{2}){2,520}$/.test(text)) {
+    throw new LaunchKernelError("provider_unavailable", `Wallet broker returned invalid ${label}`);
+  }
+  return text;
 }
 
 export function boundedWalletText(
@@ -88,6 +101,117 @@ export function walletRequestContext(state: BitAgentWorkflowState) {
     network: state.wallet.network,
     bitcoinAddress: state.wallet.bitcoinAddress
   };
+}
+
+export function validatedWithdrawalCandidate(input: {
+  value: unknown;
+  workflowId: string;
+  walletSessionId: string;
+  network: "bitcoin" | "bitcoin-testnet4";
+  walletAddress: string;
+  destinationAddress: string;
+  amountSats: string;
+  networkFeeSats: string;
+}): WalletWithdrawalCandidate {
+  const candidate = record(input.value, "withdrawal candidate");
+  if (candidate.schema !== "bitagent_wallet_withdrawal_candidate_v1"
+    || input.network !== "bitcoin-testnet4"
+    || candidate.network !== input.network
+    || candidate.workflowId !== input.workflowId
+    || candidate.walletSessionId !== input.walletSessionId
+    || candidate.signingPerformed !== false
+    || candidate.broadcastPerformed !== false) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate authority binding is invalid");
+  }
+
+  const inputUtxos = Array.isArray(candidate.inputUtxos) ? candidate.inputUtxos : [];
+  if (inputUtxos.length !== 1) {
+    throw new LaunchKernelError("provider_unavailable", "Wallet withdrawal candidate must expose one exact input");
+  }
+  const rawInput = record(inputUtxos[0], "withdrawal candidate input");
+  const inputAddress = validatedProviderBitcoinAddress(rawInput.address, input.network);
+  const walletAddress = validatedProviderBitcoinAddress(input.walletAddress, input.network);
+  const parsedInput = {
+    txid: boundedWalletText(rawInput.txid, "withdrawal input txid", TXID_PATTERN),
+    vout: Number(rawInput.vout),
+    valueSats: canonicalWalletSats(rawInput.valueSats, "withdrawal input value"),
+    address: inputAddress.address,
+    scriptPubKeyHex: candidateScript(rawInput.scriptPubKeyHex, "withdrawal input script")
+  };
+  if (!Number.isSafeInteger(parsedInput.vout) || parsedInput.vout < 0
+    || parsedInput.address !== walletAddress.address
+    || parsedInput.scriptPubKeyHex !== inputAddress.scriptPubKeyHex) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate input is not the connected wallet input");
+  }
+
+  const rawDestination = record(candidate.destinationOutput, "withdrawal destination output");
+  const destination = validatedProviderBitcoinAddress(rawDestination.address, input.network);
+  const requestedDestination = validatedProviderBitcoinAddress(input.destinationAddress, input.network);
+  const destinationOutput = {
+    vout: Number(rawDestination.vout) as 0,
+    address: destination.address,
+    scriptPubKeyHex: candidateScript(rawDestination.scriptPubKeyHex, "withdrawal destination script"),
+    valueSats: canonicalWalletSats(rawDestination.valueSats, "withdrawal destination value")
+  };
+  if (destinationOutput.vout !== 0
+    || destinationOutput.address !== requestedDestination.address
+    || destinationOutput.scriptPubKeyHex !== requestedDestination.scriptPubKeyHex
+    || destinationOutput.valueSats !== canonicalWalletSats(input.amountSats, "amountSats", "validation_error")) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate destination differs from the request");
+  }
+
+  const rawChange = record(candidate.changeOutput, "withdrawal change output");
+  const change = validatedProviderBitcoinAddress(rawChange.address, input.network);
+  const changeOutput = {
+    vout: Number(rawChange.vout) as 1,
+    address: change.address,
+    scriptPubKeyHex: candidateScript(rawChange.scriptPubKeyHex, "withdrawal change script"),
+    valueSats: canonicalWalletSats(rawChange.valueSats, "withdrawal change value")
+  };
+  if (changeOutput.vout !== 1
+    || changeOutput.address !== walletAddress.address
+    || changeOutput.scriptPubKeyHex !== walletAddress.scriptPubKeyHex
+    || BigInt(changeOutput.valueSats) <= 0n) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate change is not positive wallet-owned change");
+  }
+
+  const preparedAt = walletIsoTime(candidate.preparedAt, "withdrawal preparedAt");
+  const expiresAt = walletIsoTime(candidate.expiresAt, "withdrawal expiresAt");
+  const feeRateSatVb = Number(candidate.feeRateSatVb);
+  const feeSats = canonicalWalletSats(candidate.feeSats, "withdrawal fee");
+  if (preparedAt !== candidate.preparedAt || expiresAt !== candidate.expiresAt
+    || Date.parse(expiresAt) <= Date.parse(preparedAt)
+    || !Number.isSafeInteger(feeRateSatVb) || feeRateSatVb < 1 || feeRateSatVb > 1000
+    || feeSats !== canonicalWalletSats(input.networkFeeSats, "networkFeeSats")
+    || BigInt(feeSats) <= 0n
+    || BigInt(parsedInput.valueSats) !== BigInt(destinationOutput.valueSats)
+      + BigInt(changeOutput.valueSats) + BigInt(feeSats)) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate fee or arithmetic is invalid");
+  }
+
+  const core = {
+    schema: "bitagent_wallet_withdrawal_candidate_v1" as const,
+    workflowId: input.workflowId,
+    walletSessionId: input.walletSessionId,
+    network: "bitcoin-testnet4" as const,
+    preparedAt,
+    expiresAt,
+    unsignedTxid: boundedWalletText(candidate.unsignedTxid, "unsigned txid", TXID_PATTERN),
+    unsignedPsbtHash: boundedWalletText(candidate.unsignedPsbtHash, "unsigned PSBT hash", TXID_PATTERN),
+    inputUtxos: [parsedInput],
+    destinationOutput,
+    changeOutput,
+    feeSats,
+    feeRateSatVb,
+    signingPerformed: false as const,
+    broadcastPerformed: false as const
+  };
+  const candidateHash = hashObject(core);
+  const candidateId = `withdrawal_candidate_${candidateHash.slice(0, 32)}`;
+  if (candidate.candidateHash !== candidateHash || candidate.candidateId !== candidateId) {
+    throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate hash is invalid");
+  }
+  return { candidateId, candidateHash, ...core };
 }
 
 export class RemoteWalletHttpClient {

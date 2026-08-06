@@ -188,7 +188,9 @@ $env:BITAGENT_WALLET_BITCOIN_RPC_CONNECT="127.0.0.1"
 $env:BITAGENT_WALLET_BITCOIN_RPC_PORT="<testnet4 RPC port>"
 $env:BITAGENT_WALLET_BITCOIN_WALLET="utxoref-testnet"
 $env:BITAGENT_WALLET_TESTNET_STRATEGY_FEE_SATS="<reviewed candidate fee>"
-$env:BITAGENT_WALLET_TESTNET_WITHDRAW_FEE_SATS="<reviewed candidate fee>"
+$env:BITAGENT_WALLET_TESTNET_MAX_WITHDRAWAL_FEE_SATS="3000"
+$env:BITAGENT_WALLET_TESTNET_FEE_RATE_SAT_VB="2"
+$env:BITAGENT_WALLET_CANDIDATE_TTL_MS="120000"
 ```
 
 Point BitAgent at `http://127.0.0.1:1986` with the same process-secret bearer
@@ -198,6 +200,18 @@ strategy cannot be approved until both reserve preflight and the deployed tx11
 release pass; approving a withdrawal only records a scoped grant, because the
 execution endpoint remains disabled. Never put the bearer token in the
 browser, a referral link, model context, or the authority JSON.
+
+The withdrawal fee is not an operator guess. The wallet prepares and decodes
+an unsigned Bitcoin Core candidate, retains its raw PSBT privately, and shows
+the exact selected input, destination, change, fee/rate, unsigned txid, and
+commitment in the BitVM page. To run the funded prepare/decode/cancel check:
+
+```powershell
+npm run test:bitagent-withdrawal-candidate:live
+```
+
+This command requires the Bitcoin Core variables above. It never signs or
+broadcasts and must finish with `inputLockReleased: true`.
 
 Keep the scripted broker and demo D1 site visibly labeled and isolated from any
 funded wallet until every remaining item in `docs/launch-readiness.md` is
