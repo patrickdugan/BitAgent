@@ -351,7 +351,11 @@ Passed:
   stale listener state, and ambiguous valid transactions remain pending;
 - mismatched transaction fields fail and hash-bound result tampering is
   detected;
-- the sibling TradeLayer regression and four BitAgent verifier tests pass.
+- the sibling TradeLayer regression and five BitAgent verifier tests pass;
+- the verifier is composed into the launch broker boundary: exact independent
+  verification activates referrals, while stale or temporarily unavailable
+  observations persist pending and resume without changing wallet balance;
+- all 31 launch tests and TypeScript compilation pass.
 
 Remaining:
 
@@ -359,4 +363,6 @@ Remaining:
   observation in this run;
 - historical maker-fill linkage remains incomplete because current trade
   history identifies the taker transaction but not always the original maker
-  transaction.
+  transaction;
+- withdrawal confirmation still relies on the configured wallet broker and
+  needs an independent Bitcoin-chain verifier before funded launch.

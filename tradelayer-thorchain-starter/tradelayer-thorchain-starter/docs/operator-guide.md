@@ -129,6 +129,12 @@ Production launch requires an authenticated wallet-owned broker that can:
 - make execution idempotent; and
 - prove workflow ownership for every read and mutation.
 
+Configure `TRADELAYER_RELAYER_URL` to the synchronized local relayer base URL
+when composing that broker in production. The launch factory then installs the
+read-only TradeLayer verifier around the wallet broker. This setting does not
+enable signing: without an authenticated wallet broker, production mode still
+uses `UnavailableWalletBroker` and fails before approval or execution.
+
 Keep the scripted broker and demo D1 site visibly labeled and isolated from any
 funded wallet until every remaining item in `docs/launch-readiness.md` is
 closed.

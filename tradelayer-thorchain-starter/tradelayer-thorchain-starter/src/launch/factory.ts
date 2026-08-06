@@ -9,6 +9,11 @@ import {
 import { BitAgentLaunchKernel } from "./kernel.js";
 import { FileWorkflowStore, InMemoryWorkflowStore } from "./store.js";
 import type { QuoteProvider, WalletExecutionBroker, WorkflowStore } from "./types.js";
+import { IndependentlyVerifyingWalletBroker } from "./verifiedBroker.js";
+import {
+  RelayerTradeLayerOrderReadSource,
+  type TradeLayerOrderReadSource
+} from "../settlement/tradelayerOrderVerifier.js";
 
 export function createLaunchKernel(options: {
   store?: WorkflowStore;
@@ -17,15 +22,24 @@ export function createLaunchKernel(options: {
   now?: () => Date;
   production?: boolean;
   scriptedBroker?: ScriptedBrokerOptions;
+  tradeLayerOrderSource?: TradeLayerOrderReadSource;
 } = {}) {
   const production = options.production
     ?? String(process.env.BITAGENT_PRODUCTION || "false").toLowerCase() === "true";
+  const walletBroker = options.walletBroker || (
+    production ? new UnavailableWalletBroker() : new ScriptedWalletBroker(options.scriptedBroker)
+  );
+  const tradeLayerOrderSource = options.tradeLayerOrderSource || (
+    production && process.env.TRADELAYER_RELAYER_URL
+      ? new RelayerTradeLayerOrderReadSource(process.env.TRADELAYER_RELAYER_URL)
+      : undefined
+  );
   return new BitAgentLaunchKernel({
     store: options.store || new FileWorkflowStore(path.join(runtimeDir, "bitagent-workflows.json")),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),
-    walletBroker: options.walletBroker || (
-      production ? new UnavailableWalletBroker() : new ScriptedWalletBroker(options.scriptedBroker)
-    ),
+    walletBroker: tradeLayerOrderSource
+      ? new IndependentlyVerifyingWalletBroker(walletBroker, tradeLayerOrderSource)
+      : walletBroker,
     now: options.now
   });
 }
@@ -35,11 +49,13 @@ export function createTestLaunchKernel(options: {
   walletBroker?: WalletExecutionBroker;
   quoteProvider?: QuoteProvider;
   store?: WorkflowStore;
+  tradeLayerOrderSource?: TradeLayerOrderReadSource;
 } = {}) {
   return createLaunchKernel({
     store: options.store || new InMemoryWorkflowStore(),
     walletBroker: options.walletBroker || new ScriptedWalletBroker(),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),
+    tradeLayerOrderSource: options.tradeLayerOrderSource,
     now: options.now
   });
 }

@@ -24,7 +24,7 @@ referral URL
   → TradeLayer type-5 simulation
   → exact-effects approval
   → opaque wallet execution broker
-  → tx/order verification
+  → independent synchronized tx/order verification
   → referral activation
   → simulated Bitcoin withdrawal
 ```
@@ -84,6 +84,15 @@ token.
 Production mode uses `UnavailableWalletBroker` and fails closed. The scripted
 broker is for deterministic evaluation and the hosted demo; it does not
 broadcast a transaction.
+
+When an authenticated external broker is supplied with a
+`TradeLayerOrderReadSource`, `IndependentlyVerifyingWalletBroker` delegates
+connect, fee, approval, and execution to the wallet boundary but replaces its
+starter-strategy verification result. The independent path requires
+`tl_getsyncstatus`, an exact valid `tl_gettransaction`, and the complete txid
+in either the open orderbook or address trade history. A stale or temporarily
+offline listener persists `pending` and can be retried; it cannot activate a
+referral or debit the workflow balance.
 
 ## Evaluation artifacts
 

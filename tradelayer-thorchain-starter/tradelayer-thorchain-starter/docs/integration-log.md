@@ -497,6 +497,12 @@
   order states remain pending. They are never promoted to fabricated fills.
 - Added an operator command and focused open, filled, truncated, mismatched,
   stale-listener, and evidence-tamper tests.
+- Composed the read-only verifier around the launch wallet-broker boundary.
+  Wallet connect/approval/execution remain delegated, while a starter strategy
+  can no longer use the broker's own verification claim.
+- Referral activation and workflow balance updates now occur only after the
+  independent result is verified. Stale and temporarily unavailable listener
+  states persist as retryable `pending` observations.
 
 ### Unresolved
 
@@ -505,3 +511,5 @@
   history.
 - Maker orders filled by later taker transactions need full maker/taker txid
   linkage in TradeLayer trade-history records for exact historical fill proof.
+- Bitcoin withdrawal verification is still delegated to the wallet broker; it
+  needs the same independent chain-source composition before funded launch.

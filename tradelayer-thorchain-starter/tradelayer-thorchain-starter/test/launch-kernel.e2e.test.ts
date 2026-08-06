@@ -14,6 +14,7 @@ import { createLaunchKernel, createTestLaunchKernel } from "../src/launch/factor
 import { LaunchKernelError } from "../src/launch/errors.js";
 import { FileWorkflowStore } from "../src/launch/store.js";
 import type { BitAgentLaunchKernel } from "../src/launch/kernel.js";
+import type { TradeLayerOrderReadSource } from "../src/settlement/tradelayerOrderVerifier.js";
 
 function txid(seed: number) {
   return seed.toString(16).padStart(64, "0");
@@ -31,9 +32,14 @@ async function connectedKernel(options: {
   workflowId?: string;
   confirmed?: boolean;
   referral?: boolean;
+  tradeLayerOrderSource?: TradeLayerOrderReadSource;
 } = {}) {
   const walletBroker = new ScriptedWalletBroker(options.brokerOptions);
-  const kernel = createTestLaunchKernel({ now: options.now, walletBroker });
+  const kernel = createTestLaunchKernel({
+    now: options.now,
+    walletBroker,
+    tradeLayerOrderSource: options.tradeLayerOrderSource
+  });
   const workflowId = options.workflowId || `trajectory-${++workflowCounter}`;
   await kernel.start({
     workflowId,
@@ -53,6 +59,62 @@ async function connectedKernel(options: {
     });
   }
   return { kernel, workflowId, walletBroker };
+}
+
+class LaunchTradeLayerSource implements TradeLayerOrderReadSource {
+  readonly source = "independent-launch-fixture";
+  address = "";
+  synced = true;
+  available = true;
+
+  async getSyncStatus() {
+    if (!this.available) throw new Error("listener offline");
+    return {
+      initialized: true,
+      phase: "realtime",
+      currentHeight: this.synced ? 101 : 90,
+      targetHeight: 101,
+      processedHeight: this.synced ? 101 : 90
+    };
+  }
+
+  async getTransaction(observedTxid: string) {
+    return {
+      txid: observedTxid,
+      valid: true,
+      senderAddress: this.address,
+      propertyIdOffered: 1,
+      propertyIdDesired: 2,
+      amountOffered: "0.001",
+      amountExpected: "65",
+      post: true,
+      block: 101
+    };
+  }
+
+  async getOrderbook(_offeredPropertyId: number, _desiredPropertyId: number) {
+    return {
+      buy: [],
+      sell: [{
+        fullTxid: this.lastTxid,
+        sender: this.address,
+        offeredPropertyId: 1,
+        desiredPropertyId: 2,
+        amountOffered: "0.001",
+        amountExpected: "65"
+      }]
+    };
+  }
+
+  private lastTxid = "";
+
+  async getTokenTradeHistory(_offeredPropertyId: number, _desiredPropertyId: number, _address: string) {
+    return [];
+  }
+
+  rememberTxid(value: string) {
+    this.lastTxid = value;
+  }
 }
 
 async function simulateApproveExecuteVerify(kernel: BitAgentLaunchKernel, workflowId: string) {
@@ -289,6 +351,76 @@ test("trajectory 20: referral activates only on verified strategy", async () => 
   await kernel.execute(workflowId);
   assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
   await kernel.verify(workflowId);
+  assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+});
+
+test("independent TradeLayer verification replaces broker self-report before referral activation", async () => {
+  const tradeLayer = new LaunchTradeLayerSource();
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    referral: true,
+    tradeLayerOrderSource: tradeLayer
+  });
+  tradeLayer.address = (await kernel.get(workflowId)).wallet.bitcoinAddress!;
+  await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
+  await kernel.requestApproval(workflowId);
+  await kernel.resolveApproval(workflowId, "approve");
+  const execution = await kernel.execute(workflowId);
+  tradeLayer.rememberTxid(execution.txid!);
+  const verification = await kernel.verify(workflowId);
+
+  assert.equal(verification.status, "verified");
+  assert.equal(verification.orderId, execution.txid);
+  assert.equal(verification.evidence?.source, tradeLayer.source);
+  assert.equal(verification.evidence?.openOrderMatched, true);
+  assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+});
+
+test("stale independent TradeLayer state keeps strategy and referral pending", async () => {
+  const tradeLayer = new LaunchTradeLayerSource();
+  tradeLayer.synced = false;
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    referral: true,
+    tradeLayerOrderSource: tradeLayer
+  });
+  tradeLayer.address = (await kernel.get(workflowId)).wallet.bitcoinAddress!;
+  await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
+  await kernel.requestApproval(workflowId);
+  await kernel.resolveApproval(workflowId, "approve");
+  const execution = await kernel.execute(workflowId);
+  tradeLayer.rememberTxid(execution.txid!);
+  const verification = await kernel.verify(workflowId);
+  const state = await kernel.get(workflowId);
+
+  assert.equal(verification.status, "pending");
+  assert.equal(state.stage, "strategy_submitted");
+  assert.equal(state.referral?.status, "pending");
+  assert.equal(state.wallet.confirmedBalanceSats, "250000");
+});
+
+test("temporarily unavailable independent verification persists a retryable pending state", async () => {
+  const tradeLayer = new LaunchTradeLayerSource();
+  tradeLayer.available = false;
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    referral: true,
+    tradeLayerOrderSource: tradeLayer
+  });
+  tradeLayer.address = (await kernel.get(workflowId)).wallet.bitcoinAddress!;
+  await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
+  await kernel.requestApproval(workflowId);
+  await kernel.resolveApproval(workflowId, "approve");
+  const execution = await kernel.execute(workflowId);
+  tradeLayer.rememberTxid(execution.txid!);
+  const first = await kernel.verify(workflowId);
+  assert.equal(first.status, "pending");
+  assert.match(String(first.evidence?.reason), /temporarily unavailable/i);
+  assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
+
+  tradeLayer.available = true;
+  const resumed = await kernel.verify(workflowId);
+  assert.equal(resumed.status, "verified");
   assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
 });
 
