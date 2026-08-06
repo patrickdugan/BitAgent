@@ -964,3 +964,31 @@
   endpoints use distinct Bitcoin backends. No listener deployment was running,
   so funded execution remains disabled and no transaction was signed or
   broadcast.
+
+## Pruned testnet4 replay and interruption recovery - 2026-08-06
+
+- Started two separate walletless, `blocksonly`, 550 MiB-pruned Bitcoin Core
+  31.1 testnet4 nodes with separate data directories and RPC ports. The
+  official archive matched the published SHA256
+  `c99ef173471c58e6766d9eebd12e6c35349082eeed3939bc99eed58ef57db587`;
+  the contributor signature set was downloaded but not independently verified
+  because GPG was unavailable.
+- The first live replay exposed an implicit `txindex` dependency. TradeLayer
+  commit `ce94c9d` now supplies each block hash as the third
+  `getrawtransaction` argument, while preserving the legacy two-argument RPC
+  call when no block context exists. Both pruned nodes then indexed past block
+  500 without enabling `txindex`.
+- The repaired replay exposed a second recovery defect: `MaxHeight` was only
+  durable at the final target, and encountering a TradeLayer transaction could
+  mark a partial index complete. Commit `c4f32c0` checkpoints progress every
+  100 processed blocks, never sets `indexExists` for a partial checkpoint, and
+  awaits the final completion marker.
+- A deliberate interruption of listener B resumed from its durable height 400
+  against the same database instead of restarting at genesis. The live
+  challenge-bound observations now report the persisted replay height while
+  phase remains `indexing`.
+- Candidate 3 source hash is
+  `a8e3530a4721efbe7c8f525fdfa016db9ec76ac016a49e5efe617cb0bf54f4de`.
+  Source integrity and exact release commit pass, but synchronization, tx11
+  activation, property/template/contract parity, and reserve-address gates
+  remain false. No wallet, signature, PSBT, or broadcast was created.

@@ -815,3 +815,36 @@ Boundaries:
   that two endpoints cannot proxy one backend;
 - no two listener processes are currently running, so no deployment or parity
   receipt has been promoted and funded execution remains disabled.
+
+## Live pruned replay checkpoint (2026-08-06)
+
+Decision: **accept the pruned-node transport and interruption-recovery fixes;
+do not promote the candidate while replay and protocol-state gates are
+incomplete.**
+
+Passed:
+
+- two separate Bitcoin Core 31.1 testnet4 backends are running walletless with
+  `blocksonly=1`, `prune=550`, separate data directories, cookie credentials,
+  and RPC ports;
+- two separately identified TradeLayer listener processes use separate NeDB
+  roots and report exact commit
+  `c4f32c05767788c92c98f4c6d6c5dcb2f12fee53`;
+- block-scoped `getrawtransaction` calls removed the need for Bitcoin Core
+  `txindex` during historical replay;
+- partial replay height is durably checkpointed every 100 blocks without
+  claiming index completion;
+- an intentional listener-B stop/restart resumed from durable height 400;
+- 12 focused TradeLayer tests pass for block-scoped RPC arguments, replay
+  checkpoint semantics, testnet4 profile selection, and launch attestation.
+
+Boundaries:
+
+- both Bitcoin backends and TradeLayer listeners are still synchronizing, so
+  the `synchronizedTestnet4` gate is false;
+- tx11 is not chain-activated with candidate 3, and the required property,
+  procedural template, contract, and reserve-address parity gates are false;
+- the nodes are operationally separate local processes, not Byzantine-
+  independent or remotely attested operators;
+- funded execution remains disabled and no wallet, signing, or broadcast
+  action occurred.

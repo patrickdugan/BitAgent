@@ -1,13 +1,15 @@
 {
   "schema": "bitagent.tradelayer.tx11-release.v1",
-  "releaseId": "tx11-utxoref-dynamic-contract-candidate-2",
+  "releaseId": "tx11-utxoref-dynamic-contract-candidate-3",
   "status": "candidate_not_deployed",
-  "codeHash": "6b2f30c4b845b7ea7dee70efb30b2a4361ec4d8031a417fb76b8d9865880ea19",
+  "codeHash": "a8e3530a4721efbe7c8f525fdfa016db9ec76ac016a49e5efe617cb0bf54f4de",
   "tradelayerCommits": [
     "db4728444bcbc2b9249654243e8bd1c5843987ed",
     "c860c3c9b5d65bf33b61acac820d89eca82c6833",
     "c80f703aea9d9dece4fe4204ee4a4c2a9ecec56d",
-    "4657e6232bea8fd67d5af6dbe3e9c407f237060b"
+    "4657e6232bea8fd67d5af6dbe3e9c407f237060b",
+    "ce94c9d9036aebaefb0091fe0a4fb68e49791d5b",
+    "c4f32c05767788c92c98f4c6d6c5dcb2f12fee53"
   ],
   "consensusSourceFiles": [
     "activation.js",

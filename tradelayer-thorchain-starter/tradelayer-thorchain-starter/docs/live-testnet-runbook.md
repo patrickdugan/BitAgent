@@ -208,6 +208,14 @@ $env:TL_RELEASE_COMMIT="<full-40-character-deployed-commit>"
 Use different node IDs, instance IDs, ports, Bitcoin Core backends, and data
 directories for the second listener. Then run the challenge-bound live check:
 
+Historical replay on a pruned Bitcoin Core node does not require `txindex=1`.
+The listener passes the containing block hash to `getrawtransaction` and writes
+a partial `MaxHeight` checkpoint every 100 processed blocks. During replay,
+`indexExists` must remain absent and `tl_getSyncStatus` must report
+`phase=indexing`; after an interruption, the startup log must show the saved
+`max Indexed Block` instead of returning to the configured genesis boundary.
+Do not reuse a database from a pre-checkpoint build for launch evidence.
+
 ```powershell
 $env:TRADELAYER_PREFLIGHT_ENDPOINTS="http://127.0.0.1:3101;http://127.0.0.1:3102"
 npm run observe:listener-preflight
@@ -231,7 +239,7 @@ never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`6b2f30c4b845b7ea7dee70efb30b2a4361ec4d8031a417fb76b8d9865880ea19`, but
+`a8e3530a4721efbe7c8f525fdfa016db9ec76ac016a49e5efe617cb0bf54f4de`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.
