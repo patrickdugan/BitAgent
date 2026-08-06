@@ -1009,3 +1009,44 @@ Remaining:
   executable authority suite passes and no changed-file diagnostic was emitted;
 - no approval, signing, activation transaction, broadcast, tlBTC credit, trade,
   PnL settlement, or withdrawal occurred.
+
+## Candidate-9 live replacement checkpoint (2026-08-06)
+
+Decision: **accept the reproducible candidate-9 listener deployment, sealed
+snapshot recovery, and 70,000-block bounded-sync evidence; keep funded
+execution disabled.**
+
+Passed:
+
+- two fresh candidate-9 processes use unique ports, node IDs, instance IDs,
+  Bitcoin backends, state roots, logs, and owned PIDs, with exact commit and
+  consensus-source hash parity;
+- a prune-horizon overrun was detected before history could be skipped, the
+  affected listener failed visibly, and both Bitcoin backends were paused;
+- two 69,459 snapshots were sealed with exact source/copy inventory parity and
+  used to start a fresh replacement pair without changing checkpoints;
+- the replacement pair completed at exact paused tips 70,028 and 70,002 using
+  a reviewed 100-block high watermark, including successful operation through
+  real prune jumps to 69,428 and 69,430;
+- terminal sync evidence records completion, zero lag, realtime/no-error
+  listener state, and successful per-backend pause outcomes; independent RPC
+  reads confirmed networking disabled and zero peers;
+- the complete release preflight passes 111/111 launch checks, all 24 scripted
+  trajectories, and all 50 focused agent cases with every score equal to 1 and
+  zero failure traces.
+
+Remaining:
+
+- both backends are still in IBD around height 70,000 versus header height
+  147,269, so `synchronizedTestnet4=false` is correct;
+- tx11 is not activated by a verified Bitcoin transaction, and property,
+  template, contract, and reserve-redeem parity remain false;
+- the release manifest remains `candidate_not_deployed`, therefore wallet
+  approval and funded execution remain unavailable;
+- the failed candidate9-B process/state is preserved as evidence and must not
+  be reused; only the replacement ports 3121/3122 are eligible for continued
+  recovery;
+- GPU temperature was 73 C against the 64 C Bonsai start gate, so no local
+  model load or benchmark was performed;
+- no approval, signing, activation transaction, broadcast, tlBTC credit, trade,
+  PnL settlement, or withdrawal occurred.

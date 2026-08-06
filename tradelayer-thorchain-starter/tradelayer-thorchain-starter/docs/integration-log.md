@@ -1284,3 +1284,44 @@
   tx11-active, chain-derived, property, template, contract, and reserve-address
   gates. Both listeners are still candidate-8 instances in IBD with networking
   paused. No approval, PSBT, signature, or broadcast was produced.
+
+## Candidate-9 deployment and prune-safe replacement - 2026-08-06
+
+- Added an exact two-listener deployment contract and operator command. It
+  verifies tracked-clean candidate-9 source commit
+  `f502236e3e2b8c601c2e8576bb0bcf23b2680892`, consensus hash
+  `8ab527ac64cd21464e7911396572e971f4b8795fa59f3f472dfb3abb6c0ffed1`,
+  immutable snapshot parity, unique identities/backends/ports/state roots,
+  empty-body initialization, and initialized non-idle listener status. It
+  inherits only an allowlisted public environment and records owned PIDs.
+- The first candidate-9 pair advanced to exact paused tips 64,003 and 64,032.
+  During the next chunk, backend B atomically pruned to height 69,430 while its
+  listener was at 69,102. The controller failed closed with
+  `prune_horizon_overtook_listener`; B then reported
+  `Block not available (pruned data)`. No checkpoint was edited or skipped.
+- Healthy A reached exact paused height 69,459. The quiescent snapshot command
+  sealed two deployment copies containing 35 files and 2,335,237 bytes each,
+  with matching inventory hash
+  `507a024e42f03914989d02cc9881a0ef7f1f25adcd7eec7fd79b1cb02bee817c`.
+  It requires paused testnet4 height parity and rejects overlapping or existing
+  targets, source mutation, copy drift, unsafe pruning, and listener errors.
+- A fresh replacement pair started on ports 3121/3122 with owned PIDs 19804 and
+  9528. Both copied inventories match the seals, both instances expose the
+  exact candidate-9 release, and B replayed the retained 69,459-69,737 range
+  without error.
+- A recalibrated 100-block high watermark then completed at A
+  70,028/70,028 and B 70,002/70,002. Both experienced real prune horizons near
+  69,430 without being overtaken. The terminal receipt records
+  `status=completed`, zero lag, realtime/no-error listeners, and successful
+  pause RPC results; independent reads confirmed networking off and zero peers.
+- Live preflight now passes independent listeners, fresh observations, and the
+  exact release commit. It truthfully fails full testnet4 synchronization while
+  the backends remain in IBD, and fails all real chain-derived tx11/property/
+  template/contract/redeem gates. The manifest remains
+  `candidate_not_deployed`; funded execution remains disabled.
+- `npm run preflight:launch:release` passes 111/111 launch checks, 24 scripted
+  trajectories, and 50/50 focused agent cases with all scores equal to 1 and
+  zero generated failure traces. No wallet, approval, PSBT, signature,
+  activation transaction, or broadcast was requested or produced.
+- The RTX 3050 was 73 C after recovery work, above the 64 C Bonsai start gate,
+  so no model weights were loaded and no inference benchmark was claimed.

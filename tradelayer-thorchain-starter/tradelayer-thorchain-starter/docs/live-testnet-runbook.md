@@ -205,6 +205,36 @@ $env:TL_LISTENER_INSTANCE_ID="<durable-unique-instance-id>"
 $env:TL_RELEASE_COMMIT="<full-40-character-deployed-commit>"
 ```
 
+For a parallel candidate upgrade that preserves the currently running listener
+pair, use `npm run deploy:tradelayer-listeners` with
+`BITAGENT_TRADELAYER_LISTENER_DEPLOYMENT_JSON`. The operator-only script accepts
+exactly two targets, verifies a tracked-clean release source, copies immutable
+listener snapshots into new non-overlapping state roots, starts hidden listener
+processes on new loopback ports, and records only the new owned PIDs. It rejects
+existing target state, occupied ports, implicit `.env` loading, duplicate
+identity/backend fields, and source/hash drift. It never reads a wallet,
+requests approval, signs, or broadcasts. A `candidate_pair_started_unverified`
+receipt is deployment evidence only; rerun the challenge-bound listener
+preflight against the new ports before changing any release status.
+
+After each HTTP process is reachable, the deployer sends an empty JSON body to
+`POST /tl_initmain` and requires `tl_getSyncStatus` to report
+`initialized=true`, a non-idle phase, and a positive `trackHeight`. A timed-out
+initialization request may continue inside the listener, but startup does not
+succeed unless the subsequent bounded status check proves initialization. No
+wallet address, PSBT, approval, signature, or transaction body is sent.
+
+To replace a listener whose backend pruned ahead of its checkpoint, first
+bring one healthy listener to an exact paused backend height above the failed
+backend's `pruneheight`. Seal two non-overlapping immutable copies with
+`npm run snapshot:tradelayer-listener` and an exact
+`BITAGENT_TRADELAYER_SNAPSHOT_JSON` object. The command requires testnet4,
+`phase=realtime`, no listener error, zero peers, `networkactive=false`, exact
+Bitcoin/listener height parity, and a safe prune horizon. It hashes the source
+before and after copying, hashes the copy, refuses an existing target, and
+writes a no-wallet-effect receipt. Deploy the replacement pair only from
+sealed copies; never edit `trackHeight` or skip the missing range.
+
 Use different node IDs, instance IDs, ports, Bitcoin Core backends, and data
 directories for the second listener. Then run the challenge-bound live check:
 
@@ -264,7 +294,7 @@ backend on error or completion:
 ```powershell
 $env:BITAGENT_TESTNET4_SYNC_PAIRS_JSON='[{"name":"a","listenerUrl":"http://127.0.0.1:3101","rpcUrl":"http://127.0.0.1:49372","cookieFile":"D:\\bitagent-testnet4\\node-e-prune2048\\testnet4\\.cookie"},{"name":"b","listenerUrl":"http://127.0.0.1:3102","rpcUrl":"http://127.0.0.1:49382","cookieFile":"D:\\bitagent-testnet4\\node-f-prune2048\\testnet4\\.cookie"}]'
 $env:BITAGENT_SYNC_LOW_WATERMARK="25"
-$env:BITAGENT_SYNC_HIGH_WATERMARK="250"
+$env:BITAGENT_SYNC_HIGH_WATERMARK="100"
 $env:BITAGENT_SYNC_STOP_HEIGHT="65000"
 $env:BITAGENT_SYNC_REQUEST_TIMEOUT_MS="45000"
 node .\node_modules\tsx\dist\cli.mjs scripts\throttle-testnet4-sync.ts
@@ -274,6 +304,11 @@ The controller fails closed if a listener reports an error, a persisted
 checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
 `trackHeight + 1`. A bounded success leaves peer networking disabled so the
 operator can inspect both listeners before selecting the next target.
+On the current 2 GiB-pruned recovery nodes, a 750-block corridor allowed an
+automatic prune jump to overtake a listener. The replacement pair completed a
+real prune transition with a 100-block high watermark. Treat 100 as the
+reviewed ceiling for these specific nodes unless new retained-tail evidence
+justifies a different value.
 Run recovery nodes with `maxconnections=1` so an already-requested block
 pipeline cannot greatly overshoot the lag watermark. On each resume, the
 controller selects at most one one-shot peer from Bitcoin Core's own address
@@ -287,6 +322,11 @@ terminated, explicitly call `setnetworkactive false` on each reviewed backend
 before restarting or inspecting the listeners. A hard kill cannot itself
 provide an automatic peer-pause guarantee.
 
+Current receipts include `status=running|completed|failed`. Terminal receipts
+also record `endedAt`, the final observations, and a per-backend
+`networkPauseResults` outcome. Still perform the independent Bitcoin RPC check;
+the terminal receipt proves the attempted RPC result, not future process state.
+
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
 proof; operators must still ensure the endpoints do not proxy the same process
@@ -298,7 +338,8 @@ never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`, but
+`8ab527ac64cd21464e7911396572e971f4b8795fa59f3f472dfb3abb6c0ffed1`, pinned
+to TradeLayer commit `f502236e3e2b8c601c2e8576bb0bcf23b2680892`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.

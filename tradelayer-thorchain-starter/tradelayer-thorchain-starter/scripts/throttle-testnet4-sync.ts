@@ -154,8 +154,15 @@ async function setNetwork(pair: Pair, active: boolean): Promise<void> {
   await bitcoinRpc(pair, "setnetworkactive", [active]);
 }
 
-async function pauseAll(pairs: Pair[]): Promise<void> {
-  await Promise.allSettled(pairs.map((pair) => setNetwork(pair, false)));
+async function pauseAll(pairs: Pair[]) {
+  const outcomes = await Promise.allSettled(pairs.map((pair) => setNetwork(pair, false)));
+  return outcomes.map((outcome, index) => ({
+    pair: pairs[index].name,
+    status: outcome.status === "fulfilled" ? "paused" as const : "pause_failed" as const,
+    error: outcome.status === "rejected"
+      ? (outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason))
+      : null
+  }));
 }
 
 async function writeStatus(outputPath: string, value: unknown): Promise<void> {
@@ -180,6 +187,7 @@ async function main() {
   if (pollMs < 250 || pollMs > 30_000) throw new Error("BITAGENT_SYNC_POLL_MS must be between 250 and 30000");
   const startedAt = Date.now();
   const lastPeerKick = new Map<string, number>();
+  let lastEvents: Array<Record<string, unknown>> = [];
   let interrupted = false;
   process.once("SIGINT", () => { interrupted = true; });
   process.once("SIGTERM", () => { interrupted = true; });
@@ -205,8 +213,10 @@ async function main() {
         console.log(JSON.stringify(event));
         return { pair, decision, event };
       }));
+      lastEvents = states.map((state) => state.event);
       await writeStatus(statusPath, {
         schema: "bitagent_testnet4_sync_throttle_status_v1",
+        status: "running",
         authority: "bitcoin_peer_network_control_only",
         effect: "setnetworkactive_and_addrman_onetry",
         updatedAt: new Date().toISOString(),
@@ -216,7 +226,20 @@ async function main() {
       const failed = states.find((state) => state.decision.action === "fail");
       if (failed) throw new Error(`pair ${failed.pair.name} failed closed: ${failed.decision.reason}`);
       if (states.every((state) => state.decision.action === "complete")) {
-        await pauseAll(pairs);
+        const networkPauseResults = await pauseAll(pairs);
+        const pauseFailure = networkPauseResults.find((result) => result.status === "pause_failed");
+        if (pauseFailure) throw new Error(`pair ${pauseFailure.pair} could not be paused: ${pauseFailure.error}`);
+        await writeStatus(statusPath, {
+          schema: "bitagent_testnet4_sync_throttle_status_v1",
+          status: "completed",
+          authority: "bitcoin_peer_network_control_only",
+          effect: "setnetworkactive_and_addrman_onetry",
+          updatedAt: new Date().toISOString(),
+          endedAt: new Date().toISOString(),
+          stopHeight: policy.stopHeight,
+          states: lastEvents,
+          networkPauseResults
+        });
         console.log(JSON.stringify({ ok: true, status: "bounded_target_caught_up", stopHeight: policy.stopHeight }));
         return;
       }
@@ -224,7 +247,19 @@ async function main() {
     }
     throw new Error("sync throttle interrupted");
   } catch (error) {
-    await pauseAll(pairs);
+    const networkPauseResults = await pauseAll(pairs);
+    await writeStatus(statusPath, {
+      schema: "bitagent_testnet4_sync_throttle_status_v1",
+      status: "failed",
+      authority: "bitcoin_peer_network_control_only",
+      effect: "setnetworkactive_and_addrman_onetry",
+      updatedAt: new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      stopHeight: policy.stopHeight,
+      states: lastEvents,
+      error: error instanceof Error ? error.message : String(error),
+      networkPauseResults
+    });
     throw error;
   }
 }
