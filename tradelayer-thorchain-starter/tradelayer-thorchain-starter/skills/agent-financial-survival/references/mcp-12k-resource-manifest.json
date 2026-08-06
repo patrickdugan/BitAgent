@@ -1,0 +1,66 @@
+{
+  "schema": "bitagent.skill_mcp12k_resource_manifest.v1",
+  "skill": "agent-financial-survival",
+  "context": {
+    "mode": "mcp_intensive_12k",
+    "hardContextTokens": 12000,
+    "fixedOverheadMaxTokens": 2400,
+    "toolSchemaMaxTokens": 2000,
+    "workingPacketMaxTokens": 4000,
+    "toolResultReserveTokens": 1500,
+    "outputReserveTokens": 1024,
+    "safetyMarginTokens": 1076,
+    "targetActiveTools": 3,
+    "maxActiveTools": 5,
+    "maxToolRounds": 3,
+    "maxToolCalls": 6,
+    "rawResultsInline": false,
+    "rawTranscriptsInline": false
+  },
+  "authority": {
+    "candidateOnly": true,
+    "approval": false,
+    "signing": false,
+    "broadcast": false,
+    "execution": false,
+    "stateTruth": "deterministic_host"
+  },
+  "mcpStatus": "requires_deterministic_wrapper",
+  "entrypoints": [
+    {
+      "id": "assess",
+      "source": "src/survival/policy.ts#assessSurvival",
+      "effect": "none"
+    },
+    {
+      "id": "evaluate",
+      "source": "src/survival/policy.ts#evaluateSpendIntent",
+      "effect": "none"
+    },
+    {
+      "id": "journal_verify",
+      "source": "src/survival/journal.ts#verifySurvivalJournal",
+      "effect": "none"
+    }
+  ],
+  "phasePackets": [
+    {
+      "phase": "classify",
+      "entrypoints": ["assess"]
+    },
+    {
+      "phase": "evaluate",
+      "entrypoints": ["assess", "evaluate"]
+    },
+    {
+      "phase": "recover",
+      "entrypoints": ["journal_verify", "assess", "evaluate"]
+    }
+  ],
+  "externalEvidence": [
+    "treasury_snapshot",
+    "observer_results",
+    "quote_receipt",
+    "survival_journal"
+  ]
+}

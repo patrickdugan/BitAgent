@@ -22,6 +22,17 @@ Use the following monotonic stage order:
 Persist cancellations, rejected signatures, stale simulations, pending
 verification, and recovery instructions without advancing the stage.
 
+Track wallet-owned execution as a substate without changing the monotonic
+stage order:
+
+- `prepared`: public candidate exists; raw PSBT remains wallet-private;
+- `executing`: one-time grant consumption or signing is in progress;
+- `submitted`: a public txid/submission receipt exists and needs observation;
+- `failed`: a terminal broker error is recorded, but retry still needs host
+  reconciliation;
+- `reconciliation_required`: submission outcome is ambiguous. Preserve locks
+  and do not retry from absence alone.
+
 ## Receipt
 
 Emit one JSON object with:
@@ -84,6 +95,10 @@ Use this shape for `order`, `pnlRelease`, and `withdrawal`:
 
 Store exact effects and fee details in the underlying workflow state. The
 lifecycle receipt stores their hashes to remain compact.
+
+Wallet candidate commitments may be stored as public evidence. Approval
+tokens, broker grants, raw PSBTs, signed transactions, and signatures must not
+be stored in the lifecycle receipt or model-visible workflow projection.
 
 ## PnL recognition
 

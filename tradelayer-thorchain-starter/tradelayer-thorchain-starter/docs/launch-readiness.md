@@ -640,3 +640,49 @@ Remaining:
 - independent Bitcoin confirmation remains separate from the wallet receipt;
   funded launch also remains blocked by tx11 deployment, independent listener
   parity, starter-strategy position/fill proof, and end-to-end PnL withdrawal.
+
+## Short-context skill and candidate-launch checkpoint (2026-08-06)
+
+Decision: **ready for a supervised, candidate-only referral demo and funded
+testnet4 deposit observation; not ready for a funded TradeLayer strategy or
+live withdrawal broadcast**.
+
+Passed:
+
+- both local BitAgent skills are complete, skill-creator validation passes,
+  and their machine-readable MCP resource contracts fit the inclusive 12k
+  window while exposing at most three tools per phase;
+- the lifecycle contract now covers wallet candidate execution and ambiguous
+  reconciliation without granting the model approval, signing, broadcast,
+  retry, or execution authority;
+- 58/58 launch checks pass, including 24 end-to-end trajectories, the 50-case
+  agent floor, referral activation, stale/cancelled/rejected paths, recovery,
+  exact fee/effect binding, independent verification, and secret refusal;
+- a synchronized local Bitcoin Core 31.1 testnet4 node and funded descriptor
+  wallet returned 317176 confirmed sats at height 147212;
+- live read-only wallet authority, exact unsigned 50000-sat withdrawal
+  construction, cancellation, post-cancellation balance, and empty input-lock
+  checks passed;
+- a second funded drill constructed and cancelled the real UTXORef-bound
+  TradeLayer tx5 candidate with a 296-sat fee. Neither drill signed or
+  broadcast a transaction.
+
+Remaining launch blockers:
+
+- the Bonsai runtime still reports `adapter_artifacts_not_trained`; current
+  base-model screening is benchmark evidence, not a promoted adapter runtime;
+- the financial-survival skill has deterministic local functions but no typed
+  MCP wrapper, so its short-context mode correctly fails closed;
+- tx11 release remains `candidate_not_deployed`, and two independent current
+  TradeLayer listeners have not passed the reserve/intake preflight;
+- there is no independently verified funded tx5 placement/fill, closed
+  position, positive settled PnL, PnL release into wallet-owned Bitcoin, or
+  separately approved withdrawal confirmation;
+- live wallet execution is testnet4-only, disabled by default, and requires a
+  fresh explicit user approval plus an operator-reviewed release digest;
+- the JSON authority store is single-process and is not a production custody
+  boundary.
+
+Until those blockers close, the launch mode must display `simulation` or
+`candidate-only testnet4` labels and must not imply that the starter strategy,
+PnL release, or Bitcoin withdrawal completed on chain.

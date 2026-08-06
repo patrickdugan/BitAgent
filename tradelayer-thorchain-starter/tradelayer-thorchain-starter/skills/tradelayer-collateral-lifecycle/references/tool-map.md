@@ -18,15 +18,29 @@ into the skill.
   - `bitagent.workflow.get`
 - Deposit adapter:
   `src/launch/utxoTool.ts`
+- Wallet authority protocol:
+  `src/launch/remoteWalletProtocol.ts`
+  - public wallet snapshot and exact-candidate contracts
+  - opaque approval status only
+  - testnet4 execution and reconciliation projections
 - UTXORef source:
   `C:\projects\UTXORef\UTXO-Ref\bitvm3\utxo_referee\index.js`
 - Exact safe export:
   `v2.settlement.buildFundingSetV2(...)`
 
-The launch demo persists public workflow state and uses a scripted broker.
-Production remains unavailable until the TradeLayer wallet exposes an opaque
-approval/sign/broadcast API that never passes WIF or mnemonic material through
-BitAgent.
+The launch demo persists public workflow state and uses a scripted broker. The
+local TradeLayer wallet now exposes a testnet4-only public authority protocol,
+candidate preparation, opaque approval polling, wallet-owned execution, and
+positive-proof reconciliation. Execution is disabled by default. Production
+remains unavailable; the current executor is hard-limited to testnet4 and must
+never pass WIF, mnemonic, raw PSBT, grant, signature, or signed transaction
+material through BitAgent.
+
+Wallet sources of truth:
+
+- `C:\projects\TLWallet\tradelayer-wallet\packages\wallet-server\src\services\bitagent-wallet-authority.service.ts`
+- `C:\projects\TLWallet\tradelayer-wallet\packages\wallet-server\src\services\bitagent-withdrawal-candidate.service.ts`
+- `C:\projects\TLWallet\tradelayer-wallet\packages\wallet-server\src\routes\bitagent-wallet.route.ts`
 
 ## Committed algorithmic signals
 
@@ -111,3 +125,16 @@ npm run observe:pnl -- --action=evidence --before=<path> --after=<path> --receip
 
 Dry-run and scripted commands do not prove funded execution, fills, realized
 PnL, release, or withdrawal.
+
+The funded testnet4 candidate commands intentionally stop before signing:
+
+```powershell
+npm run test:bitagent-authority:live
+npm run test:bitagent-withdrawal-candidate:live
+npm run prepare:local-testnet-tx
+npm run release:local-testnet-tx
+```
+
+These commands prove public state observation, unsigned construction, fee and
+effect binding, cancellation, and input-lock release. They do not prove a
+broadcast or a TradeLayer fill.

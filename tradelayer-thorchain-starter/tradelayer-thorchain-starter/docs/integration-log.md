@@ -818,3 +818,38 @@
   control. It performs read-only positive observation of the exact wallet
   transaction, never signs or rebroadcasts, and leaves absent or conflicted
   evidence in `reconciliation_required`.
+
+## MCP 12k skills and fresh funded candidate drill — 2026-08-06
+
+- Replaced the unused `agent-financial-survival` skill scaffold with the real
+  deterministic `SpendIntent`/`PolicyDecision` workflow and its explicit
+  candidate-only authority boundary. Its MCP manifest fails closed with
+  `requires_deterministic_wrapper` because a survival-policy MCP service has
+  not been implemented.
+- Added machine-readable inclusive-12k resource manifests to both local
+  BitAgent skills. The lifecycle manifest exposes no more than three
+  phase-specific candidate tools, keeps raw results external, caps the loop at
+  three rounds/six calls, and assigns role selection to the host.
+- Updated the collateral lifecycle for wallet-owned `prepared`, `executing`,
+  `submitted`, `failed`, and `reconciliation_required` substates. Missing
+  mempool or wallet evidence does not authorize retry, rebroadcast, or input
+  release.
+- Skill validation, bounded-resource tests, and receipt rejection tests pass
+  8/8. The expanded launch suite passes 58/58, including 24 scripted E2E
+  trajectories and at least 50 focused agent cases.
+- Revalidated the signed Bitcoin Core 31.1 binaries, then started the existing
+  local descriptor wallet on synchronized testnet4. At height 147212 it held
+  317176 confirmed sats, had no untrusted balance, and exposed one safe UTXO.
+- The live read-only wallet authority check passed. A first withdrawal
+  candidate request failed closed because the maximum fee was not configured.
+  With an explicit 1000-sat maximum and 2 sat/vB test fee rate, the wallet
+  prepared a 50000-sat output from a 302443-sat input, 252157-sat change, and a
+  286-sat fee. The candidate was cancelled, the lock was released, the
+  confirmed balance was unchanged, and the unsigned txid was absent from
+  wallet history.
+- The real UTXORef-to-TradeLayer tx5 candidate path then mapped the same
+  confirmed input to funding root
+  `a4807c8224debcfc8bfbe2e1ecbc72ffb9d99eae16832a252f5714086e0da5c2`,
+  encoded `tl51,2,16v7k,1nmnkgzk,0,1`, and calculated a 296-sat fee at
+  2 sat/vB. Cancellation again released the input. No signing, finalization,
+  mempool admission, broadcast, order placement, or PnL claim occurred.

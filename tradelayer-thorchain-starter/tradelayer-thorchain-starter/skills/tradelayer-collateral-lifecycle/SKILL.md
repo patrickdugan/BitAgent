@@ -40,6 +40,25 @@ listed there over copied protocol logic.
 Read [references/lifecycle-contract.md](references/lifecycle-contract.md) when
 constructing, resuming, or auditing a lifecycle receipt.
 
+For Hermes Lite or another small model, read
+[references/mcp-12k-resource-manifest.json](references/mcp-12k-resource-manifest.json)
+and select only the current phase packet. The manifest is a retrieval contract,
+not authorization.
+
+## MCP-intensive 12k mode
+
+Keep the inclusive model window at or below 12,000 tokens. The deterministic
+host selects the role and supplies no more than the phase-specific candidate
+tools in the manifest (normally three). Keep raw transcripts, raw tool
+results, raw PSBTs, signed transactions, signatures, and wallet grants outside
+the packet. Carry only resource handles and hashes for durable evidence.
+
+Compact each tool result into an evidence ledger, allow at most three rounds
+and six calls, and use at most one matching failure replay. If the packet still
+exceeds its lane after compaction, reject it; do not drop authority or approval
+constraints. Short context changes retrieval only and never grants approval,
+signing, broadcast, retry, or execution authority.
+
 ## Execute the lifecycle
 
 ### 1. Start or resume
@@ -118,9 +137,19 @@ explain -> simulate -> display effects and fees
 Bind approval to the exact simulation hash, effects, fees, expiry, wallet
 snapshot, codebase digest, signal hash, risk policy, and selected outpoints.
 
+The model stops at a candidate. The host requests wallet approval and the
+wallet resolves it. Signing and broadcast consume a one-time opaque grant in a
+separate broker; neither the grant nor transaction material enters the model
+packet.
+
 After submission, verify the actual txid and TradeLayer order/position state
 through an independent observer. An `open` order is verified placement, not
 realized PnL.
+
+While execution is `executing`, `failed`, or `reconciliation_required`, the
+model may only propose reading the persisted workflow. Once it is `submitted`,
+it may propose independent verification. Absence from one observer is not
+positive proof of failure and does not authorize retry or input release.
 
 ### 7. Settle PnL
 
@@ -165,6 +194,12 @@ Request a new wallet approval for the exact withdrawal simulation. Execute
 through the wallet-owned broker and verify the resulting txid and confirmation
 state.
 
+On Bitcoin testnet4 the current wallet service can prepare a public candidate
+containing input outpoints, destination, change, fee, unsigned txid, and
+commitment hashes while retaining the raw PSBT privately. A prepared candidate
+is not approved. Execution remains disabled by default and, when explicitly
+enabled by an operator release, stays wallet-owned and testnet4-only.
+
 Never reuse the order approval or PnL-release approval for withdrawal.
 
 ### 10. Seal the receipt
@@ -192,6 +227,11 @@ identifiers sufficient to reconstruct every decision.
   spendable balance.
 - On failed withdrawal verification, reconcile the recorded txid before
   preparing a replacement.
+- Preserve `prepared`, `executing`, `submitted`, `failed`, and
+  `reconciliation_required` wallet substates. Only positive wallet or chain
+  observation may resolve ambiguous submission.
+- Never interpret a missing mempool or wallet observation as permission to
+  retry, unlock inputs, or rebroadcast.
 
 ## Required checks
 
