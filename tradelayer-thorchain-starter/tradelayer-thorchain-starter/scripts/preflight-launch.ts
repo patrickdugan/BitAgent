@@ -12,6 +12,7 @@ const root = process.cwd();
 const outputPath = path.join(root, ".runtime", "launch-preflight", "latest.json");
 const evaluationPath = path.join(root, "eval", "artifacts", "agent-evaluation-latest.json");
 const failureTracePath = path.join(root, "eval", "artifacts", "failure-traces.jsonl");
+const releaseVerificationPath = path.join(root, ".runtime", "testnet-agent", "tx11-release-verification.json");
 const commandTimeoutMs = 180_000;
 
 async function runNpmScript(name: LaunchPreflightCommand["name"]) {
@@ -74,6 +75,14 @@ async function readEvaluation() {
   }
 }
 
+async function readReleaseVerification() {
+  try {
+    return JSON.parse(await fs.readFile(releaseVerificationPath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 async function countFailureTraces() {
   try {
     return (await fs.readFile(failureTracePath, "utf8"))
@@ -94,12 +103,15 @@ async function writeAtomic(filePath: string, value: unknown) {
 async function main() {
   const launchTests = await runNpmScript("test:launch");
   const agentEvaluation = await runNpmScript("eval:launch");
+  const releaseVerification = await runNpmScript("verify:tradelayer-release");
   const receipt = buildLaunchPreflightReceipt({
     generatedAt: new Date().toISOString(),
     launchTests: launchTests.command,
     agentEvaluation: agentEvaluation.command,
+    releaseVerification: releaseVerification.command,
     launchTestOutput: launchTests.output,
     evaluation: await readEvaluation(),
+    release: await readReleaseVerification(),
     failureTraceCount: await countFailureTraces()
   });
   await writeAtomic(outputPath, receipt);

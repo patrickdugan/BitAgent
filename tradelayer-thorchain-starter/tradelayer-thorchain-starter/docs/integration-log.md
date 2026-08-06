@@ -920,3 +920,25 @@
   `fundedExecutionAllowed` to false.
 - No signing material was requested or produced. No transaction was finalized
   or broadcast.
+
+## Testnet4 listener replay and tx11 source gate - 2026-08-06
+
+- The TradeLayer listener still selected the legacy Bitcoin testnet replay
+  boundary at height 3520000, above the current Bitcoin testnet4 tip. TradeLayer
+  commit `c80f703` now resolves `BTCTEST` and `BTC_TESTNET4` to block 1 and
+  accepts only a reviewed non-negative `TL_GENESIS_BLOCK` override.
+- The focused TradeLayer activation/procedural set passes 28/28, including four
+  new replay-profile cases. No listener database, transaction, signature, or
+  wallet state was changed by those tests.
+- The changed consensus bundle is candidate release 2 with source hash
+  `6b2f30c4b845b7ea7dee70efb30b2a4361ec4d8031a417fb76b8d9865880ea19`.
+- Added `npm run verify:tradelayer-release`. It recomputes the hash from the
+  canonical ordered source list, requires the current full TradeLayer commit in
+  the release manifest, rejects code/list/commit drift, and emits an effect-free
+  local receipt.
+- The full BitAgent preflight passes 63/63 launch checks, 24 named trajectories,
+  50/50 agent cases, all eight scores at 1, zero failure traces, and exact tx11
+  candidate-source verification.
+- Deployment, listener parity, and executability remain false. The verified
+  source candidate must still run on two fresh independently identified
+  listeners with the exact template before any wallet approval becomes legal.

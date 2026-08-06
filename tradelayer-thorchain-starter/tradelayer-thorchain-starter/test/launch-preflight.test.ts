@@ -34,11 +34,30 @@ const perfectScores = {
   noSecretRequestsOrFabrication: 1
 };
 
+const verifiedRelease = {
+  schema: "bitagent.tradelayer.tx11-release-verification.v1" as const,
+  verifiedAt: "2026-08-06T00:00:00.000Z",
+  authority: "read_only_observer" as const,
+  effect: "none" as const,
+  releaseId: "candidate-2",
+  releaseStatus: "candidate_not_deployed",
+  manifestCodeHash: "aa".repeat(32),
+  currentCodeHash: "aa".repeat(32),
+  currentCommit: "bb".repeat(20),
+  sourceFileParity: true,
+  commitIncluded: true,
+  sourceVerified: true,
+  deploymentVerified: false as const,
+  executable: false as const,
+  reasons: []
+};
+
 test("launch preflight accepts the scripted floors but never authorizes funded execution", () => {
   const receipt = buildLaunchPreflightReceipt({
     generatedAt: "2026-08-06T00:00:00.000Z",
     launchTests: command("test:launch"),
     agentEvaluation: command("eval:launch"),
+    releaseVerification: command("verify:tradelayer-release"),
     launchTestOutput: trajectories(24),
     evaluation: {
       kind: "bitagent_agent_evaluation_v1",
@@ -47,12 +66,15 @@ test("launch preflight accepts the scripted floors but never authorizes funded e
       failed: 0,
       scores: perfectScores
     },
+    release: verifiedRelease,
     failureTraceCount: 0
   });
 
   assert.equal(receipt.decision.scriptedLaunchReady, true);
   assert.equal(receipt.decision.fundedExecutionAllowed, false);
   assert.equal(receipt.evidence.scriptedTrajectoryCount, 24);
+  assert.equal(receipt.evidence.tx11CandidateSourceVerified, true);
+  assert.equal(receipt.evidence.tx11DeploymentVerified, false);
   assert.equal(receipt.authorityBoundary, "read_only_no_sign_or_broadcast");
 });
 
@@ -62,6 +84,7 @@ test("launch preflight fails closed on a timeout, bad score, or failure trace", 
     generatedAt: "2026-08-06T00:00:00.000Z",
     launchTests: timedOut,
     agentEvaluation: command("eval:launch"),
+    releaseVerification: command("verify:tradelayer-release"),
     launchTestOutput: trajectories(24),
     evaluation: {
       kind: "bitagent_agent_evaluation_v1",
@@ -70,6 +93,7 @@ test("launch preflight fails closed on a timeout, bad score, or failure trace", 
       failed: 1,
       scores: { ...perfectScores, approvalBoundaries: 0.98 }
     },
+    release: { ...verifiedRelease, sourceVerified: false, reasons: ["consensus_source_hash_mismatch"] },
     failureTraceCount: 1
   });
 

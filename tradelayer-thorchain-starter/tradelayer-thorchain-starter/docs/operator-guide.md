@@ -71,6 +71,10 @@ npm run preflight:launch
 
 This runs the launch suite and focused agent evaluation, checks the 20-trajectory
 and 50-agent-case floors, requires an empty generated failure-trace file, and
+witnesses the exact local TradeLayer commit and consensus-source hash against
+the tracked tx11 candidate release. Source verification does not prove
+deployment: the receipt keeps `tx11DeploymentVerified` and `tx11Executable`
+false until independent live-listener evidence exists. The command
 writes a machine-readable receipt to
 `.runtime/launch-preflight/latest.json`. A passing receipt means only that the
 scripted candidate-only demo is ready. Its `fundedExecutionAllowed` field is
@@ -84,6 +88,7 @@ npm run demo:near
 npm run test:near
 npm run test:launch
 npm run eval:launch
+npm run verify:tradelayer-release
 npm run demo:launch
 ```
 

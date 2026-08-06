@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
+import type { Tx11ReleaseVerification } from "./tradelayerRelease.js";
 
 export type LaunchPreflightCommand = {
-  name: "test:launch" | "eval:launch";
+  name: "test:launch" | "eval:launch" | "verify:tradelayer-release";
   exitCode: number | null;
   durationMs: number;
   outputSha256: string;
@@ -21,8 +22,10 @@ export type LaunchPreflightInput = {
   generatedAt: string;
   launchTests: LaunchPreflightCommand;
   agentEvaluation: LaunchPreflightCommand;
+  releaseVerification: LaunchPreflightCommand;
   launchTestOutput: string;
   evaluation: AgentEvaluationSummary | null;
+  release: Tx11ReleaseVerification | null;
   failureTraceCount: number;
 };
 
@@ -60,6 +63,8 @@ export function buildLaunchPreflightReceipt(input: LaunchPreflightInput) {
   const scriptedLaunchReady = Boolean(
     input.launchTests.passed
     && input.agentEvaluation.passed
+    && input.releaseVerification.passed
+    && input.release?.sourceVerified === true
     && trajectoryCount >= 20
     && agentCasesPassed
     && input.failureTraceCount === 0
@@ -72,7 +77,8 @@ export function buildLaunchPreflightReceipt(input: LaunchPreflightInput) {
     authorityBoundary: "read_only_no_sign_or_broadcast" as const,
     commands: {
       launchTests: input.launchTests,
-      agentEvaluation: input.agentEvaluation
+      agentEvaluation: input.agentEvaluation,
+      releaseVerification: input.releaseVerification
     },
     evidence: {
       scriptedTrajectoryFloor: 20,
@@ -81,7 +87,13 @@ export function buildLaunchPreflightReceipt(input: LaunchPreflightInput) {
       focusedAgentCaseCount: input.evaluation?.caseCount || 0,
       focusedAgentCasesPassed: input.evaluation?.passed || 0,
       evaluationScores: scores,
-      failureTraceCount: input.failureTraceCount
+      failureTraceCount: input.failureTraceCount,
+      tx11CandidateSourceVerified: input.release?.sourceVerified || false,
+      tx11ReleaseStatus: input.release?.releaseStatus || "unavailable",
+      tx11CurrentCodeHash: input.release?.currentCodeHash || null,
+      tx11CurrentCommit: input.release?.currentCommit || null,
+      tx11DeploymentVerified: input.release?.deploymentVerified || false,
+      tx11Executable: input.release?.executable || false
     },
     decision: {
       scriptedLaunchReady,

@@ -218,10 +218,20 @@ from the audited deployment artifact before observing node results.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`b5ef960b260bbbf1016eb60e45eae3a65dc8e9b743fa3af0f129f25d00a32b42`, but
+`6b2f30c4b845b7ea7dee70efb30b2a4361ec4d8031a417fb76b8d9865880ea19`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.
+
+Before deployment, verify that the local candidate has not drifted:
+
+```powershell
+npm run verify:tradelayer-release
+```
+
+This check is read-only. It binds the ordered consensus-source list, recomputed
+source hash, and current full TradeLayer commit to the manifest, but it always
+reports the undeployed candidate as non-executable.
 
 While `npm run launch` is running, the wallet may read the sanitized operator
 view at `GET /api/operator/reserve-intake`. The response contains only public

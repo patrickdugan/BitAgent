@@ -24,7 +24,7 @@ blockers for funded use.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Local launch test process | 61/61 tests passed |
+| Local launch test process | 63/63 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -472,6 +472,8 @@ approve funds yet**.
 - TradeLayer commit `c860c3c` adds `procedural.js` to the ordered consensus
   source bundle and makes the activation manifest derive the same source hash
   as live activation transactions.
+- TradeLayer commit `c80f703` selects block 1 for BTCTEST/testnet4 replay
+  instead of the legacy Bitcoin testnet height above the current testnet4 tip.
 - BitAgent derives a unique per-workflow contract ID and requires the activated
   tx11 code hash to be explicitly allowlisted in preflight evidence.
 - The new real unsigned testnet4 candidate was cancelled at a 776-sat fee; no
@@ -479,7 +481,7 @@ approve funds yet**.
 - The observed node runs an older activation hash and cannot satisfy this gate.
 
 Candidate release hash
-`b5ef960b260bbbf1016eb60e45eae3a65dc8e9b743fa3af0f129f25d00a32b42` is
+`6b2f30c4b845b7ea7dee70efb30b2a4361ec4d8031a417fb76b8d9865880ea19` is
 recorded in `config/tradelayer-tx11-release.json` with status
 `candidate_not_deployed`. Before promotion, deploy that exact source bundle to
 at least two independently identified synchronized listeners, activate tx11
@@ -759,12 +761,15 @@ remains disabled.**
 
 Passed:
 
-- `npm run preflight:launch` ran 61/61 launch checks, found all 24 named
+- `npm run preflight:launch` ran 63/63 launch checks, found all 24 named
   end-to-end trajectories, passed 50/50 focused agent cases with every score
   equal to 1, and found zero generated failure traces;
 - the command emits `.runtime/launch-preflight/latest.json` with command-output
   hashes, counted evidence, the `read_only_no_sign_or_broadcast` authority
   boundary, and a decision that keeps `fundedExecutionAllowed` false;
+- the same command recomputed the canonical TradeLayer consensus source hash,
+  bound it to commit `c80f703`, and verified candidate source integrity while
+  separately retaining `deploymentVerified=false` and `executable=false`;
 - the rendered local referral flow again passed wallet rejection and refresh
   recovery: the exact 50000-sat simulation, 900-sat fee, 199100-sat projected
   remainder, payload, quote, expiry, and simulation hash survived refresh;
