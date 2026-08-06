@@ -229,6 +229,23 @@ not part of this user journey.
 - Bitcoin evidence seam: Bitcoin Core wallet RPC through `bitcoin-cli -chain=testnet4`, using `gettransaction`, `decoderawtransaction`, and confirmation counts. The wallet-generated transaction hex avoids requiring a public txindex for the first live slice.
 - Broker seam: Bitcoin Core `walletcreatefundedpsbt`, `decodepsbt`, `getaddressinfo`, `walletprocesspsbt`, `finalizepsbt`, `testmempoolaccept`, and `sendrawtransaction`. The agent does not call these directly.
 
+## TradeLayer Read-Only Covenant Shadow Seam
+
+- Listener source: `C:\projects\tradelayer.js\src\walletListener.js`.
+- Exact reused endpoints: `tl_getSyncStatus`, `tl_allocatedRpc` with hardcoded
+  read method `getblockchaininfo`, `tl_getOrderbook`,
+  `tl_getAllBalancesForAddress`, and `tl_listOracles`.
+- Order-book source: `C:\projects\tradelayer.js\src\orderbook.js`. The adapter
+  reconstructs USD-per-BTC from offered/expected amounts because the stored
+  `price` orientation differs by offered asset.
+- Balance source: `C:\projects\tradelayer.js\src\tally.js#getAddressBalances`;
+  total amount is checked against available + reserved + margin + channel.
+- Sync source: `C:\projects\tradelayer.js\src\main.js#getSyncStatus`.
+- Provisional seam: loss, drawdown, leverage, and nonce require an external
+  hash-bound risk checkpoint. It is not signed and the address-wide balance
+  endpoint does not independently prove channel isolation, so this remains
+  shadow-only.
+
 ## Storage And Compute Markets
 
 - Filecoin chain-observation seam: Calibration JSON-RPC, configured by `FILECOIN_CALIBRATION_RPC`; the default endpoint is read-only and used only for an optional chain-head health probe.

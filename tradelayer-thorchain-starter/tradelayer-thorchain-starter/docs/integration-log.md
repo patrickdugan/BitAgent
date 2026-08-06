@@ -319,3 +319,38 @@
 - The claimed August 27-29 Web3Lagos 2026 schedule could not be confirmed from
   an accessible official organizer source and must not be advertised as
   confirmed until the community lead obtains written verification.
+
+## Read-only TradeLayer Covenant shadow feeder - 2026-08-05
+
+### Resolved
+
+- Inspected the live local listener, orderbook, tally, wallet cache, oracle,
+  and sync implementations before selecting endpoints.
+- Added a fixed-method HTTP source that performs six read-only calls and
+  brackets the observation with sync-before/sync-after heights.
+- Normalizes tlBTC/tlUSD prices from offered/expected token quantities rather
+  than trusting the side-dependent raw price field.
+- Added per-response hashes, one capture root, a compact feed root, and a
+  non-overwriting content-addressed capture store.
+- Requires a separate risk checkpoint for loss, drawdown, leverage, delta, and
+  nonce, bound to the observed balance root, height, wallet, and channel.
+- Added 28 integration/adversarial cases and 14 sanitized failure traces. The
+  combined covenant suite is 66/66.
+- Regenerated the Bonsai/Hermes seed corpus at 111 candidate-only rows: 50
+  intent, 10 UTXO/TradeLayer specialist, 39 risk/approval guard, and 12
+  recovery examples. The shadow trace source hash is
+  `99849f916551b3743d99d8baeb5b6357c05f9bb17504c666fefe90ee113aa934`.
+- Added `npm run observe:covenant-shadow`; it displays no raw source payloads
+  and has no signing or broadcast method.
+
+### Unresolved
+
+- The risk checkpoint is hashed but not signed or attested.
+- `tl_getAllBalancesForAddress` is address-wide; this adapter cannot
+  independently prove that its balance belongs only to the declared channel.
+- A synchronized listener, allocated public testnet4 RPC provider, configured
+  properties/oracle, and current risk checkpoint were not running together in
+  this workspace. HTTP behavior is verifier-tested with deterministic
+  responses, but no live capture is claimed.
+- No second market observer, channel signer, counterparty cosign, fill, or
+  settlement authority is introduced.

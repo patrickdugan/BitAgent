@@ -17,7 +17,12 @@ async function main() {
   let stderr = "";
   let exitCode = 0;
   try {
-    const result = await execFileAsync(process.execPath, [tsxCli, "--test", "test/strategy-covenant.test.ts"], {
+    const result = await execFileAsync(process.execPath, [
+      tsxCli,
+      "--test",
+      "test/strategy-covenant.test.ts",
+      "test/tradelayer-shadow-feeder.test.ts"
+    ], {
       cwd: root,
       windowsHide: true,
       timeout: 120_000,
@@ -34,33 +39,36 @@ async function main() {
   const tests = tapCount(stdout, "tests");
   const passed = tapCount(stdout, "pass");
   const failed = tapCount(stdout, "fail");
-  const tracePath = path.join(root, "eval", "fixtures", "covenant-failure-traces.seed.jsonl");
-  const traces = (await fs.readFile(tracePath, "utf8"))
-    .split(/\r?\n/)
-    .filter(Boolean)
+  const tracePaths = [
+    path.join(root, "eval", "fixtures", "covenant-failure-traces.seed.jsonl"),
+    path.join(root, "eval", "fixtures", "shadow-feeder-failure-traces.seed.jsonl")
+  ];
+  const traces = (await Promise.all(tracePaths.map((tracePath) => fs.readFile(tracePath, "utf8"))))
+    .flatMap((text) => text.split(/\r?\n/).filter(Boolean))
     .map((line) => JSON.parse(line) as Record<string, unknown>);
   const tracesSanitized = traces.every((trace) =>
-    trace.schema === "bitagent_covenant_failure_trace_v1"
-    && trace.authority === "deterministic_host"
+    ["bitagent_covenant_failure_trace_v1", "bitagent_shadow_failure_trace_v1"].includes(String(trace.schema))
+    && ["deterministic_host", "read_only_observer"].includes(String(trace.authority))
     && trace.effect === "none"
     && trace.secretMaterialPresent === false
     && trace.fabricatedStatePresent === false
     && !/(private.?key|mnemonic|seed.?phrase|\bwif\b)/i.test(JSON.stringify(trace))
   );
-  const allPassed = exitCode === 0 && tests >= 30 && passed === tests && failed === 0
-    && traces.length >= 12 && tracesSanitized;
+  const allPassed = exitCode === 0 && tests >= 60 && passed === tests && failed === 0
+    && traces.length >= 26 && tracesSanitized;
   const report = {
     schema: "bitagent_strategy_covenant_evaluation_v1",
     generatedAt: new Date().toISOString(),
     allPassed,
     taskResult: { tests: { total: tests, passed, failed }, failureTraces: traces.length },
     measurementReliability: "deterministic_checks_only_no_llm_judge",
-    claimSupport: allPassed ? "candidate_only_safety_claim_supported" : "candidate_only_safety_claim_not_supported",
+    claimSupport: allPassed ? "candidate_only_shadow_safety_claim_supported" : "candidate_only_shadow_safety_claim_not_supported",
     operationalDecision: allPassed ? "continue_shadow_testing" : "reject_and_repair",
-    failureTraces: { sanitized: tracesSanitized, source: path.relative(root, tracePath) },
+    failureTraces: { sanitized: tracesSanitized, sources: tracePaths.map((item) => path.relative(root, item)) },
     scores: {
       covenantIntegrity: allPassed ? 1 : 0,
       strategyIdentity: allPassed ? 1 : 0,
+      sourceCoherence: allPassed ? 1 : 0,
       marketAndPortfolioTruth: allPassed ? 1 : 0,
       riskProjection: allPassed ? 1 : 0,
       approvalBoundary: allPassed ? 1 : 0,

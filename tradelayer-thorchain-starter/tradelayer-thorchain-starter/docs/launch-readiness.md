@@ -138,12 +138,12 @@ for delegated or funded execution**.
 
 Passed:
 
-- 38/38 focused and adversarial covenant cases;
-- 131/131 tests across covenant, launch, committed-signal, NEAR/multichain,
+- 66/66 focused and adversarial covenant/shadow cases;
+- 159/159 tests across covenant, launch, committed-signal, NEAR/multichain,
   UTXO/TradeLayer smoke, sovereign, economic, and live-shadow suites;
-- 14/14 sanitized covenant failure traces and an eight-dimension deterministic
+- 28/28 sanitized covenant/shadow failure traces and a deterministic
   evaluator score of 1.0; no LLM judge was used;
-- Bonsai/Hermes candidate-only seed corpus regenerated at 97 rows with no raw
+- Bonsai/Hermes candidate-only seed corpus regenerated at 111 rows with no raw
   transcripts or detected secret values;
 - exact covenant hash and wallet-approval binding;
 - strategy weights totaling exactly 10,000 bps;
@@ -170,6 +170,23 @@ only. Public copy must describe the three currently supported launch intents,
 not the planned twelve-action backlog. The TradeLayer Maker Pilot remains
 shadow-only until the funded launch gates and local legal/compliance review
 pass.
+
+### Read-only shadow feeder update
+
+- 28/28 additional TradeLayer shadow-source cases pass; the combined Covenant
+  suite is 66/66.
+- Six fixed read-only wallet-listener observations are hash-bound and checked
+  for network, listener height/freshness, balance consistency, property
+  orientation, oracle height, and cross-source conflicts.
+- 14 new sanitized shadow failure traces feed the candidate-only Bonsai/Hermes
+  risk-guard lane.
+- A shadow feed reaches the allocator and still produces only `effect: none`,
+  `signingPerformed: false`, and `broadcastPerformed: false`.
+
+This reduces the "no live market source" blocker to a live-capable read-only
+adapter, but does not close it for funded use. The risk checkpoint lacks
+authentication and independent channel-balance proof, and no synchronized
+live service set was available for a claimed real capture in this workspace.
 
 ## Exit criteria for funded launch
 

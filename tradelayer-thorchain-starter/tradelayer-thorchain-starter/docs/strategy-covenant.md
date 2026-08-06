@@ -167,6 +167,7 @@ npm run test:covenant
 npm run eval:covenant
 npm run demo:covenant
 npm run bench:covenant -- --iterations=1000
+npm run observe:covenant-shadow
 ```
 
 Artifacts are written under `.runtime/strategy-covenant/` and are ignored by
@@ -178,11 +179,14 @@ Git.
 - The bridge has no configured approved signal producer or policy allowlist.
 - No channel signer, TEE attestation, or capability lease is implemented.
 - Repeated verifier passes are not independent verifier implementations.
-- No live market/oracle/channel provider feeds this module.
+- A live-capable read-only wallet-listener feeder now supplies network, sync,
+  order-book, balance, and oracle evidence. Its external risk checkpoint is
+  not authenticated and it cannot independently prove channel-isolated
+  accounting, so it does not clear the funded-use blocker.
 - No candidate is currently signed, broadcast, cosigned, filled, or settled.
 - Per-candidate wallet approval is still required; delegated unattended
   execution is deliberately not enabled.
 
-The smallest safe next step is a shadow-mode adapter that feeds live,
-read-only TradeLayer state into this exact covenant and compares proposed
-orders with the current committed-signal lane without authorizing execution.
+The smallest safe next step is an authenticated, channel-specific risk
+checkpoint service plus a second independent market observer. Neither may
+authorize execution.

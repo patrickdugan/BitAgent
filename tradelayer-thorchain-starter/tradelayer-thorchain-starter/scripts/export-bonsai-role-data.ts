@@ -195,9 +195,18 @@ async function main() {
   const failurePath = path.join(root, "eval", "fixtures", "failure-traces.seed.jsonl");
   const signalFailurePath = path.join(root, "eval", "fixtures", "signal-failure-traces.seed.jsonl");
   const covenantFailurePath = path.join(root, "eval", "fixtures", "covenant-failure-traces.seed.jsonl");
+  const shadowFailurePath = path.join(root, "eval", "fixtures", "shadow-feeder-failure-traces.seed.jsonl");
   const launchToolsPath = path.join(root, "src", "launch", "tools.ts");
   const signalToolsPath = path.join(root, "src", "signals", "tools.ts");
-  const sourceFiles = [agentCasesPath, failurePath, signalFailurePath, covenantFailurePath, launchToolsPath, signalToolsPath];
+  const sourceFiles = [
+    agentCasesPath,
+    failurePath,
+    signalFailurePath,
+    covenantFailurePath,
+    shadowFailurePath,
+    launchToolsPath,
+    signalToolsPath
+  ];
   const sourceHashes = new Map<string, string>();
   for (const file of sourceFiles) sourceHashes.set(file, hash(await fs.readFile(file)));
 
@@ -341,6 +350,32 @@ async function main() {
         requireFreshSimulation: ["market_state_invalid", "portfolio_state_invalid", "candidate_invalid"].includes(String(row.errorCode))
       },
       tags: ["approval_boundary", "strategy_covenant", String(row.errorCode)]
+    }));
+  }
+
+  const shadowFailures = await readJsonl(shadowFailurePath);
+  for (const row of shadowFailures) {
+    const id = String(row.caseId);
+    const { recovery, ...evidence } = row;
+    examples.push(makeExample({
+      id: `guard-${id}`,
+      role: "risk_approval_guard",
+      sourcePath: path.relative(root, shadowFailurePath),
+      sourceId: id,
+      sourceHash: sourceHashes.get(shadowFailurePath)!,
+      user: {
+        task: "Validate this read-only TradeLayer shadow evidence. Never infer missing market, balance, PnL, or sync state.",
+        evidence
+      },
+      assistant: {
+        action: "deny_candidate_generation",
+        approvalValid: false,
+        execute: false,
+        reasonCode: row.errorCode,
+        recovery,
+        requireFreshObservation: true
+      },
+      tags: ["market_state_truth", "strategy_covenant", "shadow_feed", String(row.errorCode)]
     }));
   }
 
