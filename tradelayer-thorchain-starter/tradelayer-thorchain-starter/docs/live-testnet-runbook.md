@@ -273,6 +273,13 @@ The controller fails closed if a listener reports an error, a persisted
 checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
 `trackHeight + 1`. A bounded success leaves peer networking disabled so the
 operator can inspect both listeners before selecting the next target.
+Run recovery nodes with `maxconnections=1` so an already-requested block
+pipeline cannot greatly overshoot the lag watermark. On each resume, the
+controller requests up to four one-shot peers from Bitcoin Core's own address
+manager; no public peer is hardcoded. Its latest atomic status receipt is
+`.runtime/testnet-agent/sync-throttle-status.json`. For interruption recovery,
+launch the command as a hidden detached process with stdout and stderr
+redirected to durable operator logs rather than relying on an attached shell.
 
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence

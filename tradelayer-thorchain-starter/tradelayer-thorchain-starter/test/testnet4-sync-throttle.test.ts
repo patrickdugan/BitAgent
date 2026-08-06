@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decideTestnet4SyncControl } from "../src/launch/testnet4SyncThrottle.js";
+import { decideTestnet4SyncControl, formatBitcoinPeerEndpoint } from "../src/launch/testnet4SyncThrottle.js";
 
 const policy = { lowWatermark: 25, highWatermark: 250, stopHeight: 60_000 };
 const base = {
@@ -9,6 +9,7 @@ const base = {
   pruneHeight: 55_000,
   initialBlockDownload: true,
   networkActive: true,
+  connections: 1,
   trackHeight: 57_900,
   listenerPhase: "realtime",
   listenerError: null
@@ -59,4 +60,15 @@ test("rejects an unsafe prune-node high-watermark", () => {
     () => decideTestnet4SyncControl(base, { ...policy, highWatermark: 2_001 }),
     /must not exceed 2000/
   );
+});
+
+test("formats only bounded IPv4 and IPv6 addrman peers", () => {
+  assert.equal(formatBitcoinPeerEndpoint({ address: "203.0.113.7", port: 48_333, network: "ipv4" }), "203.0.113.7:48333");
+  assert.equal(formatBitcoinPeerEndpoint({ address: "2001:db8::7", port: 48_333, network: "ipv6" }), "[2001:db8::7]:48333");
+});
+
+test("rejects unsupported or injection-shaped addrman entries", () => {
+  assert.equal(formatBitcoinPeerEndpoint({ address: "peer.example", port: 48_333, network: "ipv4" }), null);
+  assert.equal(formatBitcoinPeerEndpoint({ address: "127.0.0.1;stop", port: 48_333, network: "ipv4" }), null);
+  assert.equal(formatBitcoinPeerEndpoint({ address: "203.0.113.7", port: 0, network: "ipv4" }), null);
 });

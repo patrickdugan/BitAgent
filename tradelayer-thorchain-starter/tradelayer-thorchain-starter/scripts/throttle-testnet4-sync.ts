@@ -1,8 +1,11 @@
 import "dotenv/config";
 import { promises as fs } from "node:fs";
+import path from "node:path";
 import {
   decideTestnet4SyncControl,
+  formatBitcoinPeerEndpoint,
   validateTestnet4SyncThrottlePolicy,
+  type BitcoinAddrmanEntry,
   type Testnet4SyncSnapshot
 } from "../src/launch/testnet4SyncThrottle.js";
 
@@ -99,7 +102,7 @@ async function listenerStatus(pair: Pair): Promise<{ phase: string; error?: stri
 async function snapshot(pair: Pair): Promise<Testnet4SyncSnapshot> {
   const [chain, network, listener] = await Promise.all([
     bitcoinRpc<{ chain: string; blocks: number; headers: number; pruned: boolean; pruneheight?: number; initialblockdownload: boolean }>(pair, "getblockchaininfo"),
-    bitcoinRpc<{ networkactive: boolean }>(pair, "getnetworkinfo"),
+    bitcoinRpc<{ networkactive: boolean; connections: number }>(pair, "getnetworkinfo"),
     listenerStatus(pair)
   ]);
   if (chain.chain !== "testnet4") throw new Error(`pair ${pair.name} Bitcoin backend is not testnet4`);
@@ -109,10 +112,22 @@ async function snapshot(pair: Pair): Promise<Testnet4SyncSnapshot> {
     pruneHeight: chain.pruned ? Number(chain.pruneheight || 0) : 0,
     initialBlockDownload: chain.initialblockdownload === true,
     networkActive: network.networkactive === true,
+    connections: Number(network.connections || 0),
     trackHeight: listener.trackHeight,
     listenerPhase: listener.phase,
     listenerError: listener.error
   };
+}
+
+async function kickAddrmanPeers(pair: Pair): Promise<number> {
+  const entries = await bitcoinRpc<BitcoinAddrmanEntry[]>(pair, "getnodeaddresses", [16]);
+  const endpoints = entries.map(formatBitcoinPeerEndpoint)
+    .filter((value): value is string => Boolean(value))
+    .slice(0, 4);
+  const attempts = await Promise.allSettled(
+    endpoints.map((endpoint) => bitcoinRpc(pair, "addnode", [endpoint, "onetry"]))
+  );
+  return attempts.filter((attempt) => attempt.status === "fulfilled").length;
 }
 
 async function setNetwork(pair: Pair, active: boolean): Promise<void> {
@@ -121,6 +136,13 @@ async function setNetwork(pair: Pair, active: boolean): Promise<void> {
 
 async function pauseAll(pairs: Pair[]): Promise<void> {
   await Promise.allSettled(pairs.map((pair) => setNetwork(pair, false)));
+}
+
+async function writeStatus(outputPath: string, value: unknown): Promise<void> {
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  const temporary = outputPath + "." + process.pid + ".tmp";
+  await fs.writeFile(temporary, JSON.stringify(value, null, 2) + "\n", "utf8");
+  await fs.rename(temporary, outputPath);
 }
 
 async function main() {
@@ -133,8 +155,11 @@ async function main() {
   if (policy.stopHeight < 1) throw new Error("BITAGENT_SYNC_STOP_HEIGHT is required and must be positive");
   const pollMs = boundedInteger(process.env.BITAGENT_SYNC_POLL_MS, 1_000, "BITAGENT_SYNC_POLL_MS");
   const maxRuntimeMs = boundedInteger(process.env.BITAGENT_SYNC_MAX_RUNTIME_MS, 1_800_000, "BITAGENT_SYNC_MAX_RUNTIME_MS");
+  const statusPath = path.resolve(process.env.BITAGENT_SYNC_STATUS_PATH
+    || path.join(".runtime", "testnet-agent", "sync-throttle-status.json"));
   if (pollMs < 250 || pollMs > 30_000) throw new Error("BITAGENT_SYNC_POLL_MS must be between 250 and 30000");
   const startedAt = Date.now();
+  const lastPeerKick = new Map<string, number>();
   let interrupted = false;
   process.once("SIGINT", () => { interrupted = true; });
   process.once("SIGTERM", () => { interrupted = true; });
@@ -145,11 +170,29 @@ async function main() {
       const states = await Promise.all(pairs.map(async (pair) => {
         const observed = await snapshot(pair);
         const decision = decideTestnet4SyncControl(observed, policy);
-        if (decision.action === "enable_network" && !observed.networkActive) await setNetwork(pair, true);
+        let peerKickAttempts = 0;
+        if (decision.action === "enable_network" && !observed.networkActive) {
+          await setNetwork(pair, true);
+          peerKickAttempts = await kickAddrmanPeers(pair);
+          lastPeerKick.set(pair.name, Date.now());
+        } else if (observed.networkActive && observed.connections === 0 && decision.lag <= policy.lowWatermark
+          && Date.now() - (lastPeerKick.get(pair.name) || 0) >= 15_000) {
+          peerKickAttempts = await kickAddrmanPeers(pair);
+          lastPeerKick.set(pair.name, Date.now());
+        }
         if ((decision.action === "disable_network" || decision.action === "fail") && observed.networkActive) await setNetwork(pair, false);
-        console.log(JSON.stringify({ at: new Date().toISOString(), pair: pair.name, ...observed, ...decision }));
-        return { pair, decision };
+        const event = { at: new Date().toISOString(), pair: pair.name, ...observed, ...decision, peerKickAttempts };
+        console.log(JSON.stringify(event));
+        return { pair, decision, event };
       }));
+      await writeStatus(statusPath, {
+        schema: "bitagent_testnet4_sync_throttle_status_v1",
+        authority: "bitcoin_peer_network_control_only",
+        effect: "setnetworkactive_and_addrman_onetry",
+        updatedAt: new Date().toISOString(),
+        stopHeight: policy.stopHeight,
+        states: states.map((state) => state.event)
+      });
       const failed = states.find((state) => state.decision.action === "fail");
       if (failed) throw new Error(`pair ${failed.pair.name} failed closed: ${failed.decision.reason}`);
       if (states.every((state) => state.decision.action === "complete")) {

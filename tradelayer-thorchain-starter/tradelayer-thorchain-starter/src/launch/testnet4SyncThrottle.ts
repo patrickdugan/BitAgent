@@ -4,9 +4,16 @@ export type Testnet4SyncSnapshot = {
   pruneHeight: number;
   initialBlockDownload: boolean;
   networkActive: boolean;
+  connections: number;
   trackHeight: number;
   listenerPhase: string;
   listenerError?: string | null;
+};
+
+export type BitcoinAddrmanEntry = {
+  address: string;
+  port: number;
+  network: string;
 };
 
 export type Testnet4SyncThrottlePolicy = {
@@ -67,4 +74,15 @@ export function decideTestnet4SyncControl(
     return { action: "enable_network", reason: "listener_caught_up_low_watermark", lag };
   }
   return { action: "hold", reason: "within_lag_corridor", lag };
+}
+
+export function formatBitcoinPeerEndpoint(raw: BitcoinAddrmanEntry): string | null {
+  const port = height(raw.port, "peer port");
+  if (port < 1 || port > 65_535) return null;
+  const address = String(raw.address || "").trim();
+  if (raw.network === "ipv4" && /^\d{1,3}(?:\.\d{1,3}){3}$/.test(address)) return address + ":" + port;
+  if (raw.network === "ipv6" && /^[a-fA-F0-9:]+$/.test(address) && address.includes(":")) {
+    return "[" + address + "]:" + port;
+  }
+  return null;
 }
