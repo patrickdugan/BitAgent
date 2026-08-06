@@ -439,3 +439,21 @@ Remaining:
   non-standard under the target node policy;
 - only after those gates, broadcast and independently verify the reserve UTXO,
   tx11 credit, tx5 order/fill/PnL, and withdrawal.
+
+## TradeLayer reserve preflight (2026-08-06)
+
+Decision: **fail the execution gate; retain candidate-only status**.
+
+Observed:
+
+- tx11 is active in the local snapshot from block 1;
+- property 1 is recorded as managed type-2 `tlBTC`;
+- the snapshot is stale (last modified 2026-07-06T23:38:47.787Z);
+- only one node identity is available;
+- the candidate template and contract records are absent, so their state,
+  parity, and P2TR redeem address cannot be verified.
+
+The evidence is persisted under the ignored local runtime and returns
+`status=failed`. This is a successful safety outcome, not launch readiness.
+Fresh snapshots from at least two independently identified synchronized nodes
+must make every gate true before a wallet can offer execution approval.

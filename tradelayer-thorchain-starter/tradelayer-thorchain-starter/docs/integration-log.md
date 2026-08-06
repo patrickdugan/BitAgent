@@ -630,3 +630,32 @@
   guardian public key, so independent guardian availability remains false.
 - The candidate is evidence that exact construction and recovery work. It is
   not approval or evidence that the reserve/intake transaction is executable.
+
+## TradeLayer reserve preflight evidence — 2026-08-06
+
+### Resolved
+
+- Added a read-only NeDB snapshot reader that does not import TradeLayer's DB
+  singleton. This avoids the existing initialization path that can create or
+  overwrite missing activation state with defaults.
+- Added hash-bound preflight evidence for listener height, tx11 activation,
+  managed tlBTC property identity, exact procedural template hash, contract
+  state, reserve redeem address, freshness, and multi-node parity.
+- Four focused tests prove two-node success and fail-closed behavior for one
+  node, stale state, mismatched reserve address, registry divergence, and
+  evidence tampering.
+- Ran the observer against the actual local `btc-test` database snapshot. It
+  confirmed tx11 active from block 1 and property 1 as type-2 `tlBTC`.
+
+### Unresolved
+
+- The local database was last modified at 2026-07-06T23:38:47.787Z and is not
+  fresh enough for execution approval.
+- Only one node snapshot was available, so independent registry parity is not
+  proven.
+- The candidate uses `dlc-receipt-ltc-testnet-v1` and
+  `bitagent-crosschain-inbound`; neither exact record exists in the observed
+  BTCTEST procedural registry. Contract state and the candidate P2TR
+  `redeemAddress` therefore remain unverified.
+- The preflight result is `failed`. No wallet surface may translate it into an
+  executable approval until fresh independent nodes satisfy every gate.

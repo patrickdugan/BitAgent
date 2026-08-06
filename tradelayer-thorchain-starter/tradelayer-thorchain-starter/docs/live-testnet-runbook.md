@@ -195,6 +195,22 @@ drill must report `inputLockReleased=true`, `signingPerformed=false`, and
 `broadcastPerformed=false`. This does not prove tx11 activation, registry
 identity, independent guardian availability, or data-carrier relay policy.
 
+Run the read-only TradeLayer registry gate after candidate construction:
+
+```powershell
+$env:TRADELAYER_PREFLIGHT_DB_PATHS="<node-a-db-path>;<node-b-db-path>"
+$env:TRADELAYER_PREFLIGHT_NODE_IDS="listener-a;listener-b"
+$env:TRADELAYER_PREFLIGHT_BLOCK_HEIGHTS="<height-a>;<height-b>"
+npm run observe:reserve-preflight
+```
+
+The command reads only `activations.db`, `propertyList.db`, and
+`procedural.db`. A launchable result requires `status=verified` and every gate
+true. Do not duplicate one database under two node IDs: duplicate or divergent
+node identities fail the parity requirement. File freshness is a local-snapshot
+check; production must additionally authenticate each node and independently
+observe its synchronization height.
+
 ## Akash Broker Isolation
 
 The current `@akashnetwork/chain-sdk@1.0.0-alpha.0` package requires Node 22.14. It is isolated under `brokers/akash` and is not installed in the root agent runtime. Install and audit it in a disposable Node 22 broker environment before running `validate-sdl.mjs`. The broker should use scoped AuthZ or fee grants and return lifecycle receipts; it must not expose its mnemonic to the agent.

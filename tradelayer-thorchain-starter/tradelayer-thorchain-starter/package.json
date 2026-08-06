@@ -43,9 +43,10 @@
     "broker:testnet": "tsx scripts/testnet-signer-broker.ts",
     "observe:pnl": "tsx scripts/observe-tradelayer-pnl.ts",
     "observe:order": "tsx scripts/observe-tradelayer-order.ts",
+    "observe:reserve-preflight": "tsx scripts/observe-tradelayer-reserve-preflight.ts",
     "test:sovereign": "tsx --test test/sovereign.test.ts",
     "test:economic": "tsx --test test/economic-agent.test.ts",
-    "test:live": "tsx --test test/live-testnet-agent.test.ts test/reserve-intake-candidate-broker.test.ts test/tradelayer-order-verifier.test.ts test/bitcoin-withdrawal-verifier.test.ts",
+    "test:live": "tsx --test test/live-testnet-agent.test.ts test/reserve-intake-candidate-broker.test.ts test/tradelayer-reserve-preflight.test.ts test/tradelayer-order-verifier.test.ts test/bitcoin-withdrawal-verifier.test.ts",
     "activity:feed": "tsx scripts/activity-feed.ts"
   },
   "devDependencies": {

@@ -273,6 +273,11 @@ not part of this user journey.
   ownership checks, and exact-input lock release. It enforces reserve vout 0,
   TradeLayer tx11 OP_RETURN vout 1, and wallet change vout 2. It intentionally
   has no signing or broadcast method and never returns the raw PSBT.
+- Read-only registry seam: `src/launch/tradelayerReservePreflight.ts` reads
+  append-only NeDB snapshots without loading TradeLayer runtime modules or
+  creating/updating databases. It hash-binds tx11 activation, property data,
+  procedural template/contract state, listener height, and source-file bytes,
+  then requires fresh parity from at least two distinct node identities.
 
 ## TradeLayer Read-Only Covenant Shadow Seam
 
