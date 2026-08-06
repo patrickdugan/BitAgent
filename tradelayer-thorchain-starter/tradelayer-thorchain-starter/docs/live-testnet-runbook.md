@@ -255,6 +255,25 @@ pass `synchronizedTestnet4`. If Bitcoin Core already reports a `pruneheight`
 above `trackHeight + 1`, that backend cannot supply the missing history; use a
 fresh/sufficiently retained backend instead of skipping blocks.
 
+After each fresh backend has downloaded beyond the persisted listener
+checkpoint, use the lag-driven throttle instead of fixed-height watchdogs. The
+controller accepts only unauthenticated loopback URLs, reads Bitcoin RPC
+cookies locally, changes only Bitcoin peer-networking state, and pauses every
+backend on error or completion:
+
+```powershell
+$env:BITAGENT_TESTNET4_SYNC_PAIRS_JSON='[{"name":"a","listenerUrl":"http://127.0.0.1:3101","rpcUrl":"http://127.0.0.1:49372","cookieFile":"D:\\bitagent-testnet4\\node-e-prune2048\\testnet4\\.cookie"},{"name":"b","listenerUrl":"http://127.0.0.1:3102","rpcUrl":"http://127.0.0.1:49382","cookieFile":"D:\\bitagent-testnet4\\node-f-prune2048\\testnet4\\.cookie"}]'
+$env:BITAGENT_SYNC_LOW_WATERMARK="25"
+$env:BITAGENT_SYNC_HIGH_WATERMARK="250"
+$env:BITAGENT_SYNC_STOP_HEIGHT="65000"
+npm run sync:testnet4:throttled
+```
+
+The controller fails closed if a listener reports an error, a persisted
+checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
+`trackHeight + 1`. A bounded success leaves peer networking disabled so the
+operator can inspect both listeners before selecting the next target.
+
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
 proof; operators must still ensure the endpoints do not proxy the same process

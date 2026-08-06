@@ -1060,3 +1060,23 @@
   launch-ready result.
 - No wallet was loaded or created, and no PSBT, signature, or broadcast was
   requested or produced.
+
+## Lag-driven pruned-node throttle - 2026-08-06
+
+- A second fixed-height window first completed cleanly at local tips 55,024
+  and 55,003. Both listeners again reached the exact tips with
+  `phase=realtime`, `percent=100`, and no error.
+- Advancing toward 60,000 then demonstrated why a height-only watchdog is not
+  sufficient: transaction-dense blocks caused the 2 GiB backends to jump to
+  prune heights 58,224 and 58,226 while the durable listener tracks were still
+  55,702 and 55,650. Both listeners failed closed with `Block not available
+  (pruned data)`; neither skipped or synthesized the missing range.
+- Added a deterministic lag-driven controller that compares Bitcoin height,
+  prune horizon, peer-network state, and listener `trackHeight`. It pauses at
+  a configurable high-water lag, resumes only below a low-water lag, and
+  disables every configured backend on listener error, invalid checkpoint,
+  prune overrun, timeout, interruption, or bounded completion.
+- The controller permits only loopback HTTP endpoints, injects Bitcoin cookie
+  credentials host-side, emits no credentials, and has no wallet, signing,
+  PSBT, or broadcast capability. Nine focused policy tests and the full
+  TypeScript check pass; the launch test set now passes 82/82.

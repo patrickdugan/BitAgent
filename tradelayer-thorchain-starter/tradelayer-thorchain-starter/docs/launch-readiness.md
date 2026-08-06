@@ -864,6 +864,10 @@ Passed:
   already been pruned; missing history is never skipped or synthesized.
 - the complete launch preflight passes 73/73 launch checks, 24 scripted
   trajectories, and 50/50 focused agent cases with no generated failure trace.
+- a lag-driven pruned-node throttle now fail-closes on listener errors,
+  above-tip checkpoints, and prune-horizon overruns while bounding Bitcoin
+  download lead to a 250-block default; its nine cases raise the complete
+  launch test set to 82/82.
 
 Boundaries:
 
