@@ -96,7 +96,7 @@ On a development machine where the primary `tradelayer.js` checkout contains
 tracked edits, run the candidate-8 gate instead of weakening the source check:
 
 ```powershell
-npm run test:launch:candidate8
+npm run preflight:launch:candidate8
 ```
 
 The command enumerates Git worktrees and accepts only a tracked-clean source at
@@ -104,7 +104,8 @@ an allowlisted full commit whose ordered consensus files produce the exact
 manifest hash. It writes
 `.runtime/testnet-agent/tx11-launch-source.json`, sets
 `TRADELAYER_JS_REPO` only for the child launch suite, and never changes the
-primary checkout. A passing source receipt still states
+primary checkout. Use `npm run test:launch:candidate8` for the shorter
+test-only diagnosis. A passing source receipt still states
 `candidate_not_deployed`, `deploymentVerified=false`, and `executable=false`;
 it is not wallet or transaction authority.
 

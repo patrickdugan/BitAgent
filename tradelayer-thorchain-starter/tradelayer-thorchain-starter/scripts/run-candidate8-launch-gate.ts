@@ -101,10 +101,11 @@ async function main() {
   }, null, 2));
 
   if (process.argv.includes("--verify-only")) return;
+  const childNpmScript = process.argv.includes("--preflight") ? "preflight:launch" : "test:launch";
   const command = process.platform === "win32" ? (process.env.ComSpec || "cmd.exe") : "npm";
   const args = process.platform === "win32"
-    ? ["/d", "/s", "/c", "npm run test:launch"]
-    : ["run", "test:launch"];
+    ? ["/d", "/s", "/c", `npm run ${childNpmScript}`]
+    : ["run", childNpmScript];
   await new Promise<void>((resolve, reject) => {
     const child = execFile(command, args, {
       cwd: root,
@@ -114,7 +115,7 @@ async function main() {
     child.stdout?.pipe(process.stdout);
     child.stderr?.pipe(process.stderr);
     child.once("error", reject);
-    child.once("exit", (code) => code === 0 ? resolve() : reject(new Error(`Launch tests exited with code ${code}`)));
+    child.once("exit", (code) => code === 0 ? resolve() : reject(new Error(`${childNpmScript} exited with code ${code}`)));
   });
 }
 

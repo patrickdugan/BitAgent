@@ -959,6 +959,10 @@ Passed:
 - `npm run test:launch:candidate8` passes 96/96 checks, including the two new
   discovery/selection regressions, all 24 scripted trajectories, and all 50
   focused agent cases.
+- `npm run preflight:launch:candidate8` also passes the separate 50-case
+  evaluation, all eight score dimensions at 1, the zero-failure-trace gate,
+  and exact release-source verification. Its persisted decision is
+  `scriptedLaunchReady=true` and `fundedExecutionAllowed=false`.
 
 Remaining:
 

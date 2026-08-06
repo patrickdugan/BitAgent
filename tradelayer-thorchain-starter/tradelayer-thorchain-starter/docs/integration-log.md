@@ -1224,3 +1224,8 @@
 - The provenance-focused tests pass 2/2 and the resulting launch suite passes
   96/96, including 24 end-to-end trajectories and 50/50 focused agent cases.
   No wallet approval, signing, activation, or broadcast occurred.
+- `npm run preflight:launch:candidate8` reuses the selected source for the full
+  preflight. It passed 96/96 launch checks, 50/50 focused evaluations with all
+  eight scores equal to 1, zero generated failure traces, and exact source
+  verification. The receipt decision is `scriptedLaunchReady=true` and
+  `fundedExecutionAllowed=false`.
