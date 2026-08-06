@@ -853,3 +853,25 @@
   encoded `tl51,2,16v7k,1nmnkgzk,0,1`, and calculated a 296-sat fee at
   2 sat/vB. Cancellation again released the input. No signing, finalization,
   mempool admission, broadcast, order placement, or PnL claim occurred.
+
+## Rendered launch-flow regression and balance truthfulness fix — 2026-08-06
+
+- Exercised a fresh local referral link in the rendered launch UI through demo
+  wallet creation, confirmed UTXO recording, natural-language strategy
+  selection, exact simulation, pending approval, refresh recovery, scripted
+  execution/verification, referral activation, withdrawal rejection/recovery,
+  and scripted verified withdrawal.
+- The first browser pass exposed that `simulateStrategy()` persisted
+  `bitcoinSpendableSats` into the confirmed wallet balance before approval.
+  The simulation effects were correct, but the public wallet state was not.
+- The kernel now uses verified spendable funding only as the simulation input;
+  it leaves confirmed wallet state unchanged until independent verification.
+  A 250000-sat deposit therefore remains 250000 through simulation, approval,
+  rejection, refresh, and pending verification, while still displaying the
+  exact 199100-sat projected post-strategy remainder.
+- Regression assertions cover cancellation, wallet rejection, persisted
+  simulation recovery, and stale independent verification. The launch suite
+  remains 58/58 passing.
+- The successful rendered demo ended at 148500 confirmed sats after a
+  separately approved 50000-sat scripted withdrawal with a 600-sat fee. This
+  is UI/kernel evidence only; no Bitcoin transaction was signed or broadcast.

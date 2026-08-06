@@ -225,7 +225,6 @@ export class BitAgentLaunchKernel {
     });
     await this.persist(state);
     const verifiedFunding = assertVerifiedStrategyFunding(funding, state, input.amountSats);
-    state.wallet.confirmedBalanceSats = verifiedFunding.bitcoinSpendableSats;
     const quote = await this.options.quoteProvider.getStarterStrategyQuote({
       amountSats: input.amountSats,
       now
@@ -237,7 +236,7 @@ export class BitAgentLaunchKernel {
     });
     const simulation = simulateStarterStrategy({
       amountSats: input.amountSats,
-      balanceSats: state.wallet.confirmedBalanceSats,
+      balanceSats: verifiedFunding.bitcoinSpendableSats,
       tlBtcAvailableSats: verifiedFunding.tlBtcAvailableSats,
       networkFeeSats: fee.networkFeeSats,
       quote,

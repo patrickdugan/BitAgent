@@ -273,7 +273,9 @@ test("trajectory 06: user cancels strategy approval", async () => {
   const approval = await kernel.resolveApproval(workflowId, "cancel");
   assert.equal(approval.status, "cancelled");
   await expectCode(kernel.execute(workflowId), "approval_required");
-  assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
+  const state = await kernel.get(workflowId);
+  assert.equal(state.referral?.status, "pending");
+  assert.equal(state.wallet.confirmedBalanceSats, "250000");
 });
 
 test("trajectory 07: rejected wallet signature is recoverable", async () => {
@@ -284,6 +286,7 @@ test("trajectory 07: rejected wallet signature is recoverable", async () => {
   await expectCode(kernel.resolveApproval(workflowId, "approve"), "approval_rejected");
   const state = await kernel.get(workflowId);
   assert.equal(state.pendingApproval?.status, "rejected");
+  assert.equal(state.wallet.confirmedBalanceSats, "250000");
   assert.match(state.recoveryInstructions[0], /no transaction was executed/i);
 });
 
@@ -322,6 +325,7 @@ test("trajectory 10: interrupted session resumes after simulation", async () => 
     txid: txid(10), vout: 0, amountSats: "250000", blockHeight: 100, currentHeight: 101
   });
   const simulation = await first.simulateStrategy("resume-simulation", { amountSats: "100000" });
+  assert.equal((await first.get("resume-simulation")).wallet.confirmedBalanceSats, "250000");
 
   const resumed = createLaunchKernel({
     store,
@@ -329,6 +333,7 @@ test("trajectory 10: interrupted session resumes after simulation", async () => 
     quoteProvider: new ScriptedQuoteProvider()
   });
   assert.equal((await resumed.get("resume-simulation")).simulation?.hash, simulation.hash);
+  assert.equal((await resumed.get("resume-simulation")).wallet.confirmedBalanceSats, "250000");
 });
 
 test("trajectory 11: interrupted session resumes after approval", async () => {
@@ -515,7 +520,7 @@ test("stale independent TradeLayer state keeps strategy and referral pending", a
   assert.equal(verification.status, "pending");
   assert.equal(state.stage, "strategy_submitted");
   assert.equal(state.referral?.status, "pending");
-  assert.equal(state.wallet.confirmedBalanceSats, "150000");
+  assert.equal(state.wallet.confirmedBalanceSats, "250000");
 });
 
 test("temporarily unavailable independent verification persists a retryable pending state", async () => {

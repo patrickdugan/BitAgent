@@ -686,3 +686,38 @@ Remaining launch blockers:
 Until those blockers close, the launch mode must display `simulation` or
 `candidate-only testnet4` labels and must not imply that the starter strategy,
 PnL release, or Bitcoin withdrawal completed on chain.
+
+## Referral-to-withdrawal browser regression (2026-08-06)
+
+Decision: **the scripted launch journey passes in the rendered local product;
+funded execution remains blocked**.
+
+Passed:
+
+- a fresh referral deep link opened directly in the starter-strategy
+  conversation with attribution pending;
+- the user-created demo wallet recorded a 250000-sat confirmed testnet4 UTXO,
+  natural language selected exactly 50000 sats, and the UI displayed the exact
+  tx5 payload, 900-sat carrier fee, conditional effects, simulation hash, and
+  199100-sat projected remainder;
+- a launch-blocking truthfulness defect was fixed: simulation and approval no
+  longer replace the persisted 250000-sat confirmed balance with projected
+  post-reserve spendable Bitcoin before execution is independently verified;
+- refresh at the pending-approval boundary restored the same simulation and
+  approval state without execution;
+- scripted approval, execution, and verification changed the confirmed wallet
+  balance to 199100 sats and activated referral attribution only after the
+  starter order verified;
+- a 50000-sat withdrawal simulation displayed its normal testnet address,
+  600-sat fee, and 148500-sat remainder; rejection preserved funds and the
+  saved simulation, refresh restored recovery, and a new scripted approval
+  completed with a verified withdrawal receipt;
+- the 58-check launch suite passes with explicit assertions that simulation,
+  cancellation, rejected authorization, interrupted-session resume, and
+  pending independent verification do not mutate confirmed wallet balance.
+
+Boundaries:
+
+- all browser execution and verification in this regression were scripted;
+  no real transaction was signed, finalized, or broadcast;
+- the funded TradeLayer and PnL claims listed above remain launch blockers.
