@@ -220,3 +220,30 @@ Remaining:
 - no funded local testnet4 PSBT was prepared because Bitcoin Core CLI/node was
   unavailable on this host;
 - this work grants no approval, signing, broadcast, fill, or PnL authority.
+
+## Local testnet4 approval-recovery update (2026-08-06)
+
+Decision: **accept the unsigned PSBT simulation and cancellation path; do not
+promote funded execution**.
+
+Passed:
+
+- synchronized Bitcoin Core 31.1 testnet4 node and loaded funded descriptor
+  wallet discovered through localhost cookie-authenticated RPC;
+- one real wallet-funded, unsigned tx5 PSBT simulation with exact input,
+  OP_RETURN, wallet change, 296-sat fee, and approval hash displayed;
+- deterministic UTXORef v2 funding-root mapping;
+- no signing, finalization, mempool submission, or broadcast;
+- exact selected-input release, post-release `listlockunspent` verification,
+  and content-hashed cancellation receipt;
+- recovery after request expiry, repeated cancellation, tamper rejection, and
+  automatic cleanup after a fee-cap failure in the 13/13 focused test suite;
+- TypeScript compilation.
+
+Remaining:
+
+- real wallet UI approval and rejected-signature recovery;
+- explicit testnet signing/broadcast under operator authority;
+- independent on-chain and TradeLayer indexing verification;
+- starter-strategy fill/position proof, PnL accounting, and Bitcoin withdrawal;
+- the fresh independent Bonsai optional-field/amount/address challenge set.

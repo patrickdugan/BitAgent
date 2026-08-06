@@ -390,3 +390,40 @@
   `fundedTestnetWallet=false` and `signedTradeLayerTransactions=false`.
 - Candidate exactness does not validate wallet ownership, signing, broadcast,
   TradeLayer fills, PnL, or funded launch readiness.
+
+## Local Bitcoin testnet4 unsigned approval drill — 2026-08-06
+
+### Resolved
+
+- Installed Bitcoin Core 31.1 under the ignored local runtime from the official
+  Windows archive. Its SHA-256 matched the published checksum and the three
+  used executables passed Windows Authenticode validation.
+- Reused the existing `D:\BitcoinTestnet` data directory without copying or
+  reading wallet backup material. The localhost-only node reached testnet4
+  height 147173 with matching headers, `initialblockdownload=false`, and six
+  peers or more during the drill.
+- The loaded descriptor wallet exposed seven confirmed safe spendable UTXOs.
+  A single candidate-only TradeLayer tx5 PSBT simulation selected one input,
+  bound the UTXORef v2 funding root, displayed one exact OP_RETURN, one
+  wallet-owned change output, and a 296-sat fee.
+- The user-approval path stopped at `awaiting_wallet_approval`. No PSBT was
+  processed or finalized and no raw transaction was broadcast.
+- Added an integrity-checked, idempotent cancellation receipt and exact-input
+  unlock command. It works after request expiry, verifies the selected outpoint
+  is absent from `listlockunspent`, and records signing/broadcast as false.
+- Preparation now releases already-reserved inputs if a later validation or
+  aggregate fee-cap check fails. Focused live/broker tests pass 13/13 and
+  TypeScript compilation passes.
+
+### Unresolved
+
+- This was deliberately an unsigned local test. It does not prove wallet
+  approval UX, signature rejection from a real wallet UI, mempool acceptance,
+  broadcast, TradeLayer indexing, a fill, position verification, PnL, or
+  withdrawal.
+- The local wallet has private-key capability, so any future signing drill must
+  use an explicit operator-held approval hash and the submit opt-in. The model
+  remains unable to call either signing or broadcast tools.
+- A synchronized TradeLayer listener, funded protocol balances, and independent
+  position/PnL verifier still need to be exercised together before funded
+  launch readiness can be claimed.

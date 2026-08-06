@@ -67,6 +67,12 @@ before(async () => {
 class FakeBitcoinCoreRpc implements BitcoinCoreBrokerRpc {
   private sequence = 0;
   private readonly payloadByPsbt = new Map<string, string>();
+  private readonly lockedOutpoints = new Map<string, { txid: string; vout: number }>();
+  signingCallCount = 0;
+
+  get lockedCount(): number {
+    return this.lockedOutpoints.size;
+  }
 
   async call<T = unknown>(method: string, ...params: unknown[]): Promise<T> {
     let result: unknown;
@@ -82,9 +88,11 @@ class FakeBitcoinCoreRpc implements BitcoinCoreBrokerRpc {
       }];
     }
     else if (method === "walletcreatefundedpsbt") {
+      const inputs = params[0] as Array<{ txid: string; vout: number }>;
       const outputs = params[1] as Array<{ data: string }>;
       const psbt = `psbt-${++this.sequence}`;
       this.payloadByPsbt.set(psbt, outputs[0]!.data);
+      for (const input of inputs) this.lockedOutpoints.set(`${input.txid}:${input.vout}`, input);
       result = { psbt };
     } else if (method === "decodepsbt") {
       const psbt = String(params[0]).replace(/^signed-/, "");
@@ -101,7 +109,18 @@ class FakeBitcoinCoreRpc implements BitcoinCoreBrokerRpc {
         inputs: [{ witness_utxo: { amount: 0.0011, scriptPubKey: { address: artifact.adminAddress } } }]
       };
     } else if (method === "getaddressinfo") result = { ismine: true, iswatchonly: false };
-    else if (method === "walletprocesspsbt") result = { psbt: `signed-${params[0]}`, complete: true };
+    else if (method === "lockunspent") {
+      const unlock = params[0] as boolean;
+      const inputs = params[1] as Array<{ txid: string; vout: number }>;
+      if (!unlock) throw new Error("Fixture only supports releasing locks");
+      for (const input of inputs) this.lockedOutpoints.delete(`${input.txid}:${input.vout}`);
+      result = true;
+    }
+    else if (method === "listlockunspent") result = [...this.lockedOutpoints.values()];
+    else if (method === "walletprocesspsbt") {
+      this.signingCallCount += 1;
+      result = { psbt: `signed-${params[0]}`, complete: true };
+    }
     else if (method === "finalizepsbt") result = { hex: `hex-${String(params[0]).replace(/^signed-/, "")}`, complete: true };
     else if (method === "testmempoolaccept") result = [{ allowed: true }];
     else if (method === "sendrawtransaction") result = canonicalHash(params[0]);
@@ -175,6 +194,54 @@ test("PSBT broker enforces exact approval and returns txids without keys", async
 test("PSBT broker rejects stale requests before touching signing", async () => {
   const broker = new TestnetSignerBroker(new FakeBitcoinCoreRpc(), policyFingerprint);
   await assert.rejects(() => broker.prepare(request, new Date("2026-07-12T12:20:00.000Z")), /expired/);
+});
+
+test("PSBT broker cancellation releases only prepared inputs without signing or broadcasting", async () => {
+  const rpc = new FakeBitcoinCoreRpc();
+  const broker = new TestnetSignerBroker(rpc, policyFingerprint);
+  const prepared = await broker.prepare(request, now);
+  assert.equal(rpc.lockedCount, 6);
+  const afterExpiry = new Date("2026-07-12T12:20:00.000Z");
+  const receipt = await broker.cancelPrepared(prepared, afterExpiry);
+  assert.equal(receipt.status, "cancelled_after_local_test");
+  assert.equal(receipt.inputOutpoints.length, 6);
+  assert.equal(receipt.inputLockReleased, true);
+  assert.equal(receipt.signingPerformed, false);
+  assert.equal(receipt.broadcastPerformed, false);
+  assert.equal(rpc.lockedCount, 0);
+  assert.equal(rpc.signingCallCount, 0);
+
+  const resumedReceipt = await broker.cancelPrepared(prepared, afterExpiry);
+  assert.equal(resumedReceipt.receiptHash, receipt.receiptHash);
+  assert.equal(rpc.lockedCount, 0);
+});
+
+test("PSBT broker refuses a tampered cancellation receipt before releasing inputs", async () => {
+  const rpc = new FakeBitcoinCoreRpc();
+  const broker = new TestnetSignerBroker(rpc, policyFingerprint);
+  const prepared = await broker.prepare(request, now);
+  const tampered = structuredClone(prepared);
+  tampered.preparedSteps[0]!.inputUtxos[0]!.vout += 1;
+  await assert.rejects(() => broker.cancelPrepared(tampered, now), /approval fingerprint mismatch/);
+  assert.equal(rpc.lockedCount, 6);
+  assert.equal(rpc.signingCallCount, 0);
+  await broker.cancelPrepared(prepared, now);
+});
+
+test("PSBT broker releases reserved inputs when preparation exceeds its fee cap", async () => {
+  const rpc = new FakeBitcoinCoreRpc();
+  const broker = new TestnetSignerBroker(rpc, policyFingerprint);
+  const lowCap = createTestnetBrokerRequest({
+    artifact,
+    requestId: "broker-low-fee-cap",
+    wallet: "fixture-wallet",
+    policyFingerprint,
+    maxTotalFeeSats: "1",
+    expiresAt: "2026-07-12T12:15:00.000Z"
+  });
+  await assert.rejects(() => broker.prepare(lowCap, now), /aggregate fee cap/);
+  assert.equal(rpc.lockedCount, 0);
+  assert.equal(rpc.signingCallCount, 0);
 });
 
 test("market loop cancels all orders at its drawdown breaker", () => {

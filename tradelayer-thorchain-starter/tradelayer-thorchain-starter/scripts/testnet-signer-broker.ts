@@ -50,6 +50,21 @@ async function main() {
     console.log(JSON.stringify({ ok: true, action, output: path.resolve(outputPath), txids: receipt.transactions.map((row) => row.txid) }));
     return;
   }
+  if (action === "cancel") {
+    const prepared = JSON.parse(await fs.readFile(inputPath, "utf8")) as PreparedBrokerBatch;
+    const receipt = await broker.cancelPrepared(prepared);
+    await writeJson(outputPath, receipt);
+    console.log(JSON.stringify({
+      ok: true,
+      action,
+      output: path.resolve(outputPath),
+      inputOutpoints: receipt.inputOutpoints,
+      inputLockReleased: receipt.inputLockReleased,
+      signingPerformed: receipt.signingPerformed,
+      broadcastPerformed: receipt.broadcastPerformed
+    }));
+    return;
+  }
   throw new Error(`Unsupported broker action: ${action}`);
 }
 

@@ -64,6 +64,22 @@ export type BrokerBroadcastReceipt = {
   receiptHash: string;
 };
 
+export type BrokerCancellationReceipt = {
+  schema: "tradelayer_testnet_cancellation_receipt_v1";
+  status: "cancelled_after_local_test";
+  requestHash: string;
+  approvalHash: string;
+  cancelledAt: string;
+  inputOutpoints: Array<{
+    txid: string;
+    vout: number;
+  }>;
+  inputLockReleased: boolean;
+  signingPerformed: false;
+  broadcastPerformed: false;
+  receiptHash: string;
+};
+
 export interface BitcoinCoreBrokerRpc {
   call<T = unknown>(method: string, ...params: unknown[]): Promise<T>;
 }

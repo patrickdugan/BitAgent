@@ -60,6 +60,17 @@ npm run broker:testnet -- --action=prepare --input=.runtime/testnet-agent/live-l
 
 Inspect `prepared-batch.json`, especially input addresses, change addresses, each fee, total fee, payloads, and `approvalHash`.
 
+If approval is rejected or the session is abandoned, release only that batch's
+reserved inputs with the same broker configuration and policy fingerprint:
+
+```powershell
+npm run broker:testnet -- --action=cancel --input=.runtime/testnet-agent/prepared-batch.json --output=.runtime/testnet-agent/cancellation-receipt.json
+```
+
+Cancellation validates the request and prepared-batch fingerprints, remains
+available after request expiry, never signs or broadcasts, and verifies the
+exact inputs are no longer locked.
+
 For the smallest single-transaction local preflight, use the same environment
 with:
 
@@ -72,6 +83,22 @@ TradeLayer tx5 OP_RETURN through the sibling planner, maps the funding outpoint
 through UTXORef v2, and stops with
 `.runtime/testnet-agent/local-testnet4/simulation.json` in
 `awaiting_wallet_approval`. It never signs or broadcasts.
+
+If the user rejects approval, the request expires, or the local process is
+interrupted after preparation, run:
+
+```powershell
+npm run release:local-testnet-tx
+```
+
+The command accepts only the local single-step testnet4 batch whose wallet,
+policy fingerprint, approval hash, and input list match the persisted unsigned
+simulation. It calls `lockunspent true` for those exact outpoints, verifies none
+remain in `listlockunspent`, and writes
+`.runtime/testnet-agent/local-testnet4/cancellation-receipt.json`. It is safe to
+repeat and remains available after the approval request expires. A successful
+receipt must say `inputLockReleased: true`, `signingPerformed: false`, and
+`broadcastPerformed: false`.
 
 ## 4. Sign And Broadcast
 
