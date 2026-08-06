@@ -129,6 +129,21 @@ Production launch requires an authenticated wallet-owned broker that can:
 - make execution idempotent; and
 - prove workflow ownership for every read and mutation.
 
+BitAgent now includes the strict client side of that boundary. Configure the
+wallet-owned endpoint and its operator secret together:
+
+```powershell
+$env:BITAGENT_WALLET_BROKER_URL="https://<wallet-owned-service>"
+$env:BITAGENT_WALLET_BROKER_TOKEN="<opaque operator secret>"
+$env:BITAGENT_WALLET_BROKER_TIMEOUT_MS="10000"
+```
+
+Loopback HTTP is accepted for local testnet integration; non-loopback endpoints
+must use HTTPS. Never place the bearer token in a referral, workflow record,
+browser setting, log, or model prompt. The wallet-side implementation must
+follow `docs/wallet-broker-contract.md`. The legacy WIF/mnemonic wallet routes
+are incompatible and remain prohibited.
+
 Configure `TRADELAYER_RELAYER_URL` to the synchronized local relayer base URL
 when composing that broker in production. The launch factory then installs the
 read-only TradeLayer verifier around the wallet broker. This setting does not
@@ -152,6 +167,10 @@ This adds only a read-only verification source. It requires the exact decoded
 destination output, wallet-reported network fee and net debit, and confirmation
 depth before updating workflow balance. It does not enable wallet approval,
 signing, or broadcast.
+
+Production construction refuses a configured remote wallet broker unless both
+the synchronized TradeLayer source and the Bitcoin withdrawal source are also
+present. The wallet can submit; it cannot self-verify the result.
 
 Keep the scripted broker and demo D1 site visibly labeled and isolated from any
 funded wallet until every remaining item in `docs/launch-readiness.md` is

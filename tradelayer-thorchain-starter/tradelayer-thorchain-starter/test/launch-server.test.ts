@@ -107,6 +107,7 @@ test("HTTP launch surface returns persisted rejected-authorization state for UI 
 
     const script = await (await fetch(`${origin}/app.js`)).text();
     assert.match(script, /Request wallet approval again/);
+    assert.match(script, /Check wallet approval/);
     assert.match(script, /error\.state/);
     assert.match(script, /bitagent\.referralKey/);
     assert.match(script, /storedReferralKey !== activeReferralKey/);

@@ -128,8 +128,14 @@ export type WalletApproval = {
   status: "pending" | "approved" | "rejected" | "cancelled";
   requestedAt: string;
   resolvedAt?: string;
+  walletApprovalRequestId?: string;
   walletApprovalToken?: string;
 };
+
+export type WalletAuthorizationResult =
+  | { status: "pending"; walletApprovalRequestId: string }
+  | { status: "approved"; walletApprovalToken: string; walletApprovalRequestId?: string }
+  | { status: "rejected"; walletApprovalRequestId?: string };
 
 export type ActionExecution = {
   id: string;
@@ -227,11 +233,13 @@ export interface WalletExecutionBroker {
   estimateFee(input: {
     action: TransactionSimulation["action"];
     amountSats: string;
+    state: BitAgentWorkflowState;
   }): Promise<{ networkFeeSats: string; source: string }>;
   authorize(input: {
     approval: WalletApproval;
     simulation: TransactionSimulation;
-  }): Promise<{ walletApprovalToken: string }>;
+    state: BitAgentWorkflowState;
+  }): Promise<WalletAuthorizationResult>;
   execute(input: {
     approval: WalletApproval;
     simulation: TransactionSimulation;

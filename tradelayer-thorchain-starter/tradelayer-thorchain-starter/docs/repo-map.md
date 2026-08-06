@@ -106,6 +106,13 @@ not part of this user journey.
   `TxsService#buildSingSendTx` reads WIF from frontend wallet state. BitAgent
   must not proxy, log, or request those values. Its execution tool accepts only
   an opaque wallet approval token produced by a wallet-owned approval surface.
+- Implemented BitAgent-side seam:
+  `src/launch/remoteWalletBroker.ts`, `src/launch/remoteWalletProtocol.ts`, and
+  `docs/wallet-broker-contract.md`
+  define a session-bound authenticated client, durable pending approval IDs,
+  opaque one-time grants, exact simulation/idempotency binding, and prohibited
+  secret-response checks. The corresponding wallet-owned server/UI endpoint is
+  still missing from the sibling wallet.
 
 ### Withdrawal seam
 

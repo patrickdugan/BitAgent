@@ -531,3 +531,32 @@
 - No real withdrawal was signed or broadcast in this run. The verifier is
   production-shaped and testnet4-configurable, but still needs an explicitly
   approved end-to-end transaction through an authenticated wallet broker.
+
+## Authenticated remote wallet-broker seam — 2026-08-06
+
+### Resolved
+
+- Added a production `RemoteWalletExecutionBroker` client over HTTPS or
+  loopback HTTP with bearer authentication, response-size/time limits, no
+  redirects, and strict public response validation.
+- Bound connect, deposit-address, fee, approval, and execution calls to the
+  workflow and public wallet session. Execution includes a deterministic
+  idempotency key and must return the exact action, simulation hash, and full
+  txid.
+- Added durable `walletApprovalRequestId` handling. A wallet-owned prompt can
+  remain pending across refreshes and later approve the same simulation without
+  creating an execution or replacement request.
+- Remote responses containing key material, signed/raw transaction data, or
+  PSBT fields are rejected. The bearer token is never persisted or returned.
+- Remote wallet self-verification is disabled. Production construction requires
+  both independent TradeLayer-order and Bitcoin-withdrawal sources.
+- Added a loopback conformance fixture covering auth, pending recovery,
+  idempotency, secret leakage, insecure endpoints, mismatched receipts, and
+  missing-verifier configuration.
+
+### Unresolved
+
+- The sibling wallet currently exposes legacy mnemonic/WIF routes and has no
+  implementation of `docs/wallet-broker-contract.md`. Its wallet-owned session,
+  approval UI, PSBT/order construction, one-time grant consumption, signing,
+  and broadcast endpoints remain the next funded-launch blocker.

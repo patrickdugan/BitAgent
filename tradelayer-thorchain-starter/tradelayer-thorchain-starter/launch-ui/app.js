@@ -214,13 +214,16 @@ function render() {
       <div class="button-row">${button(approvalRetry ? "Request wallet approval again" : "Request wallet approval", "approval-request")}</div></div>`);
   }
   if (state.pendingApproval?.status === "pending") {
+    const walletOwnedRequest = Boolean(state.pendingApproval.walletApprovalRequestId);
     cards.push(`<div class="card">
       <p class="eyebrow">Approval boundary</p>
-      <h3>Approve these exact wallet effects?</h3>
-      <p>No action can execute until you approve this simulation hash.</p>
+      <h3>${walletOwnedRequest ? "Approval pending in connected wallet" : "Approve these exact wallet effects?"}</h3>
+      <p>${walletOwnedRequest
+        ? "Approve or reject the saved request in your wallet, then check its status here."
+        : "No action can execute until you approve this simulation hash."}</p>
       <div class="button-row">
-        ${button("Approve in demo wallet", "approval-approve")}
-        ${button("Reject", "approval-reject", "danger")}
+        ${button(walletOwnedRequest ? "Check wallet approval" : "Approve in demo wallet", "approval-approve")}
+        ${button(walletOwnedRequest ? "Cancel in BitAgent" : "Reject", "approval-reject", "danger")}
       </div>
     </div>`);
   }

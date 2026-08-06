@@ -10,6 +10,7 @@ import { BitAgentLaunchKernel } from "./kernel.js";
 import { FileWorkflowStore, InMemoryWorkflowStore } from "./store.js";
 import type { QuoteProvider, WalletExecutionBroker, WorkflowStore } from "./types.js";
 import { IndependentlyVerifyingWalletBroker } from "./verifiedBroker.js";
+import { RemoteWalletExecutionBroker } from "./remoteWalletBroker.js";
 import {
   RelayerTradeLayerOrderReadSource,
   type TradeLayerOrderReadSource
@@ -25,6 +26,28 @@ function withdrawalConfirmationTarget(configured?: number): number {
   return value;
 }
 
+function configuredWalletBroker(input: {
+  production: boolean;
+  provided?: WalletExecutionBroker;
+  scripted?: ScriptedBrokerOptions;
+}): WalletExecutionBroker {
+  if (input.provided) return input.provided;
+  if (!input.production) return new ScriptedWalletBroker(input.scripted);
+  const endpoint = String(process.env.BITAGENT_WALLET_BROKER_URL || "").trim();
+  const authToken = String(process.env.BITAGENT_WALLET_BROKER_TOKEN || "").trim();
+  if (endpoint || authToken) {
+    if (!endpoint || !authToken) {
+      throw new Error("BITAGENT_WALLET_BROKER_URL and BITAGENT_WALLET_BROKER_TOKEN must be configured together");
+    }
+    return new RemoteWalletExecutionBroker({
+      endpoint,
+      authToken,
+      timeoutMs: Number(process.env.BITAGENT_WALLET_BROKER_TIMEOUT_MS || "10000")
+    });
+  }
+  return new UnavailableWalletBroker();
+}
+
 export function createLaunchKernel(options: {
   store?: WorkflowStore;
   quoteProvider?: QuoteProvider;
@@ -38,9 +61,11 @@ export function createLaunchKernel(options: {
 } = {}) {
   const production = options.production
     ?? String(process.env.BITAGENT_PRODUCTION || "false").toLowerCase() === "true";
-  const walletBroker = options.walletBroker || (
-    production ? new UnavailableWalletBroker() : new ScriptedWalletBroker(options.scriptedBroker)
-  );
+  const walletBroker = configuredWalletBroker({
+    production,
+    provided: options.walletBroker,
+    scripted: options.scriptedBroker
+  });
   const tradeLayerOrderSource = options.tradeLayerOrderSource || (
     production && process.env.TRADELAYER_RELAYER_URL
       ? new RelayerTradeLayerOrderReadSource(process.env.TRADELAYER_RELAYER_URL)
@@ -58,6 +83,12 @@ export function createLaunchKernel(options: {
       })
       : undefined
   );
+  if (production && walletBroker instanceof RemoteWalletExecutionBroker
+    && (!tradeLayerOrderSource || !bitcoinWithdrawalSource)) {
+    throw new Error(
+      "Remote production wallet execution requires both independent TradeLayer order and Bitcoin withdrawal sources"
+    );
+  }
   return new BitAgentLaunchKernel({
     store: options.store || new FileWorkflowStore(path.join(runtimeDir, "bitagent-workflows.json")),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),

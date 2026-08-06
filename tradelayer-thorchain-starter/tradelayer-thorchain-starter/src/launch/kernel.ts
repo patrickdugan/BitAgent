@@ -210,7 +210,8 @@ export class BitAgentLaunchKernel {
     });
     const fee = await this.options.walletBroker.estimateFee({
       action: "starter_strategy",
-      amountSats: input.amountSats
+      amountSats: input.amountSats,
+      state
     });
     const simulation = simulateStarterStrategy({
       amountSats: input.amountSats,
@@ -247,7 +248,8 @@ export class BitAgentLaunchKernel {
     const now = this.now();
     const fee = await this.options.walletBroker.estimateFee({
       action: "withdraw_bitcoin",
-      amountSats: input.amountSats
+      amountSats: input.amountSats,
+      state
     });
     const simulation = simulateBitcoinWithdrawal({
       ...input,
@@ -331,9 +333,28 @@ export class BitAgentLaunchKernel {
     }
 
     try {
-      const authorized = await this.options.walletBroker.authorize({ approval, simulation });
+      const authorized = await this.options.walletBroker.authorize({ approval, simulation, state });
+      if (authorized.status === "pending") {
+        approval.walletApprovalRequestId = authorized.walletApprovalRequestId;
+        state.recoveryInstructions = [
+          "The exact action is pending approval in the connected wallet; no transaction was executed.",
+          "Approve or reject it in the wallet, then retry this saved approval request."
+        ];
+        this.event(state, "wallet.approval_pending", {
+          approvalId: approval.id,
+          walletApprovalRequestId: authorized.walletApprovalRequestId,
+          simulationHash: approval.simulationHash
+        });
+        await this.persist(state);
+        return clone(approval);
+      }
+      if (authorized.status === "rejected") {
+        approval.walletApprovalRequestId = authorized.walletApprovalRequestId;
+        throw new LaunchKernelError("approval_rejected", "The wallet rejected the exact action approval");
+      }
       approval.status = "approved";
       approval.resolvedAt = this.now().toISOString();
+      approval.walletApprovalRequestId = authorized.walletApprovalRequestId;
       approval.walletApprovalToken = authorized.walletApprovalToken;
       state.stage = simulation.action === "starter_strategy" ? "strategy_approved" : "withdrawal_approved";
       this.event(state, "wallet.approval_approved", {
@@ -343,6 +364,21 @@ export class BitAgentLaunchKernel {
       await this.persist(state);
       return clone(approval);
     } catch (error) {
+      if (error instanceof LaunchKernelError
+        && ["provider_unavailable", "state_conflict"].includes(error.code)) {
+        state.recoveryInstructions = [
+          "The wallet approval outcome could not be confirmed; no transaction was executed by BitAgent.",
+          "Keep the saved simulation and wallet approval request, restore the same wallet connection, then retry."
+        ];
+        this.event(state, "wallet.approval_unavailable", {
+          approvalId: approval.id,
+          walletApprovalRequestId: approval.walletApprovalRequestId || null,
+          simulationHash: approval.simulationHash,
+          errorCode: error.code
+        });
+        await this.persist(state);
+        throw error;
+      }
       approval.status = "rejected";
       approval.resolvedAt = this.now().toISOString();
       state.stage = simulation.action === "starter_strategy" ? "strategy_simulated" : "withdrawal_simulated";

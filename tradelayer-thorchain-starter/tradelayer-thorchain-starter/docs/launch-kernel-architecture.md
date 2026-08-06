@@ -86,6 +86,15 @@ Production mode uses `UnavailableWalletBroker` and fails closed. The scripted
 broker is for deterministic evaluation and the hosted demo; it does not
 broadcast a transaction.
 
+`RemoteWalletExecutionBroker` is the production client seam. It uses HTTPS or
+loopback HTTP plus bearer authentication, binds every request to the public
+wallet session and workflow, supports durable wallet-owned pending approvals,
+and sends a deterministic idempotency key on execution. Response validation
+rejects secret-key fields, PSBT/raw signed transaction material, insecure
+transport, incomplete capabilities, and receipts that do not match the exact
+action and simulation hash. Its `verify()` method always fails closed; only the
+independent wrappers below may verify execution.
+
 When an authenticated external broker is supplied with a
 `TradeLayerOrderReadSource`, `IndependentlyVerifyingWalletBroker` delegates
 connect, fee, approval, and execution to the wallet boundary but replaces its

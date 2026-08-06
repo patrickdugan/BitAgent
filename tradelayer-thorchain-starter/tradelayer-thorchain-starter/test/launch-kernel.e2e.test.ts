@@ -395,6 +395,45 @@ test("trajectory 16: withdrawal signature rejection is recoverable", async () =>
   assert.equal((await kernel.get(workflowId)).wallet.confirmedBalanceSats, "250000");
 });
 
+test("wallet-owned pending approval resumes without execution or a new simulation", async () => {
+  const brokerOptions = { pendingAuthorization: true };
+  const { kernel, workflowId } = await connectedKernel({ confirmed: true, brokerOptions });
+  const simulation = await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
+  await kernel.requestApproval(workflowId);
+  const pending = await kernel.resolveApproval(workflowId, "approve");
+  const pendingState = await kernel.get(workflowId);
+
+  assert.equal(pending.status, "pending");
+  assert.ok(pending.walletApprovalRequestId);
+  assert.equal(pendingState.stage, "strategy_approval_pending");
+  assert.equal(pendingState.execution, undefined);
+  assert.equal(pendingState.simulation?.hash, simulation.hash);
+
+  brokerOptions.pendingAuthorization = false;
+  const approved = await kernel.resolveApproval(workflowId, "approve");
+  assert.equal(approved.status, "approved");
+  assert.equal(approved.walletApprovalRequestId, pending.walletApprovalRequestId);
+  assert.ok(approved.walletApprovalToken);
+});
+
+test("wallet approval outage preserves the same pending request for recovery", async () => {
+  const brokerOptions = { pendingAuthorization: true, unavailableAuthorization: false };
+  const { kernel, workflowId } = await connectedKernel({ confirmed: true, brokerOptions });
+  await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
+  await kernel.requestApproval(workflowId);
+  const pending = await kernel.resolveApproval(workflowId, "approve");
+  brokerOptions.pendingAuthorization = false;
+  brokerOptions.unavailableAuthorization = true;
+
+  await expectCode(kernel.resolveApproval(workflowId, "approve"), "provider_unavailable");
+  const state = await kernel.get(workflowId);
+  assert.equal(state.pendingApproval?.status, "pending");
+  assert.equal(state.pendingApproval?.walletApprovalRequestId, pending.walletApprovalRequestId);
+  assert.equal(state.stage, "strategy_approval_pending");
+  assert.equal(state.execution, undefined);
+  assert.match(state.recoveryInstructions.join(" "), /outcome could not be confirmed/i);
+});
+
 test("trajectory 17: pending verification can be retried", async () => {
   const options = { pendingVerification: true };
   const { kernel, workflowId } = await connectedKernel({ confirmed: true, brokerOptions: options });

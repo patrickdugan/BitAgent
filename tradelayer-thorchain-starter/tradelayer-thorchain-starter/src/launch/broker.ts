@@ -37,6 +37,8 @@ export type ScriptedBrokerOptions = {
   strategyFeeSats?: string;
   withdrawalFeeSats?: string;
   rejectAuthorization?: boolean;
+  pendingAuthorization?: boolean;
+  unavailableAuthorization?: boolean;
   failExecution?: boolean;
   failVerification?: boolean;
   pendingVerification?: boolean;
@@ -90,10 +92,19 @@ export class ScriptedWalletBroker implements WalletExecutionBroker {
   }
 
   async authorize(input: { approval: { status: string }; simulation: { hash: string } }) {
+    if (this.options.unavailableAuthorization) {
+      throw new LaunchKernelError("provider_unavailable", "The wallet approval service is temporarily unavailable");
+    }
     if (this.options.rejectAuthorization) {
       throw new LaunchKernelError("approval_rejected", "The wallet rejected the signature request");
     }
+    const walletApprovalRequestId = opaqueId("wallet_approval_request", input.simulation.hash);
+    if (this.options.pendingAuthorization) {
+      return { status: "pending" as const, walletApprovalRequestId };
+    }
     return {
+      status: "approved" as const,
+      walletApprovalRequestId,
       walletApprovalToken: opaqueId("approval_token", {
         hash: input.simulation.hash,
         status: input.approval.status

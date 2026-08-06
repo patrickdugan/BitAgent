@@ -13,8 +13,9 @@ version 3, source commit `e2ced291b2e4cf4457aebb5b907c9c0facca4d02`.
 The narrow referral-to-deposit-to-strategy-to-withdraw journey is complete and
 observable in a deterministic testnet demo. Production execution remains
 fail-closed, so no known issue in this build can broadcast or lose real funds.
-The missing authenticated wallet broker and live verification providers are
-release blockers for funded use.
+The authenticated BitAgent-side broker client is implemented, but the
+wallet-owned server/approval UI and live verification providers are release
+blockers for funded use.
 
 ## Passed checks
 
@@ -22,7 +23,7 @@ release blockers for funded use.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Local launch test process | 27/27 tests passed |
+| Local launch test process | 42/42 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -57,10 +58,11 @@ Machine-readable evidence:
 
 ## Remaining release blockers
 
-1. **Wallet authority and ownership.** There is no authenticated public-session
-   API in the local wallet that issues and consumes an opaque approval token.
-   The hosted demo workflow IDs are unowned demo identifiers, not production
-   authorization.
+1. **Wallet authority and ownership.** BitAgent has a strict authenticated
+   remote-broker client and conformance suite, but the local wallet still lacks
+   the matching public-session server and approval UI that issue and consume
+   opaque one-time grants. Hosted demo workflow IDs remain unowned demo
+   identifiers, not production authorization.
 2. **Live Bitcoin intake.** The launch UI uses a deterministic confirmed UTXO
    event. A production chain source must prove address ownership, outpoint,
    value, network, block height, confirmation count, and reorg handling.
@@ -68,8 +70,9 @@ Machine-readable evidence:
    minimums, and fee policy are scripted. They must come from live,
    operator-approved TradeLayer configuration.
 4. **Safe wallet execution.** The local wallet and `tradelayer.js` precedents
-   expose WIF/internal-signing paths that BitAgent must not call. A wallet-owned
-   PSBT/order signer and broadcaster is required.
+   expose WIF/internal-signing paths that BitAgent does not call. The typed
+   client contract exists, but its wallet-owned PSBT/order implementation and
+   human approval surface are still required.
 5. **Independent verification.** Production needs stable Bitcoin transaction,
    TradeLayer order/position, fill, balance, and withdrawal confirmation
    queries. Provider results, not the language model, must drive state.
