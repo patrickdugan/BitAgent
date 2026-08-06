@@ -56,7 +56,7 @@ export function decideTestnet4SyncControl(
   };
   const lag = snapshot.bitcoinHeight - snapshot.trackHeight;
 
-  if (snapshot.listenerPhase === "error" || snapshot.listenerError) {
+  if (snapshot.listenerPhase !== "realtime" || snapshot.listenerError) {
     return { action: "fail", reason: "listener_error", lag };
   }
   if (lag < 0) return { action: "fail", reason: "listener_checkpoint_ahead_of_bitcoin", lag };

@@ -69,15 +69,21 @@ function parsePairs(raw: string | undefined): Pair[] {
 async function bitcoinRpc<T>(pair: Pair, method: string, params: unknown[] = []): Promise<T> {
   const cookie = (await fs.readFile(pair.cookieFile, "utf8")).trim();
   if (!cookie.includes(":")) throw new Error(`pair ${pair.name} has an invalid RPC cookie`);
-  const response = await fetch(pair.rpcUrl, {
-    method: "POST",
-    headers: {
-      authorization: `Basic ${Buffer.from(cookie).toString("base64")}`,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({ jsonrpc: "1.0", id: "bitagent-sync-throttle", method, params }),
-    signal: AbortSignal.timeout(requestTimeoutMs())
-  });
+  let response: Response;
+  try {
+    response = await fetch(pair.rpcUrl, {
+      method: "POST",
+      headers: {
+        authorization: `Basic ${Buffer.from(cookie).toString("base64")}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ jsonrpc: "1.0", id: "bitagent-sync-throttle", method, params }),
+      signal: AbortSignal.timeout(requestTimeoutMs())
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`pair ${pair.name} RPC ${method} request failed: ${detail}`);
+  }
   const text = await response.text();
   if (text.length > 1_000_000) throw new Error(`pair ${pair.name} RPC response exceeded size limit`);
   if (!response.ok) throw new Error(`pair ${pair.name} RPC ${method} returned HTTP ${response.status}`);
@@ -87,12 +93,18 @@ async function bitcoinRpc<T>(pair: Pair, method: string, params: unknown[] = [])
 }
 
 async function listenerStatus(pair: Pair): Promise<{ phase: string; error?: string | null; trackHeight: number }> {
-  const response = await fetch(`${pair.listenerUrl}/tl_getSyncStatus`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: "{}",
-    signal: AbortSignal.timeout(requestTimeoutMs())
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${pair.listenerUrl}/tl_getSyncStatus`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+      signal: AbortSignal.timeout(requestTimeoutMs())
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`pair ${pair.name} listener sync request failed: ${detail}`);
+  }
   const text = await response.text();
   if (text.length > 1_000_000) throw new Error(`pair ${pair.name} listener response exceeded size limit`);
   if (!response.ok) throw new Error(`pair ${pair.name} listener returned HTTP ${response.status}`);

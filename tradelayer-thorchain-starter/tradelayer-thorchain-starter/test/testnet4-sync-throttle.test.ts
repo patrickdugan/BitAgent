@@ -39,6 +39,11 @@ test("fails closed on a listener error", () => {
   assert.equal(decideTestnet4SyncControl({ ...base, listenerPhase: "error", listenerError: "pruned" }, policy).action, "fail");
 });
 
+test("fails closed while a listener is recovering from transient RPC loss", () => {
+  const result = decideTestnet4SyncControl({ ...base, listenerPhase: "recovering" }, policy);
+  assert.deepEqual(result, { action: "fail", reason: "listener_error", lag: 100 });
+});
+
 test("fails closed when a persisted checkpoint is ahead of Bitcoin", () => {
   const result = decideTestnet4SyncControl({ ...base, bitcoinHeight: 57_000 }, policy);
   assert.equal(result.reason, "listener_checkpoint_ahead_of_bitcoin");
