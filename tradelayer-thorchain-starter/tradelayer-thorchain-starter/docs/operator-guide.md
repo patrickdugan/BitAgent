@@ -50,9 +50,13 @@ Referral fields are:
    verify the withdrawal.
 
 Refreshing at any stage restores the persisted workflow. If a signature is
-rejected, request approval again from the saved simulation. If a quote is
-stale, create a fresh simulation and review its changed values. If an action
-was submitted, verify the recorded txid before considering any replacement.
+rejected, the page displays that no transaction was executed; choose
+**Request wallet approval again** from the saved simulation. Refreshing the
+same referral URL resumes its bound workflow, while opening a referral with a
+different referrer, campaign, workflow, or strategy starts a separate flow. If
+a quote is stale, create a fresh simulation and review its changed values. If
+an action was submitted, verify the recorded txid before considering any
+replacement.
 
 Never enter a seed phrase, mnemonic, private key, or WIF. BitAgent will refuse
 those inputs.

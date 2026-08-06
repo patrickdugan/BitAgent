@@ -247,3 +247,60 @@ Remaining:
 - independent on-chain and TradeLayer indexing verification;
 - starter-strategy fill/position proof, PnL accounting, and Bitcoin withdrawal;
 - the fresh independent Bonsai optional-field/amount/address challenge set.
+
+## Bonsai typed-control confirmation v3 (2026-08-06)
+
+Decision: **accept deterministic host argument projection for candidate-only
+tool calls; do not widen model authority or promote funded execution**.
+
+Passed:
+
+- fresh 40-item/80-cell confirmation frozen before model outcomes;
+- zero overlap with 111 optimizer rows and 60 prior held-out items;
+- host-projected arm 40/40 exact with zero hard or authority failures;
+- model-filled arm 28/40 exact, with all 12 failures confined to optional
+  wallet-session fields;
+- both arms exact on all required amounts, addresses, network/funding holds,
+  and stale/interrupted recovery edges;
+- external audit grade A, 320/320 valid judgments, 880/880 deterministic
+  checks, zero repeat flips, zero position sensitivity, kappa 1.0;
+- 12 primary wins, zero losses, 28 ties, and a 75.8% lower 95% Wilson bound
+  above the frozen 60% requirement;
+- 2 GB capped RTX 3050 run with 1,503.273 MB peak job memory, 555 MB GPU delta,
+  complete cleanup, and no lingering process.
+
+Limits:
+
+- this is a targeted optional-field confirmation, not an estimate of organic
+  production traffic or an adapter-training result;
+- every held-out failure remains excluded from optimization and repair targets;
+- LDT routing and argument projection remain deterministic host code; the TRM
+  may retrieve source cards but receives no execution authority.
+
+## Rendered operator-recovery drill (2026-08-06)
+
+Decision: **accept the scripted browser journey and refresh/rejection recovery;
+production wallet integration remains blocked**.
+
+Passed in the rendered local UI:
+
+- referral link opened directly into the starter-strategy conversation with
+  pending attribution;
+- public demo wallet connect, deposit address, confirmed UTXO, and UTXORef;
+- natural-language 100,000-sat starter request and exact effects/fee/payload;
+- user rejection displayed `No transaction was executed` and a visible retry;
+- refreshing the same referral resumed the same rejected workflow and exact
+  simulation instead of creating a new workflow;
+- retry approval, execute, verify, and referral activation;
+- natural-language 50,000-sat withdrawal, exact destination/fee/remainder,
+  execute, and verified result;
+- no browser console warnings or errors;
+- HTTP rejection now returns the persisted public state when a wallet broker
+  throws `approval_rejected`, and the UI consumes that state immediately.
+
+Remaining:
+
+- the browser drill uses the visibly labeled scripted, non-broadcasting broker;
+- a real wallet UI rejection, testnet signature/broadcast, TradeLayer indexing,
+  fill/position/PnL proof, and real withdrawal are still required for funded
+  launch.

@@ -427,3 +427,32 @@
 - A synchronized TradeLayer listener, funded protocol balances, and independent
   position/PnL verifier still need to be exercised together before funded
   launch readiness can be claimed.
+
+## Browser referral and approval-recovery drill — 2026-08-06
+
+### Resolved
+
+- Exercised the actual local launch UI from a starter-strategy referral through
+  wallet connect, confirmed demo UTXO/UTXORef, exact strategy simulation,
+  rejection, refresh, retry approval, execution, verification, referral
+  activation, withdrawal simulation, and verified withdrawal.
+- Repaired rejected/cancelled approvals so the saved simulation renders an
+  explicit `No transaction was executed` recovery message and an approval
+  retry button.
+- Tool-route errors now include the latest persisted public workflow state.
+  This lets a broker-thrown wallet rejection update the browser immediately
+  instead of leaving a stale pending prompt.
+- Same-referral refresh now resumes the stored workflow. The storage binding
+  includes referrer, campaign, intended workflow, and strategy so a different
+  referral starts a separate workflow.
+- Added an HTTP regression that forces the scripted wallet broker to reject
+  authorization and proves there is no execution object. Launch tests pass
+  28/28 and TypeScript compilation passes.
+
+### Unresolved
+
+- This is scripted browser and broker evidence, not a production-wallet UI
+  signature rejection or a broadcast/fill/withdrawal proof.
+- Browser storage is a demo resume mechanism and is not authentication or
+  workflow ownership. Production APIs still require an authenticated owner
+  binding for every workflow read and mutation.

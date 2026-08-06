@@ -9,6 +9,14 @@ const messageInput = $("#message");
 let state = null;
 let lastPlan = null;
 
+function referralKey(params) {
+  const key = new URLSearchParams();
+  for (const name of ["ref", "campaign", "workflow", "strategy"]) {
+    if (params.has(name)) key.set(name, params.get(name));
+  }
+  return key.toString();
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -29,14 +37,21 @@ async function api(path, options = {}) {
     ...options
   });
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error?.message || "BitAgent request failed");
+  if (!response.ok) {
+    const error = new Error(body.error?.message || "BitAgent request failed");
+    error.state = body.state;
+    throw error;
+  }
   return body;
 }
 
 async function start() {
   const params = new URLSearchParams(location.search);
   const hasReferral = params.has("ref") && params.has("campaign") && params.has("workflow");
-  let workflowId = hasReferral ? null : localStorage.getItem("bitagent.workflowId");
+  const activeReferralKey = hasReferral ? referralKey(params) : null;
+  const storedReferralKey = localStorage.getItem("bitagent.referralKey");
+  let workflowId = localStorage.getItem("bitagent.workflowId");
+  if (hasReferral && storedReferralKey !== activeReferralKey) workflowId = null;
   if (workflowId) {
     try {
       const body = await api(`/api/workflows/${encodeURIComponent(workflowId)}`);
@@ -45,6 +60,7 @@ async function start() {
       return render();
     } catch {
       localStorage.removeItem("bitagent.workflowId");
+      localStorage.removeItem("bitagent.referralKey");
     }
   }
 
@@ -58,6 +74,7 @@ async function start() {
   });
   state = body.state;
   localStorage.setItem("bitagent.workflowId", state.id);
+  if (activeReferralKey) localStorage.setItem("bitagent.referralKey", activeReferralKey);
   const intentCopy = {
     deposit_bitcoin: "I’ll help you receive a Bitcoin UTXO in your wallet.",
     starter_strategy: "Your referral opens directly into the starter TradeLayer strategy.",
@@ -76,7 +93,17 @@ async function callTool(name, args = {}) {
     state = body.state;
     render();
   } catch (error) {
+    if (error.state) {
+      state = error.state;
+    } else if (state?.id) {
+      try {
+        state = (await api(`/api/workflows/${encodeURIComponent(state.id)}`)).state;
+      } catch {
+        // Preserve the last visible public state if refresh also fails.
+      }
+    }
     addMessage(error.message, "agent");
+    render();
     actionPanel.insertAdjacentHTML("afterbegin", `<div class="card error">${escapeHtml(error.message)}</div>`);
   }
 }
@@ -175,10 +202,16 @@ function render() {
   }
 
   if (state.simulation) cards.push(renderSimulation(state.simulation));
-  if (state.simulation && !state.pendingApproval) {
-    cards.push(`<div class="card"><h3>Wallet approval required</h3>
+  const approvalRetry = ["rejected", "cancelled"].includes(state.pendingApproval?.status);
+  if (state.simulation && (!state.pendingApproval || approvalRetry)) {
+    const recovery = approvalRetry
+      ? `<p>${escapeHtml(state.recoveryInstructions?.join(" ") || "No transaction was executed. Review the saved simulation and try again.")}</p>`
+      : "";
+    cards.push(`<div class="card ${approvalRetry ? "error" : ""}">
+      <h3>${approvalRetry ? "Wallet approval was not completed" : "Wallet approval required"}</h3>
       <p>Review the exact effects and fees above before opening the wallet prompt.</p>
-      <div class="button-row">${button("Request wallet approval", "approval-request")}</div></div>`);
+      ${recovery}
+      <div class="button-row">${button(approvalRetry ? "Request wallet approval again" : "Request wallet approval", "approval-request")}</div></div>`);
   }
   if (state.pendingApproval?.status === "pending") {
     cards.push(`<div class="card">

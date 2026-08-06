@@ -97,12 +97,23 @@ export function createBitAgentServer(options: {
       if (request.method === "POST" && toolMatch) {
         const body = await readBody(request);
         const name = decodeURIComponent(toolMatch[1]);
-        const result = await tools.call(name, body);
         const workflowId = String(body.workflowId || "");
-        return json(response, 200, {
-          result: name === "bitagent.workflow.get" ? result : undefined,
-          state: await kernel.getPublic(workflowId)
-        });
+        try {
+          const result = await tools.call(name, body);
+          return json(response, 200, {
+            result: name === "bitagent.workflow.get" ? result : undefined,
+            state: await kernel.getPublic(workflowId)
+          });
+        } catch (error) {
+          const result = errorResult(error);
+          let state: Awaited<ReturnType<BitAgentLaunchKernel["getPublic"]>> | undefined;
+          try {
+            state = workflowId ? await kernel.getPublic(workflowId) : undefined;
+          } catch {
+            state = undefined;
+          }
+          return json(response, result.code === "not_found" ? 404 : 400, { error: result, state });
+        }
       }
       if (request.method === "GET" && await staticFile(response, uiDir, url.pathname)) return;
       json(response, 404, { error: { code: "not_found", message: "Route not found" } });
