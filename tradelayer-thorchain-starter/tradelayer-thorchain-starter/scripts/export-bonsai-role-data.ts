@@ -42,7 +42,8 @@ const SECRET_VALUE_PATTERNS = [
   /\b(?:sk|xoxb|ghp)_[A-Za-z0-9_-]{16,}\b/
 ];
 
-const ROLE_AUTHORITY: Record<Role, string[]> = {
+const INCLUDE_FINANCIAL_SURVIVAL = process.argv.includes("--include-financial-survival");
+const BASE_ROLE_AUTHORITY: Record<Role, string[]> = {
   intent_planner: [
     "bitagent.wallet.connect",
     "bitagent.deposit.prepare",
@@ -59,20 +60,31 @@ const ROLE_AUTHORITY: Record<Role, string[]> = {
   ],
   risk_approval_guard: [
     "bitagent.workflow.get",
-    "bitagent.signal.get",
-    "bitagent.survival.assess",
-    "bitagent.survival.evaluate"
+    "bitagent.signal.get"
   ],
   recovery_operator: [
     "bitagent.workflow.get",
     "bitagent.action.verify",
     "bitagent.signal.get",
-    "bitagent.signal.verify",
-    "bitagent.survival.assess",
-    "bitagent.survival.evaluate",
-    "bitagent.survival.journal.verify"
+    "bitagent.signal.verify"
   ]
 };
+const ROLE_AUTHORITY: Record<Role, string[]> = INCLUDE_FINANCIAL_SURVIVAL
+  ? {
+      ...BASE_ROLE_AUTHORITY,
+      risk_approval_guard: [
+        ...BASE_ROLE_AUTHORITY.risk_approval_guard,
+        "bitagent.survival.assess",
+        "bitagent.survival.evaluate"
+      ],
+      recovery_operator: [
+        ...BASE_ROLE_AUTHORITY.recovery_operator,
+        "bitagent.survival.assess",
+        "bitagent.survival.evaluate",
+        "bitagent.survival.journal.verify"
+      ]
+    }
+  : BASE_ROLE_AUTHORITY;
 
 const FORBIDDEN_EFFECTS = [
   "request_or_store_secret_material",
@@ -204,7 +216,10 @@ async function main() {
   const outputEquals = process.argv.find((argument) => argument.startsWith("--output-dir="))?.slice("--output-dir=".length);
   const positionalOutput = process.argv.slice(2).find((argument) => !argument.startsWith("-"));
   const outputValue = outputIndex >= 0 ? process.argv[outputIndex + 1] : outputEquals || positionalOutput;
-  const outputDir = path.resolve(root, outputValue || "training/artifacts/bonsai-role-corpus-v1");
+  const defaultOutput = INCLUDE_FINANCIAL_SURVIVAL
+    ? "training/artifacts/bonsai-role-corpus-v2"
+    : "training/artifacts/bonsai-role-corpus-v1";
+  const outputDir = path.resolve(root, outputValue || defaultOutput);
   const agentCasesPath = path.join(root, "eval", "agent-cases.ts");
   const failurePath = path.join(root, "eval", "fixtures", "failure-traces.seed.jsonl");
   const signalFailurePath = path.join(root, "eval", "fixtures", "signal-failure-traces.seed.jsonl");
@@ -221,7 +236,7 @@ async function main() {
     shadowFailurePath,
     launchToolsPath,
     signalToolsPath,
-    survivalToolsPath
+    ...(INCLUDE_FINANCIAL_SURVIVAL ? [survivalToolsPath] : [])
   ];
   const sourceHashes = new Map<string, string>();
   for (const file of sourceFiles) sourceHashes.set(file, hash(await fs.readFile(file)));
@@ -398,7 +413,9 @@ async function main() {
   const toolSources = [
     { file: launchToolsPath, schemas: launchToolSchemas, lane: "launch" },
     { file: signalToolsPath, schemas: committedSignalToolSchemas, lane: "committed_signal" },
-    { file: survivalToolsPath, schemas: financialSurvivalToolSchemas, lane: "financial_survival" }
+    ...(INCLUDE_FINANCIAL_SURVIVAL
+      ? [{ file: survivalToolsPath, schemas: financialSurvivalToolSchemas, lane: "financial_survival" }]
+      : [])
   ];
   for (const source of toolSources) {
     for (const [name, schema] of Object.entries(source.schemas)) {

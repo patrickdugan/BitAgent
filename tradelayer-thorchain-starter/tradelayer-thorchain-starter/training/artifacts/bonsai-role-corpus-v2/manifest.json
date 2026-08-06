@@ -1,0 +1,104 @@
+{
+  "schema": "hermes.bitagent_role_corpus.v1",
+  "generatedAt": "2026-08-06T14:09:10.088Z",
+  "generator": "scripts/export-bonsai-role-data.ts",
+  "totalExamples": 114,
+  "countsByRole": {
+    "intent_planner": 50,
+    "utxo_tradelayer_specialist": 10,
+    "risk_approval_guard": 41,
+    "recovery_operator": 13
+  },
+  "countsBySplit": {
+    "train": 106,
+    "validation": 4,
+    "test": 4
+  },
+  "secretValuesDetected": false,
+  "rawTranscriptsIncluded": false,
+  "authority": {
+    "modelOutputIsCandidateOnly": true,
+    "roles": {
+      "intent_planner": [
+        "bitagent.wallet.connect",
+        "bitagent.deposit.prepare",
+        "bitagent.strategy.simulate",
+        "bitagent.withdraw.simulate",
+        "bitagent.workflow.get"
+      ],
+      "utxo_tradelayer_specialist": [
+        "bitagent.strategy.simulate",
+        "bitagent.withdraw.simulate",
+        "bitagent.workflow.get",
+        "bitagent.signal.simulate",
+        "bitagent.signal.get"
+      ],
+      "risk_approval_guard": [
+        "bitagent.workflow.get",
+        "bitagent.signal.get",
+        "bitagent.survival.assess",
+        "bitagent.survival.evaluate"
+      ],
+      "recovery_operator": [
+        "bitagent.workflow.get",
+        "bitagent.action.verify",
+        "bitagent.signal.get",
+        "bitagent.signal.verify",
+        "bitagent.survival.assess",
+        "bitagent.survival.evaluate",
+        "bitagent.survival.journal.verify"
+      ]
+    },
+    "forbiddenEffects": [
+      "request_or_store_secret_material",
+      "approve_wallet_action",
+      "sign_transaction",
+      "broadcast_transaction",
+      "invent_wallet_or_chain_state",
+      "change_strategy_parameters"
+    ]
+  },
+  "sources": [
+    {
+      "path": "eval/agent-cases.ts",
+      "sha256": "d1e1ac7a589a0367cc38afc47db8cb330b8b40ae25a6c02d685d42a748c84284"
+    },
+    {
+      "path": "eval/fixtures/failure-traces.seed.jsonl",
+      "sha256": "a4c237e6cc8842d51459f90c2be2aae95daf53c45f6b4b04be7ff4a13824d64d"
+    },
+    {
+      "path": "eval/fixtures/signal-failure-traces.seed.jsonl",
+      "sha256": "aeafebfc8d91f87eeb93e1ef264ddad4de85d27d1d905218fb77ee71bce2fa54"
+    },
+    {
+      "path": "eval/fixtures/covenant-failure-traces.seed.jsonl",
+      "sha256": "9e6ac260423f0c78a08fb8b27ba2643d89298d8b904bb5ef5f46ac9fcd4d53ec"
+    },
+    {
+      "path": "eval/fixtures/shadow-feeder-failure-traces.seed.jsonl",
+      "sha256": "99849f916551b3743d99d8baeb5b6357c05f9bb17504c666fefe90ee113aa934"
+    },
+    {
+      "path": "src/launch/tools.ts",
+      "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+    },
+    {
+      "path": "src/signals/tools.ts",
+      "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+    },
+    {
+      "path": "src/survival/tools.ts",
+      "sha256": "b4022052c47a2133e8d390cbf97de706f5a7f701485b09ffeede8de6f4ddcb8e"
+    }
+  ],
+  "examplesSha256": "81cc7a1edad89a261eb91f57b0d924503c880d16419cb8f8bf962b060d417478",
+  "toolContractsPath": "tool-contracts.json",
+  "toolContractsSha256": "3805eb3fe905c759f8a1bb9cf706e45c8c83faaa637092a2236a930f269c133c",
+  "toolContractBundleSha256": "65729606fd98ef6d38f8e8965d290b7a46e62f9d945f8c54c0a353f59db12765",
+  "limitations": [
+    "This is a small deterministic seed corpus, not enough by itself for a production adapter.",
+    "No example grants approval, signing, broadcast, or secret access.",
+    "A held-out live-model evaluation is required before adapter promotion."
+  ]
+}

@@ -738,9 +738,9 @@ Passed:
   public identifiers, and the typed spend intent;
 - changed evidence bindings, unexpected/secret-bearing intent fields, corrupt
   journals, and unresolved journal URIs fail closed;
-- the generated Bonsai tool bundle now contains the three contracts and 114
+- the new v2 Bonsai tool bundle contains the three contracts and 114
   deterministic seed examples, with no detected secret values or raw
-  transcripts;
+  transcripts; frozen v1 remains unchanged at 111 rows;
 - the skill packet contract remains capped at three tools, three rounds, six
   calls, and the inclusive 12,000-token window.
 

@@ -893,5 +893,8 @@
   `requires_deterministic_wrapper` to `ready_deterministic_wrapper` while
   preserving the inclusive 12k, three-round, six-call, three-tool contract.
 - The Bonsai export now includes the three typed contracts and role allowlists
-  for risk and recovery. The regenerated deterministic seed corpus contains
-  114 rows. It remains below the reviewed adapter-promotion floor.
+  for risk and recovery in a new `bonsai-role-corpus-v2` lane. The regenerated
+  deterministic seed corpus contains 114 rows. A cross-repo regression caught
+  that writing those rows into the legacy v1 directory would contaminate the
+  frozen v7 corpus, so v1 remains at its original 111 rows and contracts. The
+  v2 lane remains below the reviewed adapter-promotion floor.
