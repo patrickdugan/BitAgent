@@ -143,6 +143,22 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
         return { ...core, receiptHash: hashObject(core) };
       },
     } as any,
+    withdrawalExecutionProvider: {
+      async execute(candidate: any) {
+        const core = {
+          schema: 'bitagent_wallet_withdrawal_submission_v1' as const,
+          candidateId: candidate.publicCandidate.candidateId,
+          candidateHash: candidate.publicCandidate.candidateHash,
+          txid: candidate.publicCandidate.unsignedTxid,
+          submittedAt: now.toISOString(),
+          mempoolAccepted: true as const,
+          signingPerformed: true as const,
+          broadcastPerformed: true as const,
+        };
+        return { ...core, receiptHash: hashObject(core) };
+      },
+    },
+    executionReleaseId: 'ef'.repeat(32),
   });
   const app = fastify({ logger: false, bodyLimit: 64 * 1024 });
   app.register(createBitagentWalletBrokerRoutes(() => service), { prefix: '/v1/wallet/' });
@@ -176,6 +192,7 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
       method: 'GET', url: '/api/bitagent/wallet-authority/status',
     });
     assert.equal(publicStatus.statusCode, 200);
+    assert.equal(publicStatus.json().data.executionAvailable, true);
     assert.equal(publicStatus.json().data.withdrawalCandidates[0].candidate.candidateHash,
       fee.candidate?.candidateHash);
     assert.equal(publicStatus.json().data.withdrawalCandidates[0].rawPsbt, undefined);
@@ -242,18 +259,22 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
     if (approved.status !== 'approved') throw new Error('Expected wallet approval');
     approvedApproval.status = 'approved';
     approvedApproval.walletApprovalToken = approved.walletApprovalToken;
-    await assert.rejects(
-      broker.execute({ approval: approvedApproval, simulation: approvedSimulation, state, now }),
-      /HTTP 423/i,
-    );
+    const execution = await broker.execute({
+      approval: approvedApproval, simulation: approvedSimulation, state, now,
+    });
+    assert.equal(execution.status, 'submitted');
+    assert.equal(execution.txid, approvedSimulation.walletCandidate?.unsignedTxid);
 
-    assert.equal(cancellationCount, 2);
+    assert.equal(cancellationCount, 1);
     const persisted = JSON.parse(readFileSync(statePath, 'utf8'));
     assert.doesNotMatch(JSON.stringify(persisted), /wallet_grant_|privateKey|seedPhrase|mnemonic|\"wif\"/i);
     assert.ok(Object.values(persisted.withdrawalCandidates).every((candidate: any) =>
-      candidate.rawPsbt === undefined
-      && candidate.status === 'cancelled'
-      && candidate.cancellation.inputLockReleased === true));
+      candidate.rawPsbt === undefined));
+    assert.ok(Object.values(persisted.withdrawalCandidates).some((candidate: any) =>
+      candidate.status === 'cancelled' && candidate.cancellation.inputLockReleased === true));
+    assert.ok(Object.values(persisted.withdrawalCandidates).some((candidate: any) =>
+      candidate.status === 'submitted'
+      && candidate.submission.txid === approvedSimulation.walletCandidate?.unsignedTxid));
   } finally {
     await app.close();
     rmSync(directory, { recursive: true, force: true });

@@ -51,7 +51,7 @@ destination at vout 0, positive wallet-owned change at vout 1, fee cap, and
 satoshi arithmetic. The response exposes the public input/output material,
 unsigned txid, and hash of the unsigned PSBT, but never the PSBT. BitAgent
 validates that public candidate and includes it in the simulation hash. Reject,
-expiry, supersession, or the currently disabled execution route cancels the
+expiry, supersession, or the default-disabled execution route cancels the
 candidate and verifies that its input lock was released.
 
 The execution request includes a deterministic `idempotencyKey`, the same
@@ -61,6 +61,16 @@ fees shown to the user, and echo the idempotency key, approval ID, and wallet
 approval request ID in the receipt. Duplicate calls return the original receipt.
 A grant must be scoped to one wallet session, approval ID, simulation hash,
 action, and expiry.
+
+The current wallet implementation enables withdrawal execution only when both
+`BITAGENT_WALLET_TESTNET_EXECUTION_ENABLED=true` and an explicit 64-hex release
+digest are configured. The provider itself accepts only Bitcoin testnet4. It
+requires the selected inputs to remain locked, signs inside Bitcoin Core,
+finalizes and decodes the transaction, rechecks every input and both exact
+outputs, verifies the decoded fee through `testmempoolaccept`, and only then
+calls `sendrawtransaction`. It never returns a PSBT, signed transaction, or
+signature. A send error or mismatched returned txid is persisted as
+`reconciliation_required`, and automatic retry is refused.
 
 ## Status and recovery
 
@@ -73,6 +83,8 @@ action, and expiry.
   `[wallet-held]` from public workflow responses.
 - `submitted`: persist the txid before independent verification. Duplicate
   execute calls return the same receipt.
+- `reconciliation_required`: preserve the candidate and input reservation.
+  A send may have occurred, so do not retry or unlock automatically.
 
 The remote wallet is never accepted as the verifier. Production factory setup
 requires an independent UTXORef reserve/tlBTC funding source, an independent

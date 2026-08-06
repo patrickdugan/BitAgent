@@ -175,9 +175,10 @@ present. The wallet can submit; it cannot self-verify the result.
 ### Local testnet4 wallet-authority preview
 
 The current `tradelayer-wallet` implementation supports public session,
-deposit-address, fee-candidate, and durable exact-approval polling. Execution
-is deliberately locked with HTTP 423. Configure the wallet process before it
-starts:
+deposit-address, exact unsigned withdrawal candidates, durable approval
+polling, and a wallet-owned testnet4 execution provider. Execution remains
+disabled by default and returns HTTP 423 unless an operator explicitly enables
+a reviewed release. Configure the wallet process before it starts:
 
 ```powershell
 $env:BITAGENT_WALLET_BROKER_TOKEN="<opaque local operator token>"
@@ -193,12 +194,26 @@ $env:BITAGENT_WALLET_TESTNET_FEE_RATE_SAT_VB="2"
 $env:BITAGENT_WALLET_CANDIDATE_TTL_MS="120000"
 ```
 
+Only for a separately reviewed testnet4 release, after explicit operator
+authorization, add:
+
+```powershell
+$env:BITAGENT_WALLET_TESTNET_EXECUTION_ENABLED="true"
+$env:BITAGENT_WALLET_TESTNET_EXECUTION_RELEASE_ID="<reviewed 64-hex release digest>"
+```
+
+The execution provider refuses any network other than testnet4. It consumes
+the exact approval grant before signing, re-decodes and compares the finalized
+transaction, requires `testmempoolaccept`, and returns only a public txid and
+hash-bound receipt. A submission RPC error is treated as an ambiguous outcome:
+the input remains reserved and an operator must reconcile it before retrying.
+
 Point BitAgent at `http://127.0.0.1:1986` with the same process-secret bearer
 token. Open the wallet's BitVM page to refresh the public Bitcoin session and
 review pending exact effects. Rejecting is always available. A starter
 strategy cannot be approved until both reserve preflight and the deployed tx11
-release pass; approving a withdrawal only records a scoped grant, because the
-execution endpoint remains disabled. Never put the bearer token in the
+release pass. With execution left at its default, approving a withdrawal only
+records a scoped grant and execution remains disabled. Never put the bearer token in the
 browser, a referral link, model context, or the authority JSON.
 
 The withdrawal fee is not an operator guess. The wallet prepares and decodes

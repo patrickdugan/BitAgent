@@ -601,3 +601,42 @@ Remaining:
   and independent confirmation remain required before any funded withdrawal;
 - starter-strategy funding is still blocked by the tx11 deployment and
   independent reserve-preflight requirements.
+
+## Wallet-owned testnet4 execution implementation (2026-08-06)
+
+Decision: **accept the disabled-by-default execution implementation and its
+deterministic tests; do not claim a live broadcast or funded launch**.
+
+Passed:
+
+- the wallet now atomically persists one-time grant consumption before any
+  signing call and refuses concurrent, failed, or ambiguous duplicate use;
+- the Bitcoin Core provider is hard-limited to synchronized testnet4, requires
+  the selected inputs to remain locked, signs and finalizes inside the wallet,
+  and re-decodes the finalized transaction against every approved input,
+  destination, change output, script, amount, and txid;
+- `testmempoolaccept` must return the exact txid and fee before broadcast;
+- successful execution persists a public, hash-bound receipt and deletes the
+  private raw PSBT; neither BitAgent nor the browser receives a PSBT, signed
+  transaction, signature, seed, WIF, or private key;
+- signature and pre-broadcast failures consume the grant and release the input;
+  a possibly-broadcast submission failure keeps the input reserved and enters
+  `reconciliation_required` instead of retrying;
+- restart-safe idempotent replay returns the original submitted receipt without
+  signing or broadcasting twice;
+- the BitAgent cross-repo HTTP trajectory now reaches a submitted wallet
+  receipt through connect, exact simulation, durable approval, grant, and
+  execution using deterministic providers only.
+
+Remaining:
+
+- no transaction was signed or broadcast in this implementation pass because
+  no fresh user approval for a live testnet4 spend was supplied;
+- an operator reconciliation action is still required for ambiguous submission
+  records; absence from one mempool is not sufficient proof that broadcast did
+  not occur;
+- the durable JSON authority store assumes a single wallet-server process and
+  does not provide a cross-process transaction lock;
+- independent Bitcoin confirmation remains separate from the wallet receipt;
+  funded launch also remains blocked by tx11 deployment, independent listener
+  parity, starter-strategy position/fill proof, and end-to-end PnL withdrawal.

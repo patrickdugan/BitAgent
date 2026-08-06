@@ -791,3 +791,26 @@
   input, 50000-sat external destination, 252157-sat wallet change, and 286-sat
   fee at configured 2 sat/vB. Cancellation released the lock; wallet balance
   remained 317176 sats. No signature or broadcast was requested or produced.
+
+## Wallet-owned testnet4 withdrawal executor — 2026-08-06
+
+- Added a default-disabled Bitcoin Core execution provider in the wallet. It
+  accepts only the exact private candidate already bound into the approved
+  public simulation, requires synchronized testnet4 and retained input locks,
+  signs/finalizes inside Core, re-decodes exact effects, runs
+  `testmempoolaccept`, and returns only a public submission receipt.
+- Added authority-state schema v3 with atomic one-time grant consumption,
+  execution release provenance, submitted/failed/reconciliation states, and
+  restart-safe idempotency. Private PSBT material is removed after success and
+  omitted from public state.
+- Signature rejection, finalized-transaction mutation, fee/txid mempool
+  mismatch, submission ambiguity, concurrent replay, restart replay, invalid
+  token/idempotency, and disabled-default behavior are covered by deterministic
+  tests.
+- The real BitAgent HTTP client now completes a successful broker-to-wallet
+  execution trajectory against deterministic wallet providers. This verifies
+  protocol compatibility only; it is not independent chain verification.
+- No live signing or broadcast occurred. Enabling requires both an explicit
+  testnet execution flag and a reviewed 64-hex release digest. Ambiguous sends
+  remain locked for operator reconciliation, and the JSON store remains a
+  single-process authority boundary.
