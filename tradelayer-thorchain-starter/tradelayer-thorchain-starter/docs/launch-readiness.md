@@ -874,12 +874,14 @@ Passed:
   the retry module into consensus hash
   `fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`.
   Two listeners running from a clean detached worktree resumed their durable
-  databases and completed a bounded sync receipt at exact local tips 63,588
-  and 59,323 with networking off, zero peers, realtime phase, and no error.
+  databases and completed bounded sync receipts at exact local tips 63,588
+  and 60,019 with networking off, zero peers, realtime phase, and no error.
+  The slower pair advanced 696 blocks in the latest direct-controller segment
+  while remaining behind its retained prune horizon.
 
 Boundaries:
 
-- the current 2 GiB-pruned backends are paused at blocks 63,588 and 59,323
+- the current 2 GiB-pruned backends are paused at blocks 63,588 and 60,019
   with prune heights 58,223 and 58,227. Their preserved listeners are at those
   exact tips and report realtime/100%/no error. The live gate nevertheless
   keeps `synchronizedTestnet4=false` because both backends are still in IBD

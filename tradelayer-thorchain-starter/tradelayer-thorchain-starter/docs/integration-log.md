@@ -1124,3 +1124,22 @@
   automatic pause. The runbook now requires direct controller execution plus
   an explicit post-interruption network-state check and pause. No wallet was
   loaded or created, and no PSBT, signature, or broadcast was requested.
+
+## Candidate-8 bounded sync continuation - 2026-08-06
+
+- A direct controller run used a stop height of 60,000. Pair A was already
+  complete and remained disconnected at Bitcoin/listener height 63,588. Pair
+  B advanced from 59,323 to 60,019 in lag-bounded windows, then its listener
+  consumed the retained range to exact `trackHeight=60019`.
+- The atomic completion receipt reports `bounded_target_caught_up`, zero lag,
+  `phase=realtime`, `error=null`, `networkActive=false`, and zero connections
+  for both pairs. Pair B's prune height remained 58,227, below its listener
+  checkpoint; no missing history was skipped or synthesized.
+- The challenge-bound read-only observer again accepted independent live
+  endpoints, fresh observations, and the exact candidate-8 release commit. It
+  correctly failed `synchronizedTestnet4` because the backends remain in IBD
+  at different paused tips, and it kept tx11 activation, code-hash, property,
+  template, contract, and reserve-address gates false.
+- This extends walletless recovery evidence only. No wallet was loaded or
+  created, and no PSBT, approval, signature, activation, or broadcast was
+  requested or produced.
