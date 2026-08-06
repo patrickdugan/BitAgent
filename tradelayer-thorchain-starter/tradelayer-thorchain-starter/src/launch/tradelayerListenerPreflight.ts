@@ -19,6 +19,7 @@ export type TradeLayerListenerObservation = {
   listener: { nodeId: string; instanceId: string; network: "BTCTEST"; releaseCommit: string };
   bitcoinBackend: {
     chain: "testnet4";
+    bestBlockHash: string;
     blocks: number;
     headers: number;
     initialBlockDownload: boolean;
@@ -180,6 +181,7 @@ function normalizeObservation(input: {
     },
     bitcoinBackend: {
       chain: requiredText(bitcoinBackend.chain, "Bitcoin backend chain", /^testnet4$/) as "testnet4",
+      bestBlockHash: requiredText(bitcoinBackend.bestBlockHash, "Bitcoin backend best block hash", /^[a-f0-9]{64}$/),
       blocks: safeInteger(bitcoinBackend.blocks, "Bitcoin backend block height"),
       headers: safeInteger(bitcoinBackend.headers, "Bitcoin backend header height"),
       initialBlockDownload: bitcoinBackend.initialBlockDownload === true,
@@ -324,7 +326,9 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
     const times = [Date.parse(item.capturedAt), Date.parse(item.listenerObservedAt), item.sync.updatedAt];
     return times.every((value) => Number.isFinite(value) && value <= input.now.getTime() && input.now.getTime() - value <= maxAgeMs);
   });
-  const synchronizedTestnet4 = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
+  const bitcoinTipHashes = new Set(input.observations.map((item) => item.bitcoinBackend.bestBlockHash));
+  const synchronizedTestnet4 = observationsValid && input.observations.length > 0
+    && bitcoinTipHashes.size === 1 && input.observations.every((item) =>
     item.listener.network === "BTCTEST" && item.sync.initialized && item.sync.phase === "realtime" && !item.sync.error
     && item.bitcoinBackend.chain === "testnet4" && !item.bitcoinBackend.initialBlockDownload
     && item.bitcoinBackend.networkActive && item.bitcoinBackend.connections > 0

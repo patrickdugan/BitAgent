@@ -34,6 +34,7 @@ type ResponseInput = {
   secret?: boolean;
   initialBlockDownload?: boolean;
   headersLag?: number;
+  bestBlockHash?: string;
   networkActive?: boolean;
   connections?: number;
 };
@@ -49,6 +50,7 @@ function response(input: ResponseInput) {
     listener: { nodeId: input.node, instanceId: input.instance, network: "BTCTEST", releaseCommit: input.commit || COMMIT },
     bitcoinBackend: {
       chain: "testnet4",
+      bestBlockHash: input.bestBlockHash || "34".repeat(32),
       blocks: 100,
       headers: 100 + (input.headersLag || 0),
       initialBlockDownload: input.initialBlockDownload === true,
@@ -175,6 +177,16 @@ test("IBD, stale headers, paused networking, or zero peers fail synchronization"
     ]);
     assert.equal(evidence(observations).gates.synchronizedTestnet4, false);
   }
+});
+
+test("different Bitcoin best-block hashes fail synchronization parity", async () => {
+  const observations = await Promise.all([
+    observation("http://127.0.0.1:3101", "listener-a", "instance-a-0001", "01".repeat(32)),
+    observation("http://127.0.0.1:3102", "listener-b", "instance-b-0002", "02".repeat(32), {
+      bestBlockHash: "56".repeat(32)
+    })
+  ]);
+  assert.equal(evidence(observations).gates.synchronizedTestnet4, false);
 });
 
 test("unallowlisted listener release commit fails closed", async () => {

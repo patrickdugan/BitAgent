@@ -999,3 +999,6 @@
   verification progress of at least 0.999999, active networking, and at least
   one peer. The intentionally paused local backends therefore fail closed even
   after their TradeLayer replay catches up.
+- Commit `0962b5b` also binds the sanitized Bitcoin best-block hash. BitAgent
+  requires both listener backends to attest the same 32-byte tip hash, so
+  equal heights on divergent forks cannot satisfy `synchronizedTestnet4`.

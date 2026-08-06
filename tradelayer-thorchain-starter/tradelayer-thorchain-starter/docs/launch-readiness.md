@@ -835,13 +835,15 @@ Passed:
 - partial replay height is durably checkpointed every 100 blocks without
   claiming index completion;
 - an intentional listener-B stop/restart resumed from durable height 400;
-- 13 focused TradeLayer tests pass for block-scoped RPC arguments, replay
+- 14 focused TradeLayer tests pass for block-scoped RPC arguments, replay
   checkpoint semantics, testnet4 profile selection, and launch attestation.
 - the attestation and BitAgent verifier additionally bind Bitcoin Core chain,
   blocks, headers, IBD state, verification progress, networking state, and peer
   count; focused tests reject IBD, header lag, paused networking, and zero-peer
   backends.
-- the complete launch preflight passes 71/71 launch checks, 24 scripted
+- both backend attestations must carry the same validated Bitcoin best-block
+  hash; equal heights on different tips fail synchronization parity.
+- the complete launch preflight passes 72/72 launch checks, 24 scripted
   trajectories, and 50/50 focused agent cases with no generated failure trace.
 
 Boundaries:
