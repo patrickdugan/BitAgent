@@ -39,6 +39,7 @@ type ResponseInput = {
   bestBlockHash?: string;
   networkActive?: boolean;
   connections?: number;
+  activationSource?: Record<string, unknown>;
 };
 
 function response(input: ResponseInput) {
@@ -73,7 +74,17 @@ function response(input: ResponseInput) {
       updatedAt: NOW.getTime(),
       error: null
     },
-    tx11: { active: true, activationBlock: 1, codeHash: CODE_HASH },
+    tx11: {
+      active: true,
+      activationBlock: 1,
+      codeHash: CODE_HASH,
+      activationSource: input.activationSource || {
+        kind: "bitcoin_transaction",
+        chainDerived: true,
+        txid: "78".repeat(32),
+        blockHeight: 1
+      }
+    },
     property: { ticker: "tlBTC", type: 2, issuer: "fixture-admin", ...(input.secret ? { seedPhrase: "prohibited" } : {}) },
     template: {
       _id: `template-${plan.tradeLayer.dlcTemplateId}`,
@@ -213,6 +224,22 @@ test("unallowlisted listener release commit fails closed", async () => {
     observation("http://127.0.0.1:3102", "listener-b", "instance-b-0002", "02".repeat(32))
   ]);
   assert.equal(evidence(observations).gates.exactReleaseCommit, false);
+});
+
+test("local-db or missing tx11 provenance cannot satisfy the chain-derived gate", async () => {
+  for (const activationSource of [
+    { kind: "local_db_seed", chainDerived: false, profileId: "sandbox" },
+    { kind: "legacy_unknown", chainDerived: false }
+  ]) {
+    const observations = await Promise.all([
+      observation("http://127.0.0.1:3101", "listener-a", "instance-a-0001", "01".repeat(32), { activationSource }),
+      observation("http://127.0.0.1:3102", "listener-b", "instance-b-0002", "02".repeat(32), { activationSource })
+    ]);
+    const result = evidence(observations);
+    assert.equal(result.status, "failed");
+    assert.equal(result.gates.tx11Active, true);
+    assert.equal(result.gates.tx11ChainDerived, false);
+  }
 });
 
 test("challenge mismatch is rejected before evidence exists", async () => {

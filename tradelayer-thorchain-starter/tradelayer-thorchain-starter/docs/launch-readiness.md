@@ -971,3 +971,41 @@ Remaining:
   gates;
 - no approval, signature, transaction finalization, broadcast, tlBTC credit,
   trade fill, PnL settlement, or withdrawal was performed by this gate.
+
+## Candidate-9 chain-activation provenance gate (2026-08-06)
+
+Decision: **supersede candidate 8 with candidate 9 for all new launch checks;
+keep funded execution disabled.**
+
+Passed:
+
+- TradeLayer now records whether tx11 activation came from an indexed Bitcoin
+  transaction, a local database seed, or legacy state with unknown provenance;
+- BitAgent and the wallet require the ninth `tx11ChainDerived` gate in addition
+  to the existing independent-listener, freshness, code-hash, property,
+  template, contract, and reserve-address checks;
+- local database activation and activation records without a valid 64-hex txid
+  plus the exact activation block fail closed even if tx11 otherwise reports
+  active;
+- the release-generic source gate selected clean candidate-9 commit
+  `f502236e3e2b8c601c2e8576bb0bcf23b2680892` and exact ordered consensus hash
+  `8ab527ac64cd21464e7911396572e971f4b8795fa59f3f472dfb3abb6c0ffed1`;
+- `npm run preflight:launch:release` passes 106/106 launch checks, all 24
+  trajectories, and 50/50 focused agent cases with all eight score dimensions
+  at 1 and zero generated failure traces;
+- the wallet authority tests reject approval when the chain-derived gate is
+  false, and the frontend TypeScript compiler passes.
+
+Remaining:
+
+- the two preserved listeners run candidate 8 and cannot provide candidate-9
+  activation provenance. New observations therefore fail
+  `tx11ChainDerived`, exact release, synchronization, and registry gates;
+- listener-reported activation txids are not yet independently decoded against
+  Bitcoin Core by the launch observer. Production promotion requires either
+  independent chain-payload verification or independently operated listeners;
+- the wallet-server repository-wide TypeScript command is blocked in
+  `node_modules` by duplicate `@types/web` and bundled DOM declarations. The
+  executable authority suite passes and no changed-file diagnostic was emitted;
+- no approval, signing, activation transaction, broadcast, tlBTC credit, trade,
+  PnL settlement, or withdrawal occurred.

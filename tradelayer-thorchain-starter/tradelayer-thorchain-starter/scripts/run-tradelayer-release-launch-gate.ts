@@ -31,8 +31,8 @@ async function inspectCandidate(
   manifest: ReturnType<typeof validateTx11ReleaseManifest>
 ): Promise<Tx11ReleaseSourceCandidate> {
   const rejectionReasons: string[] = [];
-  if (!manifest.tradelayerCommits.includes(worktree.head)) {
-    rejectionReasons.push("worktree_commit_not_in_release");
+  if (manifest.deploymentCommit !== worktree.head) {
+    rejectionReasons.push("worktree_commit_not_deployment_commit");
     return { ...worktree, trackedClean: false, rejectionReasons };
   }
   let trackedClean = false;

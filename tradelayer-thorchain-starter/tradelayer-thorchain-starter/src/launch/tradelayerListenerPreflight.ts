@@ -2,6 +2,11 @@ import crypto from "node:crypto";
 import { hashObject } from "./canonical.js";
 import { LaunchKernelError } from "./errors.js";
 import { verifyReserveIntakePlan, type ReserveIntakePlan } from "./reserveIntake.js";
+import {
+  isChainDerivedTradeLayerActivation,
+  normalizeTradeLayerActivationSource,
+  type TradeLayerActivationSource
+} from "./tradelayerActivationProvenance.js";
 
 const SECRET_FIELD = /(private.?key|seed.?phrase|mnemonic|\bwif\b|api.?secret|secret.?key|password|authorization)/i;
 type PublicRecord = Record<string, unknown>;
@@ -38,7 +43,12 @@ export type TradeLayerListenerObservation = {
     updatedAt: number;
     error: unknown;
   };
-  tx11: { active: boolean; activationBlock: number | null; codeHash: string | null };
+  tx11: {
+    active: boolean;
+    activationBlock: number | null;
+    codeHash: string | null;
+    activationSource: TradeLayerActivationSource;
+  };
   property: PublicRecord | null;
   template: PublicRecord | null;
   contract: PublicRecord | null;
@@ -64,6 +74,7 @@ export type TradeLayerListenerPreflightEvidence = {
     synchronizedTestnet4: boolean;
     exactReleaseCommit: boolean;
     tx11Active: boolean;
+    tx11ChainDerived: boolean;
     tx11CodeHash: boolean;
     intendedTlBtcProperty: boolean;
     templateParity: boolean;
@@ -204,7 +215,8 @@ function normalizeObservation(input: {
     tx11: {
       active: tx11?.active === true,
       activationBlock: tx11 && Number.isSafeInteger(Number(tx11.activationBlock)) ? Number(tx11.activationBlock) : null,
-      codeHash: /^[a-f0-9]{64}$/.test(codeHash) ? codeHash : null
+      codeHash: /^[a-f0-9]{64}$/.test(codeHash) ? codeHash : null,
+      activationSource: normalizeTradeLayerActivationSource(tx11?.activationSource)
     },
     property: nullableRecord(response.property, "property"),
     template: nullableRecord(response.template, "template"),
@@ -346,6 +358,9 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
   const tx11Active = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
     item.tx11.active && item.tx11.activationBlock !== null && item.sync.processedHeight >= item.tx11.activationBlock
   );
+  const tx11ChainDerived = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
+    isChainDerivedTradeLayerActivation(item.tx11.activationSource, item.tx11.activationBlock)
+  );
   const tx11CodeHash = observationsValid && acceptedTx11CodeHashes.length > 0
     && input.observations.every((item) => !!item.tx11.codeHash && acceptedTx11CodeHashes.includes(item.tx11.codeHash));
   const intendedTlBtcProperty = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
@@ -374,6 +389,7 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
     synchronizedTestnet4,
     exactReleaseCommit,
     tx11Active,
+    tx11ChainDerived,
     tx11CodeHash,
     intendedTlBtcProperty,
     templateParity: templatesMatch && exactRegistryParity,

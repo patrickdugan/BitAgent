@@ -43,7 +43,7 @@ async function fixture() {
     maxAgeMs: 60000,
     minimumIndependentNodes: 2,
     nodes: [{}, {}],
-    gates: { tx11Active: true, tx11CodeHash: true },
+    gates: { tx11Active: true, tx11ChainDerived: true, tx11CodeHash: true },
     reasons: [],
     evidenceHash: "e".repeat(64)
   }));
@@ -52,6 +52,7 @@ async function fixture() {
     releaseId: "candidate-1",
     status: "candidate_not_deployed",
     codeHash: "f".repeat(64),
+    deploymentCommit: "commit",
     tradelayerCommits: ["commit"],
     promotionRequirements: ["deploy exact code"]
   }));
@@ -70,6 +71,41 @@ test("operator evidence is read-only and strips signing material", async () => {
     assert.equal(evidence.release?.status, "candidate_not_deployed");
     const serialized = JSON.stringify(evidence);
     assert.doesNotMatch(serialized, /must-not-leak|rawPsbt|privateKey|seedPhrase|payloadHex/);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("live listener evidence is normalized into the wallet preflight gate contract", async () => {
+  const { dir, paths } = await fixture();
+  try {
+    await fs.writeFile(paths.preflightPath, JSON.stringify({
+      schema: "bitagent_tradelayer_listener_preflight_v1",
+      status: "verified",
+      planHash: "d".repeat(64),
+      assessedAt: "2026-08-06T00:00:00.000Z",
+      maxAgeMs: 60000,
+      minimumIndependentNodes: 2,
+      observations: [{}, {}],
+      gates: {
+        independentLiveListeners: true,
+        freshObservations: true,
+        tx11Active: true,
+        tx11ChainDerived: true,
+        tx11CodeHash: true,
+        intendedTlBtcProperty: true,
+        templateParity: true,
+        contractParity: true,
+        reserveRedeemAddress: true
+      },
+      reasons: [],
+      evidenceHash: "e".repeat(64)
+    }));
+    const evidence = await readReserveOperatorEvidence(paths, () => new Date("2026-08-06T01:00:00.000Z"));
+    assert.equal(evidence.preflight?.schema, "bitagent_tradelayer_reserve_preflight_v1");
+    assert.equal(evidence.preflight?.sourceSchema, "bitagent_tradelayer_listener_preflight_v1");
+    assert.equal((evidence.preflight?.gates as Record<string, unknown>).tx11ChainDerived, true);
+    assert.equal(evidence.preflight?.observedNodeCount, 2);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

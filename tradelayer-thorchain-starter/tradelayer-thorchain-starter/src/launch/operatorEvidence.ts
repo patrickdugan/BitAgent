@@ -117,20 +117,27 @@ function candidateView(source: JsonRecord): JsonRecord | null {
 }
 
 function preflightView(source: JsonRecord): JsonRecord | null {
-  if (source.schema !== "bitagent_tradelayer_reserve_preflight_v1") return null;
+  const listenerSource = source.schema === "bitagent_tradelayer_listener_preflight_v1";
+  if (!listenerSource && source.schema !== "bitagent_tradelayer_reserve_preflight_v1") return null;
   const gates = record(source.gates);
   return {
-    schema: source.schema,
+    schema: "bitagent_tradelayer_reserve_preflight_v1",
+    sourceSchema: text(source.schema),
     status: text(source.status),
     planHash: text(source.planHash),
     assessedAt: text(source.assessedAt),
     maxAgeMs: number(source.maxAgeMs),
     minimumIndependentNodes: number(source.minimumIndependentNodes),
-    observedNodeCount: Array.isArray(source.nodes) ? source.nodes.length : 0,
+    observedNodeCount: listenerSource
+      ? (Array.isArray(source.observations) ? source.observations.length : 0)
+      : (Array.isArray(source.nodes) ? source.nodes.length : 0),
     gates: {
-      independentNodeCount: bool(gates.independentNodeCount),
-      freshSnapshots: bool(gates.freshSnapshots),
+      independentNodeCount: listenerSource
+        ? bool(gates.independentLiveListeners)
+        : bool(gates.independentNodeCount),
+      freshSnapshots: listenerSource ? bool(gates.freshObservations) : bool(gates.freshSnapshots),
       tx11Active: bool(gates.tx11Active),
+      tx11ChainDerived: bool(gates.tx11ChainDerived),
       tx11CodeHash: bool(gates.tx11CodeHash),
       intendedTlBtcProperty: bool(gates.intendedTlBtcProperty),
       templateParity: bool(gates.templateParity),
@@ -150,6 +157,7 @@ function releaseView(source: JsonRecord): JsonRecord | null {
     releaseId: text(source.releaseId),
     status: text(source.status),
     codeHash: text(source.codeHash),
+    deploymentCommit: text(source.deploymentCommit),
     tradelayerCommits: textList(source.tradelayerCommits),
     promotionRequirements: textList(source.promotionRequirements)
   };
@@ -158,7 +166,7 @@ function releaseView(source: JsonRecord): JsonRecord | null {
 export function defaultReserveOperatorEvidencePaths(projectDir: string): ReserveOperatorEvidencePaths {
   return {
     candidatePath: path.join(projectDir, ".runtime", "testnet-agent", "reserve-intake-candidate", "summary.json"),
-    preflightPath: path.join(projectDir, ".runtime", "testnet-agent", "reserve-intake-candidate", "tradelayer-preflight.json"),
+    preflightPath: path.join(projectDir, ".runtime", "testnet-agent", "reserve-intake-candidate", "listener-preflight.json"),
     releasePath: path.join(projectDir, "config", "tradelayer-tx11-release.json")
   };
 }

@@ -27,7 +27,12 @@ const plan = buildReserveIntakePlan({
   dlcHash: "ab".repeat(32)
 });
 
-async function databaseFixture(input: { contractAddress?: string; templateHash?: string; omitContract?: boolean } = {}): Promise<string> {
+async function databaseFixture(input: {
+  contractAddress?: string;
+  templateHash?: string;
+  omitContract?: boolean;
+  activationSource?: Record<string, unknown>;
+} = {}): Promise<string> {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "bitagent-tl-preflight-"));
   const activation = {
     11: {
@@ -35,7 +40,13 @@ async function databaseFixture(input: { contractAddress?: string; templateHash?:
       active: true,
       activationBlock: 1,
       codeHash: CODE_HASH,
-      network: "BTCTEST"
+      network: "BTCTEST",
+      activationSource: input.activationSource || {
+        kind: "bitcoin_transaction",
+        chainDerived: true,
+        txid: "ef".repeat(32),
+        blockHeight: 1
+      }
     }
   };
   const properties = [[1, {
@@ -185,6 +196,28 @@ test("matching nodes may preflight deterministic tx11 contract creation under an
   assert.equal(evidence.contractMode, "dynamic_create");
   assert.equal(evidence.gates.tx11CodeHash, true);
   assert.equal(evidence.gates.reserveRedeemAddress, true);
+});
+
+test("direct local activation seeding remains non-authoritative for reserve approval", async () => {
+  const localSource = { kind: "local_db_seed", chainDerived: false, profileId: "sandbox" };
+  const [firstRoot, secondRoot] = await Promise.all([
+    databaseFixture({ activationSource: localSource }),
+    databaseFixture({ activationSource: localSource })
+  ]);
+  const nodes = await Promise.all([
+    readTradeLayerReserveNodeSnapshot({ plan, nodeId: "listener-a", databasePath: firstRoot, blockHeight: 100 }),
+    readTradeLayerReserveNodeSnapshot({ plan, nodeId: "listener-b", databasePath: secondRoot, blockHeight: 100 })
+  ]);
+  const result = buildTradeLayerReservePreflightEvidence({
+    plan,
+    nodes,
+    now: new Date(Math.max(...nodes.map((node) => Date.parse(node.observedAt))) + 1000),
+    maxAgeMs: 5000,
+    acceptedTx11CodeHashes: [CODE_HASH]
+  });
+  assert.equal(result.status, "failed");
+  assert.equal(result.gates.tx11Active, true);
+  assert.equal(result.gates.tx11ChainDerived, false);
 });
 
 test("preflight evidence hash rejects node and gate tampering", async () => {

@@ -3,6 +3,11 @@ import path from "node:path";
 import { verifyReserveIntakePlan, type ReserveIntakePlan } from "./reserveIntake.js";
 import { hashObject } from "./canonical.js";
 import { LaunchKernelError } from "./errors.js";
+import {
+  isChainDerivedTradeLayerActivation,
+  normalizeTradeLayerActivationSource,
+  type TradeLayerActivationSource
+} from "./tradelayerActivationProvenance.js";
 
 type PublicProperty = {
   id: number;
@@ -32,6 +37,7 @@ export type TradeLayerReserveNodeSnapshot = {
     active: boolean;
     activationBlock: number | null;
     codeHash: string | null;
+    activationSource: TradeLayerActivationSource;
   };
   property: PublicProperty | null;
   template: Record<string, unknown> | null;
@@ -52,6 +58,7 @@ export type TradeLayerReservePreflightEvidence = {
     independentNodeCount: boolean;
     freshSnapshots: boolean;
     tx11Active: boolean;
+    tx11ChainDerived: boolean;
     tx11CodeHash: boolean;
     intendedTlBtcProperty: boolean;
     templateParity: boolean;
@@ -143,7 +150,8 @@ export async function readTradeLayerReserveNodeSnapshot(input: {
     tx11: {
       active: tx11.active === true,
       activationBlock: Number.isSafeInteger(Number(tx11.activationBlock)) ? Number(tx11.activationBlock) : null,
-      codeHash: /^[a-f0-9]{64}$/i.test(String(tx11.codeHash || "")) ? String(tx11.codeHash).toLowerCase() : null
+      codeHash: /^[a-f0-9]{64}$/i.test(String(tx11.codeHash || "")) ? String(tx11.codeHash).toLowerCase() : null,
+      activationSource: normalizeTradeLayerActivationSource(tx11.activationSource)
     },
     property,
     template: procedural.docs.get(`template-${input.plan.tradeLayer.dlcTemplateId}`) || null,
@@ -223,6 +231,9 @@ export function buildTradeLayerReservePreflightEvidence(input: {
     node.network === "BTCTEST" && node.tx11.active && node.tx11.activationBlock !== null
     && node.blockHeight >= node.tx11.activationBlock
   );
+  const tx11ChainDerived = nodesValid && input.nodes.length > 0 && input.nodes.every((node) =>
+    isChainDerivedTradeLayerActivation(node.tx11.activationSource, node.tx11.activationBlock)
+  );
   const tx11CodeHash = nodesValid && acceptedTx11CodeHashes.length > 0 && input.nodes.every((node) =>
     !!node.tx11.codeHash && acceptedTx11CodeHashes.includes(node.tx11.codeHash)
   );
@@ -251,6 +262,7 @@ export function buildTradeLayerReservePreflightEvidence(input: {
     independentNodeCount,
     freshSnapshots,
     tx11Active,
+    tx11ChainDerived,
     tx11CodeHash,
     intendedTlBtcProperty,
     templateParity: templateParity && exactRegistryParity,

@@ -8,6 +8,7 @@ export type Tx11ReleaseManifest = {
   releaseId: string;
   status: string;
   codeHash: string;
+  deploymentCommit: string;
   tradelayerCommits: string[];
   consensusSourceFiles: string[];
   promotionRequirements: string[];
@@ -40,7 +41,8 @@ export function validateTx11ReleaseManifest(value: unknown): Tx11ReleaseManifest
   if (!manifest || manifest.schema !== "bitagent.tradelayer.tx11-release.v1") {
     throw new Error("TradeLayer tx11 release manifest schema is invalid");
   }
-  if (!manifest.releaseId?.trim() || !manifest.status?.trim() || !isHex32(manifest.codeHash)) {
+  if (!manifest.releaseId?.trim() || !manifest.status?.trim() || !isHex32(manifest.codeHash)
+    || !/^[a-f0-9]{40}$/.test(manifest.deploymentCommit || "")) {
     throw new Error("TradeLayer tx11 release identity, status, or code hash is invalid");
   }
   for (const [label, list] of Object.entries({
@@ -54,6 +56,9 @@ export function validateTx11ReleaseManifest(value: unknown): Tx11ReleaseManifest
   }
   if (manifest.tradelayerCommits!.some((commit) => !/^[a-f0-9]{40}$/.test(commit))) {
     throw new Error("TradeLayer tx11 release commits must be full 40-byte hex object IDs");
+  }
+  if (manifest.tradelayerCommits!.at(-1) !== manifest.deploymentCommit) {
+    throw new Error("TradeLayer tx11 deployment commit must be the release lineage head");
   }
   return manifest as Tx11ReleaseManifest;
 }
@@ -77,11 +82,11 @@ export function verifyLocalTx11Release(input: {
   const canonicalFiles = profile.CONSENSUS_SOURCE_FILES.map((file) => `${file}.js`);
   const currentCodeHash = profile.codeHashFromSource(path.join(input.tradelayerRepo, "src"));
   const sourceFileParity = JSON.stringify(manifest.consensusSourceFiles) === JSON.stringify(canonicalFiles);
-  const commitIncluded = manifest.tradelayerCommits.includes(currentCommit);
+  const commitIncluded = manifest.deploymentCommit === currentCommit;
   const reasons: string[] = [];
   if (!sourceFileParity) reasons.push("consensus_source_file_order_mismatch");
   if (currentCodeHash !== manifest.codeHash) reasons.push("consensus_source_hash_mismatch");
-  if (!commitIncluded) reasons.push("current_tradelayer_commit_not_in_release");
+  if (!commitIncluded) reasons.push("current_tradelayer_commit_not_deployment_commit");
   if (manifest.status !== "candidate_not_deployed") reasons.push("unsupported_release_status_without_deployment_evidence");
   const sourceVerified = reasons.length === 0;
   return {

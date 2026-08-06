@@ -1229,3 +1229,31 @@
   eight scores equal to 1, zero generated failure traces, and exact source
   verification. The receipt decision is `scriptedLaunchReady=true` and
   `fundedExecutionAllowed=false`.
+
+## Candidate-9 chain-activation provenance - 2026-08-06
+
+- A local NeDB activation overlay could previously satisfy the tx11 active and
+  code-hash checks without proving that a Bitcoin transaction activated the
+  type. Candidate 9 closes that provenance gap at the source.
+- TradeLayer commit `f502236e3e2b8c601c2e8576bb0bcf23b2680892` records a sanitized
+  activation source. Only an indexed `bitcoin_transaction` with a valid txid
+  and exact activation block is chain-derived. `local_db_seed` and
+  `legacy_unknown` remain explicitly non-authoritative.
+- BitAgent normalizes both live-listener evidence and the legacy direct-database
+  diagnostic into the wallet preflight contract, adding
+  `tx11ChainDerived`. Missing or malformed provenance fails closed.
+- The release manifest now pins candidate 9 and ordered consensus hash
+  `8ab527ac64cd21464e7911396572e971f4b8795fa59f3f472dfb3abb6c0ffed1`.
+  Release scripts are candidate-agnostic:
+  `npm run test:launch:release` and `npm run preflight:launch:release`.
+- The full release preflight passes 106/106 launch checks, 24/24 trajectories,
+  and 50/50 focused cases with zero failure traces. It remains
+  `candidate_not_deployed`, `scriptedLaunchReady=true`, and
+  `fundedExecutionAllowed=false`.
+- The wallet requires all nine exact gates at both status display and approval
+  capture. The focused authority suite passes; frontend TypeScript passes. The
+  wallet-server full TypeScript command remains blocked by an existing
+  dependency collision between `@types/web` and TypeScript's DOM declarations.
+- No model weights were loaded because the last GPU observation was 88 C against
+  the 64 C start gate. No approval, signature, activation, or broadcast was
+  attempted.

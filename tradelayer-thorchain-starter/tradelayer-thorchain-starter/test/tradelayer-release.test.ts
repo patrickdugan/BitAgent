@@ -41,12 +41,12 @@ test("tx11 release verification fails closed on code, source-list, or commit dri
   const mutations: Tx11ReleaseManifest[] = [
     { ...manifest, codeHash: "00".repeat(32) },
     { ...manifest, consensusSourceFiles: manifest.consensusSourceFiles.slice(1) },
-    { ...manifest, tradelayerCommits: ["11".repeat(20)] }
+    { ...manifest, deploymentCommit: "11".repeat(20), tradelayerCommits: ["11".repeat(20)] }
   ];
   const expectedReasons = [
     "consensus_source_hash_mismatch",
     "consensus_source_file_order_mismatch",
-    "current_tradelayer_commit_not_in_release"
+    "current_tradelayer_commit_not_deployment_commit"
   ];
   mutations.forEach((changed, index) => {
     const receipt = verifyLocalTx11Release({

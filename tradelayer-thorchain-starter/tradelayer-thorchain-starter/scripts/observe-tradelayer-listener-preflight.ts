@@ -42,7 +42,7 @@ async function main() {
     maxSyncLagBlocks: Number(process.env.TRADELAYER_PREFLIGHT_MAX_LAG_BLOCKS || 2),
     minimumIndependentNodes: Number(process.env.TRADELAYER_PREFLIGHT_MIN_NODES || 2),
     acceptedTx11CodeHashes: [manifest.codeHash],
-    acceptedReleaseCommits: manifest.tradelayerCommits
+    acceptedReleaseCommits: [manifest.deploymentCommit]
   });
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
