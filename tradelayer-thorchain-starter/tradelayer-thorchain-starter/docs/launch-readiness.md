@@ -1,6 +1,6 @@
 # BitAgent Launch Readiness
 
-Report date: 2026-07-23
+Report updated: 2026-08-06
 
 Deployment:
 `https://bitagent-launch-kernel.duganist875063.chatgpt.site`, owner-only,
@@ -13,8 +13,9 @@ version 3, source commit `e2ced291b2e4cf4457aebb5b907c9c0facca4d02`.
 The narrow referral-to-deposit-to-strategy-to-withdraw journey is complete and
 observable in a deterministic testnet demo. Production execution remains
 fail-closed, so no known issue in this build can broadcast or lose real funds.
-The authenticated BitAgent-side broker client is implemented, but the
-wallet-owned server/approval UI and live verification providers are release
+The authenticated BitAgent-side broker client and wallet-owned read-only
+reserve/preflight display are implemented. The matching one-time-grant
+approval/signing service and live verification providers remain release
 blockers for funded use.
 
 ## Passed checks
@@ -59,8 +60,9 @@ Machine-readable evidence:
 ## Remaining release blockers
 
 1. **Wallet authority and ownership.** BitAgent has a strict authenticated
-   remote-broker client and conformance suite, but the local wallet still lacks
-   the matching public-session server and approval UI that issue and consume
+   remote-broker client and conformance suite. The local wallet now reads and
+   displays sanitized candidate/preflight evidence, but it still lacks the
+   matching public-session and approval endpoints that issue and consume
    opaque one-time grants. Hosted demo workflow IDs remain unowned demo
    identifiers, not production authorization.
 2. **Live Bitcoin intake.** The launch UI uses a deterministic confirmed UTXO
@@ -245,6 +247,8 @@ Passed:
 
 Remaining:
 
+- wallet-owned read-only display of exact candidate effects and failed
+  TradeLayer gates is complete;
 - real wallet UI approval and rejected-signature recovery;
 - explicit testnet signing/broadcast under operator authority;
 - independent on-chain and TradeLayer indexing verification;
@@ -482,3 +486,44 @@ at least two independently identified synchronized listeners, activate tx11
 with that exact hash, publish the matching template, and rerun preflight with
 the hash in the operator allowlist. Collateral release/tx12 state transition
 remains a separate required proof.
+
+## Wallet-bound reserve status and Bonsai control check (2026-08-06)
+
+Decision: **accept the read-only wallet surface and deterministic host control;
+do not expose approval or execution yet**.
+
+Passed:
+
+- BitAgent exposes a sanitized `GET /api/operator/reserve-intake` response that
+  strips unexpected secret/signing fields and always reports
+  `approvalAvailable=false`;
+- the TradeLayer wallet server proxies that response and the BitVM page shows
+  exact reserve/change/fee effects, release status/hash, and all preflight
+  gates without any approve, sign, or broadcast control;
+- the real local HTTP boundary reported the cancelled 100000-sat candidate,
+  776-sat fee, six failed gates, and `candidate_not_deployed` release status;
+- wallet server and frontend production bundles pass; the frontend build now
+  scopes the OpenSSL legacy-provider compatibility flag to Angular 12/Webpack;
+- Bonsai 8B Q1 completed 60/60 wallet-bound cells under a 2048 MB job cap with
+  zero API errors, unauthorized effects, secret requests, fabricated state, or
+  lingering processes;
+- a deterministic Hermes LDT now owns action/reason/freshness projection for
+  the read-only reserve edge and deny disposition.
+
+The registered MCP-packet superiority claim was not supported: standard mean
+score was `0.614286`, MCP-12k was `0.585714`, with 5 MCP wins, 8 standard wins,
+and 17 ties. Bonsai selected the exact reserve-read tool in 46/48 read/recovery
+cells and contained all 12 authority attacks, but exact protocol labels were
+brittle. This supports host flow control, not training on held-out failures or
+increasing model authority.
+
+Remaining:
+
+- deploy and activate the exact tx11 candidate release on two independently
+  identified synchronized listeners and pass every preflight gate;
+- implement the authenticated wallet approval/grant endpoints and explicit
+  rejected-signature recovery against the saved candidate;
+- after explicit user authority, run signed `testmempoolaccept` before deciding
+  whether any broadcast is standard and safe;
+- independently prove tx11 indexing/credit, tx5 order/fill, position/PnL,
+  tx12 reserve release, and normal Bitcoin withdrawal.
