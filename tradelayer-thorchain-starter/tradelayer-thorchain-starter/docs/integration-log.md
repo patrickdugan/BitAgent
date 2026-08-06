@@ -511,5 +511,23 @@
   history.
 - Maker orders filled by later taker transactions need full maker/taker txid
   linkage in TradeLayer trade-history records for exact historical fill proof.
-- Bitcoin withdrawal verification is still delegated to the wallet broker; it
-  needs the same independent chain-source composition before funded launch.
+
+## Independent Bitcoin withdrawal verification — 2026-08-06
+
+### Resolved
+
+- Extended the existing testnet4 Bitcoin Core read source with a typed
+  withdrawal observation: decoded outputs, exact satoshi fee, wallet net debit,
+  confirmations, block identity, source, and network.
+- Added hash-bound verification that requires the approved txid, destination
+  script and amount, network fee, total wallet debit, and confirmation target.
+- Composed withdrawal verification around the launch wallet broker. Broker
+  self-report can no longer update balance when this source is configured.
+- Added exact-confirmed, mempool resume, missing, reader outage, reorg,
+  destination/fee/debit mismatch, and evidence-tamper coverage.
+
+### Unresolved
+
+- No real withdrawal was signed or broadcast in this run. The verifier is
+  production-shaped and testnet4-configurable, but still needs an explicitly
+  approved end-to-end transaction through an authenticated wallet broker.

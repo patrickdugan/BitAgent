@@ -9,12 +9,16 @@ import {
   ScriptedWalletBroker,
   type ScriptedBrokerOptions
 } from "../src/launch/broker.js";
-import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
+import { encodeSegwitAddress, validateBitcoinAddress } from "../src/launch/bitcoin.js";
 import { createLaunchKernel, createTestLaunchKernel } from "../src/launch/factory.js";
 import { LaunchKernelError } from "../src/launch/errors.js";
 import { FileWorkflowStore } from "../src/launch/store.js";
 import type { BitAgentLaunchKernel } from "../src/launch/kernel.js";
 import type { TradeLayerOrderReadSource } from "../src/settlement/tradelayerOrderVerifier.js";
+import type {
+  BitcoinWithdrawalObservation,
+  BitcoinWithdrawalReadSource
+} from "../src/settlement/types.js";
 
 function txid(seed: number) {
   return seed.toString(16).padStart(64, "0");
@@ -33,12 +37,14 @@ async function connectedKernel(options: {
   confirmed?: boolean;
   referral?: boolean;
   tradeLayerOrderSource?: TradeLayerOrderReadSource;
+  bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
 } = {}) {
   const walletBroker = new ScriptedWalletBroker(options.brokerOptions);
   const kernel = createTestLaunchKernel({
     now: options.now,
     walletBroker,
-    tradeLayerOrderSource: options.tradeLayerOrderSource
+    tradeLayerOrderSource: options.tradeLayerOrderSource,
+    bitcoinWithdrawalSource: options.bitcoinWithdrawalSource
   });
   const workflowId = options.workflowId || `trajectory-${++workflowCounter}`;
   await kernel.start({
@@ -117,12 +123,86 @@ class LaunchTradeLayerSource implements TradeLayerOrderReadSource {
   }
 }
 
+class LaunchBitcoinWithdrawalSource implements BitcoinWithdrawalReadSource {
+  readonly source = "independent-bitcoin-launch-fixture";
+  readonly network = "bitcoin-testnet4" as const;
+  state: BitcoinWithdrawalObservation["state"] = "confirmed";
+  confirmations = 1;
+  available = true;
+  txid = "";
+  destinationScriptPubKeyHex = "";
+  amountSats = "50000";
+  feeSats = "600";
+  walletNetDebitSats = "50600";
+
+  async observeWithdrawal(observedTxid: string): Promise<BitcoinWithdrawalObservation> {
+    if (!this.available) throw new Error("Bitcoin Core offline");
+    return {
+      txid: this.txid || observedTxid,
+      network: this.network,
+      state: this.state,
+      confirmations: this.confirmations,
+      blockHash: this.state === "confirmed" ? "cd".repeat(32) : undefined,
+      outputs: this.state === "missing" ? [] : [{
+        vout: 0,
+        valueSats: this.amountSats,
+        scriptPubKeyHex: this.destinationScriptPubKeyHex
+      }],
+      feeSats: this.feeSats,
+      walletNetDebitSats: this.walletNetDebitSats,
+      observedAt: "2026-08-06T08:00:00.000Z",
+      source: this.source
+    };
+  }
+
+  bind(input: {
+    txid: string;
+    destinationAddress: string;
+    amountSats: string;
+    feeSats: string;
+    walletNetDebitSats: string;
+  }) {
+    this.txid = input.txid;
+    this.destinationScriptPubKeyHex = validateBitcoinAddress(
+      input.destinationAddress,
+      this.network
+    ).scriptPubKeyHex;
+    this.amountSats = input.amountSats;
+    this.feeSats = input.feeSats;
+    this.walletNetDebitSats = input.walletNetDebitSats;
+  }
+}
+
 async function simulateApproveExecuteVerify(kernel: BitAgentLaunchKernel, workflowId: string) {
   await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
   await kernel.requestApproval(workflowId);
   await kernel.resolveApproval(workflowId, "approve");
   await kernel.execute(workflowId);
   return kernel.verify(workflowId);
+}
+
+async function submitIndependentWithdrawal(
+  kernel: BitAgentLaunchKernel,
+  workflowId: string,
+  source: LaunchBitcoinWithdrawalSource
+) {
+  const simulation = await kernel.simulateWithdrawal(workflowId, {
+    destinationAddress: address(19),
+    amountSats: "50000"
+  });
+  await kernel.requestApproval(workflowId);
+  await kernel.resolveApproval(workflowId, "approve");
+  const execution = await kernel.execute(workflowId);
+  source.bind({
+    txid: execution.txid!,
+    destinationAddress: simulation.destinationAddress!,
+    amountSats: simulation.effects[0]!.amount,
+    feeSats: simulation.fees.networkFeeSats,
+    walletNetDebitSats: (
+      BigInt(simulation.balanceBeforeSats) - BigInt(simulation.balanceAfterSats)
+    ).toString()
+  });
+  return { simulation, execution };
 }
 
 async function expectCode(promise: Promise<unknown>, code: string) {
@@ -422,6 +502,81 @@ test("temporarily unavailable independent verification persists a retryable pend
   const resumed = await kernel.verify(workflowId);
   assert.equal(resumed.status, "verified");
   assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+});
+
+test("independent Bitcoin verification replaces broker withdrawal self-report", async () => {
+  const bitcoin = new LaunchBitcoinWithdrawalSource();
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    bitcoinWithdrawalSource: bitcoin
+  });
+  const { execution } = await submitIndependentWithdrawal(kernel, workflowId, bitcoin);
+  const verification = await kernel.verify(workflowId);
+  const state = await kernel.get(workflowId);
+
+  assert.equal(verification.status, "verified");
+  assert.equal(verification.txid, execution.txid);
+  assert.equal(verification.evidence?.source, bitcoin.source);
+  assert.equal(verification.evidence?.exactDestinationMatched, true);
+  assert.equal(verification.evidence?.exactFeeMatched, true);
+  assert.equal(verification.evidence?.exactWalletDebitMatched, true);
+  assert.equal(state.wallet.confirmedBalanceSats, "199400");
+  assert.equal(state.stage, "withdrawal_verified");
+});
+
+test("exact mempool withdrawal stays pending and resumes after confirmation", async () => {
+  const bitcoin = new LaunchBitcoinWithdrawalSource();
+  bitcoin.state = "mempool";
+  bitcoin.confirmations = 0;
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    bitcoinWithdrawalSource: bitcoin
+  });
+  await submitIndependentWithdrawal(kernel, workflowId, bitcoin);
+  const pending = await kernel.verify(workflowId);
+  assert.equal(pending.status, "pending");
+  assert.equal((await kernel.get(workflowId)).wallet.confirmedBalanceSats, "250000");
+
+  bitcoin.state = "confirmed";
+  bitcoin.confirmations = 1;
+  const resumed = await kernel.verify(workflowId);
+  assert.equal(resumed.status, "verified");
+  assert.equal((await kernel.get(workflowId)).wallet.confirmedBalanceSats, "199400");
+});
+
+test("independent Bitcoin fee mismatch fails without changing workflow balance", async () => {
+  const bitcoin = new LaunchBitcoinWithdrawalSource();
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    bitcoinWithdrawalSource: bitcoin
+  });
+  await submitIndependentWithdrawal(kernel, workflowId, bitcoin);
+  bitcoin.feeSats = "601";
+  const verification = await kernel.verify(workflowId);
+  const state = await kernel.get(workflowId);
+
+  assert.equal(verification.status, "failed");
+  assert.equal(verification.evidence?.exactFeeMatched, false);
+  assert.equal(state.wallet.confirmedBalanceSats, "250000");
+  assert.equal(state.stage, "error");
+});
+
+test("temporarily unavailable Bitcoin observation is retryable after reconnect", async () => {
+  const bitcoin = new LaunchBitcoinWithdrawalSource();
+  bitcoin.available = false;
+  const { kernel, workflowId } = await connectedKernel({
+    confirmed: true,
+    bitcoinWithdrawalSource: bitcoin
+  });
+  await submitIndependentWithdrawal(kernel, workflowId, bitcoin);
+  const pending = await kernel.verify(workflowId);
+  assert.equal(pending.status, "pending");
+  assert.match(String(pending.evidence?.reason), /temporarily unavailable/i);
+
+  bitcoin.available = true;
+  const resumed = await kernel.verify(workflowId);
+  assert.equal(resumed.status, "verified");
+  assert.equal((await kernel.get(workflowId)).stage, "withdrawal_verified");
 });
 
 test("trajectory 21: secret material is refused without a tool call", async () => {

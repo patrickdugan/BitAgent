@@ -21,6 +21,32 @@ export interface BitcoinChainSource {
   observeTransaction(txid: string): Promise<BitcoinTransactionEvidence>;
 }
 
+export type BitcoinWithdrawalOutput = {
+  vout: number;
+  valueSats: string;
+  scriptPubKeyHex: string;
+  address?: string;
+};
+
+export type BitcoinWithdrawalObservation = {
+  txid: string;
+  network: "bitcoin" | "bitcoin-testnet4";
+  state: "missing" | "mempool" | "confirmed" | "reorged";
+  confirmations: number;
+  blockHash?: string;
+  outputs: BitcoinWithdrawalOutput[];
+  feeSats?: string;
+  walletNetDebitSats?: string;
+  observedAt: string;
+  source: string;
+};
+
+export interface BitcoinWithdrawalReadSource {
+  readonly source: string;
+  readonly network: "bitcoin" | "bitcoin-testnet4";
+  observeWithdrawal(txid: string): Promise<BitcoinWithdrawalObservation>;
+}
+
 export type DecodedTokenTrade = {
   propertyIdOffered: number;
   propertyIdDesired: number;

@@ -26,7 +26,8 @@ referral URL
   → opaque wallet execution broker
   → independent synchronized tx/order verification
   → referral activation
-  → simulated Bitcoin withdrawal
+  → exact Bitcoin withdrawal simulation and approval
+  → independent Bitcoin Core withdrawal verification
 ```
 
 `src/launch/kernel.ts` is the deterministic workflow coordinator.
@@ -93,6 +94,14 @@ starter-strategy verification result. The independent path requires
 in either the open orderbook or address trade history. A stale or temporarily
 offline listener persists `pending` and can be retried; it cannot activate a
 referral or debit the workflow balance.
+
+When a `BitcoinWithdrawalReadSource` is also supplied, the same wrapper
+replaces broker withdrawal self-reporting. It derives the approved destination
+script from the validated address and requires the exact txid, network, single
+destination output, network fee, wallet net debit, and configured confirmation
+depth from read-only Bitcoin Core evidence. Missing, mempool, and temporarily
+offline observations remain retryable `pending`; mismatches and reorgs fail
+closed. This verifier never selects inputs, signs, or broadcasts.
 
 ## Evaluation artifacts
 

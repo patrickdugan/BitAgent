@@ -355,7 +355,13 @@ Passed:
 - the verifier is composed into the launch broker boundary: exact independent
   verification activates referrals, while stale or temporarily unavailable
   observations persist pending and resume without changing wallet balance;
-- all 31 launch tests and TypeScript compilation pass.
+- all 35 launch tests, 31 live/verifier tests, and TypeScript compilation pass;
+- Bitcoin withdrawal verification is composed around the wallet broker and
+  requires an exact destination script/value, network fee, wallet net debit,
+  txid/network/source binding, and configured confirmation depth;
+- missing, mempool, and temporarily unavailable Bitcoin observations resume
+  safely without changing balance, while reorgs and exact-field mismatches
+  fail closed.
 
 Remaining:
 
@@ -364,5 +370,6 @@ Remaining:
 - historical maker-fill linkage remains incomplete because current trade
   history identifies the taker transaction but not always the original maker
   transaction;
-- withdrawal confirmation still relies on the configured wallet broker and
-  needs an independent Bitcoin-chain verifier before funded launch.
+- the withdrawal verifier has not yet observed a real approved testnet4
+  withdrawal broadcast in this run, so funded launch remains blocked on the
+  authenticated wallet broker and explicit end-to-end broadcast proof.

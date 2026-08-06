@@ -135,6 +135,24 @@ read-only TradeLayer verifier around the wallet broker. This setting does not
 enable signing: without an authenticated wallet broker, production mode still
 uses `UnavailableWalletBroker` and fails before approval or execution.
 
+For testnet4 withdrawal verification through the already loaded Bitcoin Core
+wallet, configure the same broker RPC settings used by the testnet runbook:
+
+```powershell
+$env:BITAGENT_BITCOIN_WITHDRAWAL_VERIFY="true"
+$env:BITAGENT_WITHDRAWAL_CONFIRMATIONS="1"
+$env:BITCOIN_BIN="<directory containing bitcoin-cli>"
+$env:BTCTEST_DATADIR="<Bitcoin testnet data directory>"
+$env:BTCTEST_WALLET="utxoref-testnet"
+$env:BTCTEST_RPC_CONNECT="127.0.0.1"
+$env:BTCTEST_RPC_PORT="<configured testnet4 RPC port>"
+```
+
+This adds only a read-only verification source. It requires the exact decoded
+destination output, wallet-reported network fee and net debit, and confirmation
+depth before updating workflow balance. It does not enable wallet approval,
+signing, or broadcast.
+
 Keep the scripted broker and demo D1 site visibly labeled and isolated from any
 funded wallet until every remaining item in `docs/launch-readiness.md` is
 closed.

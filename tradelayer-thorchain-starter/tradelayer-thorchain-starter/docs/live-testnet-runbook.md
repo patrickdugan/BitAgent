@@ -58,6 +58,18 @@ $env:BTCTEST_RPC_PORT="<configured testnet4 RPC port, if non-default>"
 npm run broker:testnet -- --action=prepare --input=.runtime/testnet-agent/live-latest/broker-request.json --output=.runtime/testnet-agent/prepared-batch.json
 ```
 
+The launch kernel can reuse that node as a read-only withdrawal verifier when
+running with an authenticated wallet broker:
+
+```powershell
+$env:BITAGENT_BITCOIN_WITHDRAWAL_VERIFY="true"
+$env:BITAGENT_WITHDRAWAL_CONFIRMATIONS="1"
+```
+
+These flags do not enable preparation, signing, or broadcast. They only allow
+the kernel to verify the exact approved withdrawal txid, destination output,
+network fee, wallet debit, and confirmation depth before updating its balance.
+
 Inspect `prepared-batch.json`, especially input addresses, change addresses, each fee, total fee, payloads, and `approvalHash`.
 
 If approval is rejected or the session is abandoned, release only that batch's

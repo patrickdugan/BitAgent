@@ -44,7 +44,7 @@
     "observe:order": "tsx scripts/observe-tradelayer-order.ts",
     "test:sovereign": "tsx --test test/sovereign.test.ts",
     "test:economic": "tsx --test test/economic-agent.test.ts",
-    "test:live": "tsx --test test/live-testnet-agent.test.ts test/tradelayer-order-verifier.test.ts",
+    "test:live": "tsx --test test/live-testnet-agent.test.ts test/tradelayer-order-verifier.test.ts test/bitcoin-withdrawal-verifier.test.ts",
     "activity:feed": "tsx scripts/activity-feed.ts"
   },
   "devDependencies": {
