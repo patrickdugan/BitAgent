@@ -1028,3 +1028,10 @@
   (`f86f32c`) reconciles the highest persisted index, consensus, track, and
   resume-floor height, rejects any checkpoint above the current Bitcoin tip,
   and resumes from that durable maximum.
+- With both 550 MiB nodes advancing faster than realtime parsing, Bitcoin Core
+  pruned required blocks and both listeners failed closed with `Block not
+  available (pruned data)`. Candidate 7 (`3728dff`) separates RPC availability
+  from peer health: a reachable node with networking paused may serve its
+  already-downloaded local block range, while an unreachable/loading RPC still
+  enters recovery. Launch attestation continues to require active networking,
+  peers, IBD completion, and tip parity, so offline catch-up cannot pass launch.

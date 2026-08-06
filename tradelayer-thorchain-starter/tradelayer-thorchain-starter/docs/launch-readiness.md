@@ -857,6 +857,11 @@ Passed:
   Bitcoin Core restarts, while rejecting persisted heights ahead of the active
   chain tip. RPC cookie rotation still requires a listener restart and is
   surfaced as a fail-closed provider error before that restart.
+- the 550 MiB live drill then reproduced a pruning race. Candidate 7 permits
+  bounded catch-up from locally downloaded blocks while P2P networking is
+  paused, but still enters recovery when Bitcoin RPC itself is unavailable.
+  A fresh or sufficiently retained backend is required after a block has
+  already been pruned; missing history is never skipped or synthesized.
 - the complete launch preflight passes 73/73 launch checks, 24 scripted
   trajectories, and 50/50 focused agent cases with no generated failure trace.
 

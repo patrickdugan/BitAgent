@@ -247,6 +247,14 @@ on every new block; `processedHeight` may trail when blocks contain no
 TradeLayer transaction. Both must remain at or below durable `trackHeight`,
 and `trackHeight` must be within the configured lag of the Bitcoin tip.
 
+For small prune targets, throttle initial block download in reviewed chunks:
+pause Bitcoin peer networking before the retained block window reaches the
+listener, let TradeLayer consume the already-downloaded range, then resume the
+next chunk. Peerless local catch-up is operational recovery only and cannot
+pass `synchronizedTestnet4`. If Bitcoin Core already reports a `pruneheight`
+above `trackHeight + 1`, that backend cannot supply the missing history; use a
+fresh/sufficiently retained backend instead of skipping blocks.
+
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
 proof; operators must still ensure the endpoints do not proxy the same process
@@ -258,7 +266,7 @@ never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`9f32998cd0f3e2d4d846f07e55716fee0c459f8578fc0854afd497ec54231195`, but
+`6d7d3ee42474f542f77999e0d65e8b5958d3fa54faadb509bfd757cc900858e0`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.
