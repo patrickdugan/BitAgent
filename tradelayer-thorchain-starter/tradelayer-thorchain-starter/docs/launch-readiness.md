@@ -942,3 +942,28 @@ Remaining:
   finalized, or broadcast;
 - independent reserve confirmation/tlBTC credit, tx5 placement/fill, settled
   PnL, and the separately approved withdrawal remain launch blockers.
+
+## Reproducible candidate-8 launch-source gate (2026-08-06)
+
+Decision: **accept the source-provenance repair for scripted launch testing;
+keep funded execution disabled.**
+
+Passed:
+
+- an allowlisted clean detached TradeLayer worktree is discovered without
+  modifying or hiding tracked user changes in the primary checkout;
+- selection requires the exact full commit, clean tracked state, ordered
+  consensus-file parity, and exact candidate-8 code hash;
+- the emitted receipt is explicitly read-only with `effect=none`,
+  `deploymentVerified=false`, and `executable=false`;
+- `npm run test:launch:candidate8` passes 96/96 checks, including the two new
+  discovery/selection regressions, all 24 scripted trajectories, and all 50
+  focused agent cases.
+
+Remaining:
+
+- source parity is not deployment evidence: both paused listeners still fail
+  synchronization and tx11/property/template/contract/reserve activation
+  gates;
+- no approval, signature, transaction finalization, broadcast, tlBTC credit,
+  trade fill, PnL settlement, or withdrawal was performed by this gate.

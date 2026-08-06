@@ -1206,3 +1206,21 @@
 - This is implementation and simulated-provider evidence only. The live tx11
   release remains `candidate_not_deployed`, so reserve approval/execution is
   still blocked and no transaction was signed, finalized, or broadcast.
+
+## Candidate-8 reproducible source gate - 2026-08-06
+
+- The launch failure was isolated to tracked user changes in the primary
+  `tradelayer.js` checkout. Those changes were preserved; the release manifest
+  was not changed to bless an unreviewed consensus hash.
+- `npm run test:launch:candidate8` now discovers associated Git worktrees and
+  selects only an allowlisted full commit that is tracked-clean and reproduces
+  the exact ordered consensus-source hash. Selection is deterministic and
+  requires verification to remain read-only, non-deployed, and non-executable.
+- The gate selected detached commit
+  `dabbaf485dda99b2b0626120942190b5873fd2f3` with consensus hash
+  `fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`
+  and wrote a structured provenance receipt to
+  `.runtime/testnet-agent/tx11-launch-source.json`.
+- The provenance-focused tests pass 2/2 and the resulting launch suite passes
+  96/96, including 24 end-to-end trajectories and 50/50 focused agent cases.
+  No wallet approval, signing, activation, or broadcast occurred.
