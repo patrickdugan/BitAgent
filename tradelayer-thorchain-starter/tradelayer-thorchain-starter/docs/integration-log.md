@@ -1330,4 +1330,8 @@
   with `sync throttle exceeded BITAGENT_SYNC_MAX_RUNTIME_MS`, not a listener or
   pruning fault. The terminal failure receipt records successful pause results
   for both backends; independent RPC reads confirmed networking off and zero
-  peers. This is a resumable bounded stop, not a completed 75,000 claim.
+  peers. The resumed controller first completed 74,200, then completed 75,000
+  at A 75,033/75,033 and B 75,054/75,054. Both final prune horizons remained
+  below the listeners at 74,339 and 74,366. A fresh live preflight preserved
+  the same truthful gate shape: independence, freshness, and exact release
+  commit pass; full synchronization and chain-derived tx11 registry gates fail.
