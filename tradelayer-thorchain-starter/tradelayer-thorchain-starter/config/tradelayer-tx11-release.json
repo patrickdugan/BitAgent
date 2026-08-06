@@ -1,8 +1,8 @@
 {
   "schema": "bitagent.tradelayer.tx11-release.v1",
-  "releaseId": "tx11-utxoref-dynamic-contract-candidate-7",
+  "releaseId": "tx11-utxoref-dynamic-contract-candidate-8",
   "status": "candidate_not_deployed",
-  "codeHash": "6d7d3ee42474f542f77999e0d65e8b5958d3fa54faadb509bfd757cc900858e0",
+  "codeHash": "fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c",
   "tradelayerCommits": [
     "db4728444bcbc2b9249654243e8bd1c5843987ed",
     "c860c3c9b5d65bf33b61acac820d89eca82c6833",
@@ -15,7 +15,8 @@
     "d6f2f4f65a61699e1ccfb80289ea6d6e29bc561c",
     "3f3dc62d7f6f8e640aa04cce7639a7d07296e673",
     "f86f32cf66a1b56ac8b09ec52046a524d50af4d9",
-    "3728dffc2ee6f20ee38cd1957080e7dd1bdaf03d"
+    "3728dffc2ee6f20ee38cd1957080e7dd1bdaf03d",
+    "dabbaf485dda99b2b0626120942190b5873fd2f3"
   ],
   "consensusSourceFiles": [
     "activation.js",
@@ -36,6 +37,7 @@
     "procedural.js",
     "property.js",
     "reOrg.js",
+    "rpcRecoveryPolicy.js",
     "tally.js",
     "txDecoder.js",
     "txIndex.js",
