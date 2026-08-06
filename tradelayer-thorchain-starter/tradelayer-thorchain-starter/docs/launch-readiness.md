@@ -24,7 +24,7 @@ blockers for funded use.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Local launch test process | 42/42 tests passed |
+| Local launch test process | 61/61 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -751,3 +751,30 @@ Boundaries:
   settle, or prove a payment;
 - these three new seed rows are contract coverage, not an independently
   reviewed promotion corpus or evidence that a Bonsai adapter was trained.
+
+## Fail-closed operator preflight and rejection recovery (2026-08-06)
+
+Decision: **the one-command scripted launch preflight passes; funded execution
+remains disabled.**
+
+Passed:
+
+- `npm run preflight:launch` ran 61/61 launch checks, found all 24 named
+  end-to-end trajectories, passed 50/50 focused agent cases with every score
+  equal to 1, and found zero generated failure traces;
+- the command emits `.runtime/launch-preflight/latest.json` with command-output
+  hashes, counted evidence, the `read_only_no_sign_or_broadcast` authority
+  boundary, and a decision that keeps `fundedExecutionAllowed` false;
+- the rendered local referral flow again passed wallet rejection and refresh
+  recovery: the exact 50000-sat simulation, 900-sat fee, 199100-sat projected
+  remainder, payload, quote, expiry, and simulation hash survived refresh;
+- rejection explicitly reported that no transaction executed and offered a
+  new approval request from the saved simulation; the browser recorded zero
+  console errors.
+
+Boundaries:
+
+- the browser deposit and wallet are scripted testnet4 fixtures;
+- no approval was granted and no transaction was signed, finalized, or
+  broadcast in this regression;
+- the funded blockers in the preceding checkpoint remain unchanged.

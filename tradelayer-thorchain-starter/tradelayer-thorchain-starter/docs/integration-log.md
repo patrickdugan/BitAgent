@@ -898,3 +898,25 @@
   that writing those rows into the legacy v1 directory would contaminate the
   frozen v7 corpus, so v1 remains at its original 111 rows and contracts. The
   v2 lane remains below the reviewed adapter-promotion floor.
+
+## One-command launch preflight and rendered rejection recovery - 2026-08-06
+
+- Re-exercised the local referral route in the rendered product through demo
+  wallet creation, deterministic confirmed UTXO recording, natural-language
+  selection of 50000 sats, exact simulation, approval request, user rejection,
+  and browser refresh.
+- The UI preserved the 250000-sat confirmed balance and the saved simulation,
+  displayed the 900-sat fee and 199100-sat projected remainder, reported that
+  no transaction executed, and restored the same recovery action after
+  refresh. The referral remained pending and the browser console had no
+  errors.
+- Added `npm run preflight:launch` as a bounded operator gate. It runs the
+  deterministic launch and agent suites, validates the minimum trajectory and
+  case floors plus the empty generated failure-trace lane, and writes a hashed
+  receipt under `.runtime/launch-preflight/`.
+- The first complete preflight passed 61/61 launch checks, 24 named scripted
+  trajectories, 50/50 agent cases, all eight evaluation scores at 1, and zero
+  failure traces. The receipt is deliberately candidate-only and always sets
+  `fundedExecutionAllowed` to false.
+- No signing material was requested or produced. No transaction was finalized
+  or broadcast.

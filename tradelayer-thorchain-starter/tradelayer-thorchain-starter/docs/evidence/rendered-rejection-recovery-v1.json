@@ -1,0 +1,48 @@
+{
+  "schema": "bitagent_rendered_rejection_recovery_v1",
+  "observedAt": "2026-08-06T14:40:49-04:00",
+  "environment": {
+    "surface": "local_rendered_launch_ui",
+    "networkLabel": "bitcoin_testnet4_demo",
+    "executionMode": "scripted_no_broadcast",
+    "route": "/?ref=codex-local&campaign=browser-regression&workflow=starter_strategy&strategy=starter-v1"
+  },
+  "referral": {
+    "campaign": "browser-regression",
+    "workflow": "starter_strategy",
+    "strategyTemplate": "starter-v1",
+    "attributionStatus": "pending"
+  },
+  "deposit": {
+    "confirmedSats": "250000",
+    "confirmations": 2,
+    "scriptedFixture": true
+  },
+  "simulation": {
+    "intent": "starter_strategy",
+    "amountSats": "50000",
+    "feeSats": "900",
+    "projectedRemainingSats": "199100",
+    "payload": "tl51,2,12kw,1hqys1s,0,1",
+    "simulationHash": "15b7b23049b725cdfdc9d0a142a3bc88d75a288b31ad4b13bade2bde60f02947",
+    "exactEffectsDisplayedBeforeApproval": true
+  },
+  "rejection": {
+    "walletAction": "rejected",
+    "transactionExecuted": false,
+    "savedSimulationRecoveryOffered": true,
+    "refreshRestoredState": true,
+    "confirmedBalanceAfterRefreshSats": "250000"
+  },
+  "browser": {
+    "consoleErrorCount": 0
+  },
+  "authority": {
+    "approvalGranted": false,
+    "signingPerformed": false,
+    "finalizationPerformed": false,
+    "broadcastPerformed": false,
+    "fundedExecutionProven": false
+  },
+  "verdict": "pass_scripted_rejection_and_interrupted_session_recovery"
+}

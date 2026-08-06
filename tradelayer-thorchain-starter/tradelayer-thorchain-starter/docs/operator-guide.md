@@ -63,6 +63,22 @@ those inputs.
 
 ## Verify the build
 
+For the shortest fail-closed operator check, run:
+
+```powershell
+npm run preflight:launch
+```
+
+This runs the launch suite and focused agent evaluation, checks the 20-trajectory
+and 50-agent-case floors, requires an empty generated failure-trace file, and
+writes a machine-readable receipt to
+`.runtime/launch-preflight/latest.json`. A passing receipt means only that the
+scripted candidate-only demo is ready. Its `fundedExecutionAllowed` field is
+always `false`; the command never requests wallet approval, signs, finalizes,
+or broadcasts a transaction.
+
+The individual checks remain available for diagnosis:
+
 ```powershell
 npm run demo:near
 npm run test:near
