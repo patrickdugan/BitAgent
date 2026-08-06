@@ -694,3 +694,16 @@
 - Dynamic creation solves intake registration, not DLC settlement itself. A
   chain-derived state transition and independently verified reserve release
   remain necessary before collateral withdrawal can be launchable.
+
+## Candidate tx11 release artifact — 2026-08-06
+
+- TradeLayer commit `c860c3c` now includes `procedural.js` in the same ordered
+  consensus source bundle used by activation transactions and release
+  manifests. The focused activation/procedural suite passes 33/33.
+- The resulting source hash is
+  `b5ef960b260bbbf1016eb60e45eae3a65dc8e9b743fa3af0f129f25d00a32b42`.
+  BitAgent records it in `config/tradelayer-tx11-release.json` with status
+  `candidate_not_deployed` and does not trust it by default at runtime.
+- Promotion still requires exact deployment, independent synchronized node
+  parity, tx11 activation, template parity, wallet approval, mempool-policy
+  testing, and independently verified reserve release.

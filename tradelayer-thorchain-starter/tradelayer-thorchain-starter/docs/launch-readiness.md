@@ -465,13 +465,20 @@ approve funds yet**.
 
 - TradeLayer commit `db47284` makes tx11 contract creation deterministic and
   requires the funding output to match the payload reserve address.
+- TradeLayer commit `c860c3c` adds `procedural.js` to the ordered consensus
+  source bundle and makes the activation manifest derive the same source hash
+  as live activation transactions.
 - BitAgent derives a unique per-workflow contract ID and requires the activated
   tx11 code hash to be explicitly allowlisted in preflight evidence.
 - The new real unsigned testnet4 candidate was cancelled at a 776-sat fee; no
   signing or broadcast occurred and its input remains unlocked and unspent.
 - The observed node runs an older activation hash and cannot satisfy this gate.
 
-Before promotion, build a release hash for the protocol patch, deploy the same
-code to at least two independently identified synchronized listeners, activate
-tx11 with that exact hash, publish the matching template, and rerun preflight.
-Collateral release/tx12 state transition remains a separate required proof.
+Candidate release hash
+`b5ef960b260bbbf1016eb60e45eae3a65dc8e9b743fa3af0f129f25d00a32b42` is
+recorded in `config/tradelayer-tx11-release.json` with status
+`candidate_not_deployed`. Before promotion, deploy that exact source bundle to
+at least two independently identified synchronized listeners, activate tx11
+with that exact hash, publish the matching template, and rerun preflight with
+the hash in the operator allowlist. Collateral release/tx12 state transition
+remains a separate required proof.

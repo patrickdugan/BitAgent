@@ -201,7 +201,7 @@ Run the read-only TradeLayer registry gate after candidate construction:
 $env:TRADELAYER_PREFLIGHT_DB_PATHS="<node-a-db-path>;<node-b-db-path>"
 $env:TRADELAYER_PREFLIGHT_NODE_IDS="listener-a;listener-b"
 $env:TRADELAYER_PREFLIGHT_BLOCK_HEIGHTS="<height-a>;<height-b>"
-$env:TRADELAYER_ACCEPTED_TX11_CODE_HASHES="<audited-32-byte-release-hash>"
+$env:TRADELAYER_ACCEPTED_TX11_CODE_HASHES="<audited-and-deployed-32-byte-release-hash>"
 npm run observe:reserve-preflight
 ```
 
@@ -215,6 +215,13 @@ observe its synchronization height.
 Never populate `TRADELAYER_ACCEPTED_TX11_CODE_HASHES` from whatever value a
 node happens to report. It is an operator release allowlist and must be fixed
 from the audited deployment artifact before observing node results.
+
+The tracked candidate manifest is
+`config/tradelayer-tx11-release.json`. Its current hash is
+`b5ef960b260bbbf1016eb60e45eae3a65dc8e9b743fa3af0f129f25d00a32b42`, but
+the manifest status is `candidate_not_deployed`. Do not place that hash in the
+runtime allowlist until the exact source bundle has been deployed and tx11 has
+been activated with it on the independent listeners being observed.
 
 ## Akash Broker Isolation
 
