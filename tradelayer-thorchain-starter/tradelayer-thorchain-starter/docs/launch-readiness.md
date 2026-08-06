@@ -825,11 +825,11 @@ incomplete.**
 Passed:
 
 - two separate Bitcoin Core 31.1 testnet4 backends are running walletless with
-  `blocksonly=1`, `prune=550`, separate data directories, cookie credentials,
+  `blocksonly=1`, `prune=2048`, separate data directories, cookie credentials,
   and RPC ports;
 - two separately identified TradeLayer listener processes use separate NeDB
   roots and report exact commit
-  `c4f32c05767788c92c98f4c6d6c5dcb2f12fee53`;
+  `dabbaf485dda99b2b0626120942190b5873fd2f3`;
 - block-scoped `getrawtransaction` calls removed the need for Bitcoin Core
   `txindex` during historical replay;
 - partial replay height is durably checkpointed every 100 blocks without
@@ -862,22 +862,34 @@ Passed:
   paused, but still enters recovery when Bitcoin RPC itself is unavailable.
   A fresh or sufficiently retained backend is required after a block has
   already been pruned; missing history is never skipped or synthesized.
-- the complete launch preflight passes 73/73 launch checks, 24 scripted
-  trajectories, and 50/50 focused agent cases with no generated failure trace.
+- the complete launch preflight passes 85/85 launch checks, 24 scripted
+  trajectories, and 50/50 focused agent cases with every score equal to 1 and
+  no generated failure trace.
 - a lag-driven pruned-node throttle now fail-closes on listener errors,
   above-tip checkpoints, and prune-horizon overruns while bounding Bitcoin
-  download lead to a 250-block default; its nine cases raise the complete
-  launch test set to 82/82.
+  download lead to a 250-block default; its 12 focused policy cases include
+  recovery-phase rejection and bounded IPv4/IPv6 addrman selection.
+- candidate 8 (`dabbaf485dda99b2b0626120942190b5873fd2f3`)
+  retries only transient block-count RPC failures with capped backoff and binds
+  the retry module into consensus hash
+  `fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`.
+  Two listeners running from a clean detached worktree resumed their durable
+  databases and completed a bounded sync receipt at exact local tips 63,588
+  and 59,323 with networking off, zero peers, realtime phase, and no error.
 
 Boundaries:
 
-- two fresh 2 GiB-pruned backends were paused at blocks 45,015 and 45,034 with
-  `pruneheight=0`; the preserved listeners caught up to those exact local tips
-  and reported realtime/100%/no error. The live gate nevertheless kept
-  `synchronizedTestnet4=false` because both backends were still in IBD with
-  networking disabled and zero peers;
-- tx11 is not chain-activated with candidate 3, and the required property,
+- the current 2 GiB-pruned backends are paused at blocks 63,588 and 59,323
+  with prune heights 58,223 and 58,227. Their preserved listeners are at those
+  exact tips and report realtime/100%/no error. The live gate nevertheless
+  keeps `synchronizedTestnet4=false` because both backends are still in IBD
+  with networking disabled and zero peers;
+- tx11 is not chain-activated with candidate 8, and the required property,
   procedural template, contract, and reserve-address parity gates are false;
+- normal controller completion and handled errors disable peer networking, but
+  a hard process/host kill or npm-wrapper interruption cannot guarantee async
+  cleanup. Recovery nodes therefore remain limited to one peer and require an
+  explicit post-interruption network-state check and pause;
 - the nodes are operationally separate local processes, not Byzantine-
   independent or remotely attested operators;
 - funded execution remains disabled and no wallet, signing, or broadcast

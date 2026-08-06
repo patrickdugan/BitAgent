@@ -1080,3 +1080,47 @@
   credentials host-side, emits no credentials, and has no wallet, signing,
   PSBT, or broadcast capability. Nine focused policy tests and the full
   TypeScript check pass; the launch test set now passes 82/82.
+
+## Candidate-8 listener RPC recovery and bounded sync proof - 2026-08-06
+
+- The adaptive controller crossed the 2 GiB prune transition without losing
+  retained history, then exposed an intermittent low-end liveness failure:
+  listener B's unguarded `getblockcount` request timed out and permanently
+  left its realtime loop in `phase=error` one block behind its paused backend.
+  The controller named the exact failing pair/operation and kept both Bitcoin
+  peer networks disabled after the failed observation.
+- TradeLayer commit `dabbaf485dda99b2b0626120942190b5873fd2f3`
+  (candidate 8) retries only recognized block-count transport/startup errors
+  (`ECONNREFUSED`, `ETIMEDOUT`, and RPC `-28`) with capped backoff. It reports
+  `phase=recovering` during retry and returns to realtime after RPC recovery;
+  non-transient and block-processing failures still escape. The new
+  `rpcRecoveryPolicy.js` is included in the canonical consensus-source list.
+- The exact candidate-8 source bundle was checked out into a clean detached
+  worktree. Its ordered consensus hash is
+  `fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`.
+  Both listeners restarted from that clean commit with separate databases,
+  ports, identities, and Bitcoin backends; B resumed its durable checkpoint
+  and processed the missing local block without a reset.
+- A direct controller run completed its bounded target. Listener A remained
+  peerless and exact at 63,588. Listener B enabled one peer, crossed the target,
+  disabled networking at Bitcoin height 59,323, and consumed the retained
+  range from lag 33 to exact `trackHeight=59323`. Final prune heights were
+  58,223 and 58,227; both listeners reported `phase=realtime`, `error=null`,
+  zero lag, zero peers, and inactive networking.
+- The challenge-bound observer accepted fresh independent endpoint/instance
+  evidence and the exact candidate-8 commit. It correctly retained
+  `synchronizedTestnet4=false` for the peerless IBD nodes and kept tx11,
+  code-hash activation, property, template, contract, and reserve-address
+  gates false. Candidate status remains `candidate_not_deployed`, with
+  `deploymentVerified=false` and `executable=false`.
+- `npm run preflight:launch`, pointed at the clean candidate worktree, passes
+  85/85 launch tests, all 24 scripted trajectories, and 50/50 focused agent
+  cases with every score equal to 1 and zero failure traces. The TypeScript
+  check and eight focused TradeLayer candidate/recovery tests pass.
+- A PTY interrupt delivered through the npm wrapper terminated the parent
+  before the child completed asynchronous peer cleanup. `maxconnections=1`
+  bounded the observed lead, and an explicit operator pause preserved the
+  retained window, but a hard process/host kill cannot be treated as an
+  automatic pause. The runbook now requires direct controller execution plus
+  an explicit post-interruption network-state check and pause. No wallet was
+  loaded or created, and no PSBT, signature, or broadcast was requested.

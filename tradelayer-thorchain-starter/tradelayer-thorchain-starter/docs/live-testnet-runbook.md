@@ -266,8 +266,8 @@ $env:BITAGENT_TESTNET4_SYNC_PAIRS_JSON='[{"name":"a","listenerUrl":"http://127.0
 $env:BITAGENT_SYNC_LOW_WATERMARK="25"
 $env:BITAGENT_SYNC_HIGH_WATERMARK="250"
 $env:BITAGENT_SYNC_STOP_HEIGHT="65000"
-$env:BITAGENT_SYNC_REQUEST_TIMEOUT_MS="15000"
-npm run sync:testnet4:throttled
+$env:BITAGENT_SYNC_REQUEST_TIMEOUT_MS="45000"
+node .\node_modules\tsx\dist\cli.mjs scripts\throttle-testnet4-sync.ts
 ```
 
 The controller fails closed if a listener reports an error, a persisted
@@ -276,11 +276,16 @@ checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
 operator can inspect both listeners before selecting the next target.
 Run recovery nodes with `maxconnections=1` so an already-requested block
 pipeline cannot greatly overshoot the lag watermark. On each resume, the
-controller requests up to four one-shot peers from Bitcoin Core's own address
+controller selects at most one one-shot peer from Bitcoin Core's own address
 manager; no public peer is hardcoded. Its latest atomic status receipt is
 `.runtime/testnet-agent/sync-throttle-status.json`. For interruption recovery,
-launch the command as a hidden detached process with stdout and stderr
-redirected to durable operator logs rather than relying on an attached shell.
+do not rely on Ctrl+C through `npm run`: an npm parent can exit before the child
+finishes asynchronous cleanup. Prefer the direct Node command above (or a
+service supervisor with an explicit stop hook), then verify every backend has
+`networkactive=false` and zero connections. If the controller or host was
+terminated, explicitly call `setnetworkactive false` on each reviewed backend
+before restarting or inspecting the listeners. A hard kill cannot itself
+provide an automatic peer-pause guarantee.
 
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
@@ -293,7 +298,7 @@ never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`6d7d3ee42474f542f77999e0d65e8b5958d3fa54faadb509bfd757cc900858e0`, but
+`fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.
