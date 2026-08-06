@@ -6,6 +6,11 @@ import { BitAgentConversation } from "./agent.js";
 import { errorResult, LaunchKernelError } from "./errors.js";
 import { createLaunchKernel } from "./factory.js";
 import type { BitAgentLaunchKernel } from "./kernel.js";
+import {
+  defaultReserveOperatorEvidencePaths,
+  readReserveOperatorEvidence,
+  type ReserveOperatorEvidencePaths
+} from "./operatorEvidence.js";
 import { launchToolSchemas, LaunchToolRegistry } from "./tools.js";
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -59,11 +64,14 @@ async function staticFile(response: http.ServerResponse, uiDir: string, pathname
 export function createBitAgentServer(options: {
   uiDir?: string;
   kernel?: BitAgentLaunchKernel;
+  reserveOperatorEvidencePaths?: ReserveOperatorEvidencePaths;
 } = {}) {
   const kernel = options.kernel || createLaunchKernel();
   const conversation = new BitAgentConversation(kernel);
   const tools = new LaunchToolRegistry(kernel);
   const uiDir = options.uiDir || defaultUiDir;
+  const evidencePaths = options.reserveOperatorEvidencePaths
+    || defaultReserveOperatorEvidencePaths(path.resolve(moduleDir, "..", ".."));
 
   return http.createServer(async (request, response) => {
     if (request.method === "OPTIONS") return json(response, 204, {});
@@ -71,6 +79,9 @@ export function createBitAgentServer(options: {
     try {
       if (request.method === "GET" && url.pathname === "/api/tools") {
         return json(response, 200, { tools: launchToolSchemas });
+      }
+      if (request.method === "GET" && url.pathname === "/api/operator/reserve-intake") {
+        return json(response, 200, { data: await readReserveOperatorEvidence(evidencePaths) });
       }
       if (request.method === "POST" && url.pathname === "/api/workflows") {
         const body = await readBody(request);

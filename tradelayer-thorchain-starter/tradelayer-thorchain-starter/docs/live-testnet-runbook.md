@@ -223,6 +223,12 @@ the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.
 
+While `npm run launch` is running, the wallet may read the sanitized operator
+view at `GET /api/operator/reserve-intake`. The response contains only public
+candidate effects and hashes, preflight gates, and release metadata. It
+deliberately strips raw PSBTs and signing material and always reports
+`approvalAvailable=false`; it is not an execution endpoint.
+
 ## Akash Broker Isolation
 
 The current `@akashnetwork/chain-sdk@1.0.0-alpha.0` package requires Node 22.14. It is isolated under `brokers/akash` and is not installed in the root agent runtime. Install and audit it in a disposable Node 22 broker environment before running `validate-sdl.mjs`. The broker should use scoped AuthZ or fee grants and return lifecycle receipts; it must not expose its mnemonic to the agent.

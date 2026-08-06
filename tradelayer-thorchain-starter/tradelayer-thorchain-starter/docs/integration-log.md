@@ -707,3 +707,14 @@
 - Promotion still requires exact deployment, independent synchronized node
   parity, tx11 activation, template parity, wallet approval, mempool-policy
   testing, and independently verified reserve release.
+
+## Wallet read-only reserve boundary — 2026-08-06
+
+- Added `GET /api/operator/reserve-intake` as a sanitized, read-only view over
+  the local candidate, TradeLayer preflight evidence, and tracked release
+  manifest. Unknown fields are not forwarded, and regression tests inject and
+  reject raw PSBT, private-key, seed-phrase, and payload fields.
+- The matching wallet-server service consumed the endpoint over local HTTP and
+  observed the cancelled 100000-sat reserve candidate, 776-sat fee, six failed
+  preflight gates, and `candidate_not_deployed` release status. Approval stayed
+  unavailable and no signing or broadcast method was introduced.
