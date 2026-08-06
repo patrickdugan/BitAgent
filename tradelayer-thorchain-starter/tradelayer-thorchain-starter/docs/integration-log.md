@@ -354,3 +354,39 @@
   responses, but no live capture is claimed.
 - No second market observer, channel signer, counterparty cosign, fill, or
   settlement authority is introduced.
+
+## Production tool-contract export and Hermes typed control — 2026-08-06
+
+### Resolved
+
+- The Bonsai corpus exporter now derives a closed tool-contract bundle from
+  the production launch and committed-signal schemas instead of maintaining a
+  hand-copied evaluator schema.
+- The bundle contains 18 source-bound contracts. Nine effect-free tools are
+  model-callable; all nine effect-bearing approval/execution/host-state tools
+  are explicitly non-model-callable.
+- The corpus manifest binds the emitted file hash
+  `ac3cb1d4d8c943a4157e5cf3104db335d6624904adfa60e74b46827fcd3f3876`
+  and canonical bundle hash
+  `fb69b3e586f7ffa22e941978b960a57ce0d7f1766f97787f5c9a652207d38ab3`.
+- A parity test fails if the exported argument schema drifts from production or
+  an effectful contract becomes model-callable.
+- Hermes Lite now uses the bundle for a host-owned LDT and deterministic
+  argument projection from named workflow-state sources. Its frozen Bonsai
+  confirmation produced 30/30 exact host-projected candidates with zero hard
+  failures. The independent audit classifies improvement over the 29/30
+  model-filled baseline as directional because only one pair was decisive.
+- Current regressions pass: 24 launch trajectories, at least 50 focused agent
+  cases, 26 committed-signal cases, 10 deterministic live-testnet cases, the
+  contract parity test, and TypeScript compilation.
+
+### Unresolved
+
+- The comparative model claim needs a fresh independent challenge set; the
+  current held-out result is not statistically decisive and its one failure
+  remains excluded from optimization.
+- No local `bitcoin-cli` or running `bitcoind` was present, so the funded
+  testnet4 PSBT preflight could not run. The simulated settlement demo records
+  `fundedTestnetWallet=false` and `signedTradeLayerTransactions=false`.
+- Candidate exactness does not validate wallet ownership, signing, broadcast,
+  TradeLayer fills, PnL, or funded launch readiness.

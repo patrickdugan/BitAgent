@@ -196,3 +196,27 @@ submission path, and independent verifier. Add adversarial wallet-session
 ownership tests and at least one real rejected-signature and interrupted-submit
 recovery drill. Then repeat the full suite with production mode enabled and no
 scripted broker in the dependency graph.
+
+## Hermes typed-control update (2026-08-06)
+
+Decision: **accept host-projected typed control for candidate generation; do
+not promote the comparative model claim or funded execution**.
+
+Passed:
+
+- production-derived closed schemas for 18 BitAgent tools;
+- zero model-callable effectful tools;
+- 30/30 exact host-projected Bonsai candidates and zero host-arm hard failures;
+- grade-A independent measurement audit with 100% deterministic coverage;
+- 24 launch trajectories, at least 50 focused agent cases, 26 committed-signal
+  cases, 10 deterministic live-testnet cases, and TypeScript compilation;
+- 2 GB capped RTX 3050 confirmation with clean process and GPU cleanup.
+
+Remaining:
+
+- the comparative improvement is directional, not confirmed: the model-filled
+  arm was already 29/30 exact, leaving one decisive item and 29 ties;
+- a fresh independent optional-field/amount/address challenge set is required;
+- no funded local testnet4 PSBT was prepared because Bitcoin Core CLI/node was
+  unavailable on this host;
+- this work grants no approval, signing, broadcast, fill, or PnL authority.

@@ -33,6 +33,7 @@ type TrainingExample = {
 };
 
 const OUTPUT_SCHEMA = "hermes.bitagent_role_corpus.v1";
+const TOOL_BUNDLE_SCHEMA = "hermes.bitagent_tool_contract_bundle.v1";
 const WORKFLOW_ID = "workflow_training_fixture";
 const SAFE_TESTNET_ADDRESS = encodeSegwitAddress(Buffer.alloc(20, 9), "bitcoin-testnet4");
 const SECRET_VALUE_PATTERNS = [
@@ -108,6 +109,13 @@ function systemPrompt(role: Role) {
     "Never claim success without supplied tool evidence.",
     `Allowed tools: ${ROLE_AUTHORITY[role].join(", ") || "none"}.`
   ].join(" ");
+}
+
+function toolEffect(name: string) {
+  if (/\.execute$/.test(name)) return "execution";
+  if (/\.(?:request_approval|resolve_approval)$/.test(name)) return "approval_boundary";
+  if (/\.(?:ingest|observe|start)$/.test(name)) return "host_state_change";
+  return "none";
 }
 
 function makeExample(input: {
@@ -431,6 +439,41 @@ async function main() {
 
   await fs.mkdir(outputDir, { recursive: true });
   await fs.writeFile(path.join(outputDir, "examples.jsonl"), `${serialized.join("\n")}\n`, "utf8");
+  const toolContracts = Object.fromEntries(
+    toolSources
+      .flatMap((source) => Object.entries(source.schemas).map(([name, inputSchema]) => {
+        const allowedRoles = (Object.keys(ROLE_AUTHORITY) as Role[])
+          .filter((role) => ROLE_AUTHORITY[role].includes(name));
+        const effect = toolEffect(name);
+        return [name, {
+          name,
+          lane: source.lane,
+          inputSchema,
+          source: {
+            path: path.relative(root, source.file).replaceAll("\\", "/"),
+            sha256: sourceHashes.get(source.file)
+          },
+          allowedRoles,
+          effect,
+          modelCallable: effect === "none" && allowedRoles.length > 0
+        }] as const;
+      }))
+      .sort(([left], [right]) => left.localeCompare(right))
+  );
+  const toolBundleMaterial = {
+    schema: TOOL_BUNDLE_SCHEMA,
+    authority: {
+      modelOutputIsCandidateOnly: true,
+      approvalSigningBroadcastExecutionHostOwned: true
+    },
+    contracts: toolContracts
+  };
+  const toolBundle = {
+    ...toolBundleMaterial,
+    bundleSha256: hash(stableJson(toolBundleMaterial))
+  };
+  const serializedToolBundle = `${JSON.stringify(toolBundle, null, 2)}\n`;
+  await fs.writeFile(path.join(outputDir, "tool-contracts.json"), serializedToolBundle, "utf8");
   const countsByRole = Object.fromEntries(
     Object.keys(ROLE_AUTHORITY).map((role) => [role, examples.filter((row) => row.role === role).length])
   );
@@ -456,6 +499,9 @@ async function main() {
       sha256: sourceHashes.get(file)
     })),
     examplesSha256: hash(`${serialized.join("\n")}\n`),
+    toolContractsPath: "tool-contracts.json",
+    toolContractsSha256: hash(serializedToolBundle),
+    toolContractBundleSha256: toolBundle.bundleSha256,
     limitations: [
       "This is a small deterministic seed corpus, not enough by itself for a production adapter.",
       "No example grants approval, signing, broadcast, or secret access.",
