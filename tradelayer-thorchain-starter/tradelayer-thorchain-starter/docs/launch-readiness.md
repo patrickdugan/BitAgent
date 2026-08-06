@@ -853,6 +853,10 @@ Passed:
 - realtime launch lag is now bound to durable `trackHeight`; focused tests
   accept a caught-up track over an older historical index and reject lagged or
   impossible above-tip tracking.
+- candidate 6 preserves a newer realtime checkpoint across listener and
+  Bitcoin Core restarts, while rejecting persisted heights ahead of the active
+  chain tip. RPC cookie rotation still requires a listener restart and is
+  surfaced as a fail-closed provider error before that restart.
 - the complete launch preflight passes 73/73 launch checks, 24 scripted
   trajectories, and 50/50 focused agent cases with no generated failure trace.
 

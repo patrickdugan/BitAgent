@@ -1021,3 +1021,10 @@
   `trackHeight`, requires indexed and processed heights not to exceed it, and
   rejects a track height above the Bitcoin tip. This preserves fail-closed lag
   checks without requiring the historical index marker to move in realtime.
+- Restarting Bitcoin Core rotated its RPC cookie; the running listeners failed
+  closed with HTTP 401 until restarted with the new cookie. That recovery then
+  exposed a checkpoint regression: empty-history initialization overwrote a
+  newer realtime `trackHeight` with the older index boundary. Candidate 6
+  (`f86f32c`) reconciles the highest persisted index, consensus, track, and
+  resume-floor height, rejects any checkpoint above the current Bitcoin tip,
+  and resumes from that durable maximum.
