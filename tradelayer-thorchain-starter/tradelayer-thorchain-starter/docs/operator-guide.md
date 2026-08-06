@@ -207,6 +207,10 @@ the exact approval grant before signing, re-decodes and compares the finalized
 transaction, requires `testmempoolaccept`, and returns only a public txid and
 hash-bound receipt. A submission RPC error is treated as an ambiguous outcome:
 the input remains reserved and an operator must reconcile it before retrying.
+The BitVM page shows these records under **Wallet execution and recovery**.
+Choose **Check exact transaction** to perform read-only, positive-proof
+reconciliation. If the wallet cannot observe the exact transaction, the state
+remains locked; do not retry or manually unlock the selected input.
 
 Point BitAgent at `http://127.0.0.1:1986` with the same process-secret bearer
 token. Open the wallet's BitVM page to refresh the public Bitcoin session and

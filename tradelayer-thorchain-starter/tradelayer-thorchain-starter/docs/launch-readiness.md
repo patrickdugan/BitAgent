@@ -632,9 +632,9 @@ Remaining:
 
 - no transaction was signed or broadcast in this implementation pass because
   no fresh user approval for a live testnet4 spend was supplied;
-- an operator reconciliation action is still required for ambiguous submission
-  records; absence from one mempool is not sufficient proof that broadcast did
-  not occur;
+- the wallet UI now offers positive-proof reconciliation for ambiguous
+  submissions and can promote an exact wallet-observed transaction to
+  `submitted`; absence or conflict remains locked and cannot authorize retry;
 - the durable JSON authority store assumes a single wallet-server process and
   does not provide a cross-process transaction lock;
 - independent Bitcoin confirmation remains separate from the wallet receipt;

@@ -84,7 +84,10 @@ signature. A send error or mismatched returned txid is persisted as
 - `submitted`: persist the txid before independent verification. Duplicate
   execute calls return the same receipt.
 - `reconciliation_required`: preserve the candidate and input reservation.
-  A send may have occurred, so do not retry or unlock automatically.
+  A send may have occurred, so do not retry or unlock automatically. The
+  wallet operator route may promote the record only after `gettransaction`
+  returns the exact non-conflicted transaction and its decoded inputs and
+  outputs match the approved candidate.
 
 The remote wallet is never accepted as the verifier. Production factory setup
 requires an independent UTXORef reserve/tlBTC funding source, an independent

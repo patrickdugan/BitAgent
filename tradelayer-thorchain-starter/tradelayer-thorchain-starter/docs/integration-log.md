@@ -814,3 +814,7 @@
   testnet execution flag and a reviewed 64-hex release digest. Ambiguous sends
   remain locked for operator reconciliation, and the JSON store remains a
   single-process authority boundary.
+- Added a nonce-protected operator reconciliation route and BitVM recovery
+  control. It performs read-only positive observation of the exact wallet
+  transaction, never signs or rebroadcasts, and leaves absent or conflicted
+  evidence in `reconciliation_required`.
