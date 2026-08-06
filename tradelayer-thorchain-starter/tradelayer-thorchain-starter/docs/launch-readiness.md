@@ -409,3 +409,33 @@ Remaining:
   Bitcoin withdrawal;
 - repeat the browser recovery drill against that real wallet service. No live
   candidate may be approved or broadcast before these gates pass.
+
+## Funded reserve candidate drill (2026-08-06)
+
+Decision: **accept exact unsigned construction and cancellation; do not
+authorize reserve intake or funded strategy execution**.
+
+Passed:
+
+- a funded Bitcoin Core testnet4 wallet constructed the exact candidate with a
+  100000-sat UTXORef P2TR reserve at vout 0, a 200-byte TradeLayer tx11 payload
+  at vout 1, and 201709 sats of wallet-owned change at vout 2;
+- the decoded fee was 734 sats and remained below the 3000-sat hard cap;
+- the candidate-only broker returned hashes and exact effects but no raw PSBT,
+  and offers no signing or broadcast method;
+- cancellation released the exact 302443-sat input, the lock set was empty,
+  and the input remained unspent with 3044 confirmations;
+- no signature, finalization, mempool test, or broadcast occurred;
+- five focused candidate-broker tests and TypeScript compilation pass.
+
+Remaining:
+
+- independently prove tx11 activation, tlBTC property identity, and identical
+  procedural registry state on all target TradeLayer nodes;
+- provision an independent guardian and prove the displayed reserve policy can
+  be recovered without sharing any secret with BitAgent;
+- after explicit wallet authority, sign only the exact hash-bound candidate,
+  run `testmempoolaccept`, and stop without broadcast if the 200-byte payload is
+  non-standard under the target node policy;
+- only after those gates, broadcast and independently verify the reserve UTXO,
+  tx11 credit, tx5 order/fill/PnL, and withdrawal.

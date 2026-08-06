@@ -174,6 +174,27 @@ npm run test:live
 
 Simulation exercises matching and accounting without asserting that a wallet was funded or that transactions were signed.
 
+## Candidate-only UTXORef reserve drill
+
+This command derives public keys from the loaded wallet, prepares the combined
+reserve-vout0/tx11-vout1/change-vout2 PSBT, validates exact effects, discards
+the raw PSBT, and immediately releases its input lock:
+
+```powershell
+$env:BITCOIN_BIN="<directory containing bitcoin-cli>"
+$env:BTCTEST_DATADIR="<Bitcoin testnet data directory>"
+$env:BTCTEST_RPC_PORT="<local testnet4 RPC port>"
+$env:BTCTEST_WALLET="<loaded funded wallet>"
+$env:TESTNET_TLBTC_PROPERTY_ID="<candidate property id>"
+npm run prepare:local-testnet-reserve
+```
+
+The summary is written to
+`.runtime/testnet-agent/reserve-intake-candidate/summary.json`. A successful
+drill must report `inputLockReleased=true`, `signingPerformed=false`, and
+`broadcastPerformed=false`. This does not prove tx11 activation, registry
+identity, independent guardian availability, or data-carrier relay policy.
+
 ## Akash Broker Isolation
 
 The current `@akashnetwork/chain-sdk@1.0.0-alpha.0` package requires Node 22.14. It is isolated under `brokers/akash` and is not installed in the root agent runtime. Install and audit it in a disposable Node 22 broker environment before running `validate-sdl.mjs`. The broker should use scoped AuthZ or fee grants and return lifecycle receipts; it must not expose its mnemonic to the agent.

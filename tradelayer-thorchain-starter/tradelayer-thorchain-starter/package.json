@@ -26,6 +26,7 @@
     "demo:live-testnet-agent": "tsx scripts/demo-live-testnet-agent.ts",
     "demo:live-testnet-agent:simulated": "tsx scripts/demo-live-testnet-agent.ts --simulate-settlement",
     "prepare:local-testnet-tx": "tsx scripts/prepare-local-testnet-tx.ts",
+    "prepare:local-testnet-reserve": "tsx scripts/prepare-local-testnet-reserve-intake.ts",
     "release:local-testnet-tx": "tsx scripts/release-local-testnet-tx.ts",
     "prepare:multichain-testnet": "tsx scripts/prepare-multichain-testnet-plans.ts",
     "hash:signal-codebase": "tsx scripts/hash-signal-codebase.ts",
@@ -44,7 +45,7 @@
     "observe:order": "tsx scripts/observe-tradelayer-order.ts",
     "test:sovereign": "tsx --test test/sovereign.test.ts",
     "test:economic": "tsx --test test/economic-agent.test.ts",
-    "test:live": "tsx --test test/live-testnet-agent.test.ts test/tradelayer-order-verifier.test.ts test/bitcoin-withdrawal-verifier.test.ts",
+    "test:live": "tsx --test test/live-testnet-agent.test.ts test/reserve-intake-candidate-broker.test.ts test/tradelayer-order-verifier.test.ts test/bitcoin-withdrawal-verifier.test.ts",
     "activity:feed": "tsx scripts/activity-feed.ts"
   },
   "devDependencies": {

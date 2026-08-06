@@ -268,6 +268,11 @@ not part of this user journey.
 - Settlement decode seam: `C:\projects\tradelayer.js\src\txDecoder.js#decodeOnChainTokenForToken`. The starter decodes the tx5 payload found in independently observed OP_RETURN bytes and checks reciprocal property/amount fields for each maker/taker pair.
 - Bitcoin evidence seam: Bitcoin Core wallet RPC through `bitcoin-cli -chain=testnet4`, using `gettransaction`, `decoderawtransaction`, and confirmation counts. The wallet-generated transaction hex avoids requiring a public txindex for the first live slice.
 - Broker seam: Bitcoin Core `walletcreatefundedpsbt`, `decodepsbt`, `getaddressinfo`, `walletprocesspsbt`, `finalizepsbt`, `testmempoolaccept`, and `sendrawtransaction`. The agent does not call these directly.
+- Candidate-only reserve seam: `src/broker/reserveIntakeCandidateBroker.ts`
+  uses only UTXO discovery, unsigned PSBT construction/decoding, wallet
+  ownership checks, and exact-input lock release. It enforces reserve vout 0,
+  TradeLayer tx11 OP_RETURN vout 1, and wallet change vout 2. It intentionally
+  has no signing or broadcast method and never returns the raw PSBT.
 
 ## TradeLayer Read-Only Covenant Shadow Seam
 

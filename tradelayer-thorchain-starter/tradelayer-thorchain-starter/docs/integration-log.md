@@ -598,3 +598,35 @@
   reserve+tx11 transaction and a wallet-owned operator/guardian approval path.
 - No reserve/intake transaction was signed or broadcast in this correction.
   The old unsigned tx5 drill remains cancelled and its input remains released.
+
+## Funded testnet4 reserve candidate drill — 2026-08-06
+
+### Resolved
+
+- Added a separate candidate-only Bitcoin Core broker for the combined
+  UTXORef reserve and TradeLayer tx11 topology. The class exposes preparation
+  and cancellation only; it has no sign or broadcast method and discards the
+  raw PSBT after recording its hash.
+- On the synchronized local Bitcoin Core 31.1 testnet4 node at height 147181,
+  prepared one unsigned candidate from the funded wallet. It used the exact
+  302443-sat input, a 100000-sat P2TR reserve at vout 0, the 200-byte tx11
+  payload at vout 1, 201709 sats of wallet change at vout 2, and a 734-sat fee.
+- The candidate was immediately cancelled. `listlockunspent` returned empty,
+  the original outpoint remained unspent with 3044 confirmations, and the
+  unsigned candidate txid was absent from wallet transaction history.
+- No private-key material was read. Bitcoin Core returned three compressed
+  public keys for the local operator, guardian-drill, and recovery roles.
+- Five focused broker tests cover the exact output layout, changed reserve
+  amount, swapped output order, fee-cap cleanup, tampered cancellation, and
+  absence of signing/broadcast RPC calls.
+
+### Unresolved
+
+- `walletcreatefundedpsbt` accepting a 200-byte data output does not prove
+  mempool or relay policy acceptance. That requires an explicitly approved
+  signed candidate before `testmempoolaccept`; none was authorized here.
+- tx11 activation, synchronized procedural-registry identity, and the intended
+  tlBTC property remain unverified. The local drill also used a same-wallet
+  guardian public key, so independent guardian availability remains false.
+- The candidate is evidence that exact construction and recovery work. It is
+  not approval or evidence that the reserve/intake transaction is executable.
