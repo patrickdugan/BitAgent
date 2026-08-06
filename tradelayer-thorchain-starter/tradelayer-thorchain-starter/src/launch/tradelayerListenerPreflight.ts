@@ -17,6 +17,16 @@ export type TradeLayerListenerObservation = {
   listenerObservedAt: string;
   responseHash: string;
   listener: { nodeId: string; instanceId: string; network: "BTCTEST"; releaseCommit: string };
+  bitcoinBackend: {
+    chain: "testnet4";
+    blocks: number;
+    headers: number;
+    initialBlockDownload: boolean;
+    verificationProgress: number;
+    networkActive: boolean;
+    connections: number;
+    pruned: boolean;
+  };
   sync: {
     initialized: boolean;
     phase: string;
@@ -83,6 +93,14 @@ function safeInteger(value: unknown, label: string): number {
   return parsed;
 }
 
+function safeFraction(value: unknown, label: string): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+    throw new LaunchKernelError("provider_unavailable", `TradeLayer listener ${label} is invalid`);
+  }
+  return parsed;
+}
+
 function requiredText(value: unknown, label: string, pattern: RegExp): string {
   const text = String(value || "").trim();
   if (!pattern.test(text)) {
@@ -141,6 +159,7 @@ function normalizeObservation(input: {
     throw new LaunchKernelError("provider_unavailable", "TradeLayer listener attestation query does not match the reserve plan");
   }
   const listener = record(response.listener, "identity");
+  const bitcoinBackend = record(response.bitcoinBackend, "Bitcoin backend status");
   const sync = record(response.sync, "sync status");
   const tx11 = nullableRecord(response.tx11, "tx11 activation");
   const codeHash = String(tx11?.codeHash || "").toLowerCase();
@@ -158,6 +177,16 @@ function normalizeObservation(input: {
       instanceId: requiredText(listener.instanceId, "instance id", /^[A-Za-z0-9._:-]{8,128}$/),
       network: requiredText(listener.network, "network", /^BTCTEST$/) as "BTCTEST",
       releaseCommit: requiredText(listener.releaseCommit, "release commit", /^[a-f0-9]{40}$/)
+    },
+    bitcoinBackend: {
+      chain: requiredText(bitcoinBackend.chain, "Bitcoin backend chain", /^testnet4$/) as "testnet4",
+      blocks: safeInteger(bitcoinBackend.blocks, "Bitcoin backend block height"),
+      headers: safeInteger(bitcoinBackend.headers, "Bitcoin backend header height"),
+      initialBlockDownload: bitcoinBackend.initialBlockDownload === true,
+      verificationProgress: safeFraction(bitcoinBackend.verificationProgress, "Bitcoin backend verification progress"),
+      networkActive: bitcoinBackend.networkActive === true,
+      connections: safeInteger(bitcoinBackend.connections, "Bitcoin backend peer count"),
+      pruned: bitcoinBackend.pruned === true
     },
     sync: {
       initialized: sync.initialized === true,
@@ -297,6 +326,11 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
   });
   const synchronizedTestnet4 = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
     item.listener.network === "BTCTEST" && item.sync.initialized && item.sync.phase === "realtime" && !item.sync.error
+    && item.bitcoinBackend.chain === "testnet4" && !item.bitcoinBackend.initialBlockDownload
+    && item.bitcoinBackend.networkActive && item.bitcoinBackend.connections > 0
+    && item.bitcoinBackend.blocks === item.bitcoinBackend.headers
+    && item.bitcoinBackend.blocks === item.sync.chainTip
+    && item.bitcoinBackend.verificationProgress >= 0.999999
     && item.sync.indexedHeight <= item.sync.chainTip && item.sync.processedHeight <= item.sync.chainTip
     && item.sync.chainTip - Math.min(item.sync.indexedHeight, item.sync.processedHeight) <= maxSyncLagBlocks
   );

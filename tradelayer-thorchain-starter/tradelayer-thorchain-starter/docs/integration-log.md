@@ -992,3 +992,10 @@
   Source integrity and exact release commit pass, but synchronization, tx11
   activation, property/template/contract parity, and reserve-address gates
   remain false. No wallet, signature, PSBT, or broadcast was created.
+- A caught-up TradeLayer index could otherwise have called an IBD or
+  deliberately disconnected Bitcoin backend "realtime." Commit `3c3ca69`
+  adds sanitized Bitcoin chain health to the challenge-bound attestation.
+  BitAgent now requires testnet4, IBD false, equal block/header/listener tips,
+  verification progress of at least 0.999999, active networking, and at least
+  one peer. The intentionally paused local backends therefore fail closed even
+  after their TradeLayer replay catches up.

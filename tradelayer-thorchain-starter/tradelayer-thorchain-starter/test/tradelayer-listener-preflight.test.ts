@@ -32,6 +32,10 @@ type ResponseInput = {
   lag?: number;
   commit?: string;
   secret?: boolean;
+  initialBlockDownload?: boolean;
+  headersLag?: number;
+  networkActive?: boolean;
+  connections?: number;
 };
 
 function response(input: ResponseInput) {
@@ -43,6 +47,16 @@ function response(input: ResponseInput) {
     challenge: input.challenge,
     observedAt: NOW.toISOString(),
     listener: { nodeId: input.node, instanceId: input.instance, network: "BTCTEST", releaseCommit: input.commit || COMMIT },
+    bitcoinBackend: {
+      chain: "testnet4",
+      blocks: 100,
+      headers: 100 + (input.headersLag || 0),
+      initialBlockDownload: input.initialBlockDownload === true,
+      verificationProgress: input.initialBlockDownload === true ? 0.75 : 1,
+      networkActive: input.networkActive !== false,
+      connections: input.connections ?? 8,
+      pruned: true
+    },
     query: { propertyId: 1, dlcTemplateId: plan.tradeLayer.dlcTemplateId, dlcContractId: plan.tradeLayer.dlcContractId },
     sync: {
       initialized: true,
@@ -146,6 +160,21 @@ test("stale or lagged listeners fail closed", async () => {
   ]);
   assert.equal(evidence(lagged).gates.synchronizedTestnet4, false);
   assert.equal(evidence(await verifiedPair(), new Date(NOW.getTime() + 6_000)).gates.freshObservations, false);
+});
+
+test("IBD, stale headers, paused networking, or zero peers fail synchronization", async () => {
+  for (const backend of [
+    { initialBlockDownload: true },
+    { headersLag: 1 },
+    { networkActive: false },
+    { connections: 0 }
+  ]) {
+    const observations = await Promise.all([
+      observation("http://127.0.0.1:3101", "listener-a", "instance-a-0001", "01".repeat(32), backend),
+      observation("http://127.0.0.1:3102", "listener-b", "instance-b-0002", "02".repeat(32))
+    ]);
+    assert.equal(evidence(observations).gates.synchronizedTestnet4, false);
+  }
 });
 
 test("unallowlisted listener release commit fails closed", async () => {

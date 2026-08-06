@@ -228,6 +228,12 @@ lag; an allowlisted release commit and tx11 code hash; and exact property,
 template, contract, and reserve-address parity. The receipt is hash-bound and
 declares `read_only_observer` / `effect=none`.
 
+`synchronizedTestnet4` also requires the Bitcoin backend itself to report
+`chain=testnet4`, `initialblockdownload=false`, equal block and header heights,
+verification progress of at least 0.999999, active networking, at least one
+peer, and the same tip used by the TradeLayer status. A locally caught-up index
+over a paused, stale, or still-IBD node is not launch evidence.
+
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
 proof; operators must still ensure the endpoints do not proxy the same process
