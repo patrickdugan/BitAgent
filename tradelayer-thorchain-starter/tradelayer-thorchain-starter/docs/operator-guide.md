@@ -170,6 +170,11 @@ wallet-owned endpoint and its operator secret together:
 $env:BITAGENT_WALLET_BROKER_URL="https://<wallet-owned-service>"
 $env:BITAGENT_WALLET_BROKER_TOKEN="<opaque operator secret>"
 $env:BITAGENT_WALLET_BROKER_TIMEOUT_MS="10000"
+$env:BITAGENT_RESERVE_OPERATOR_XONLY="<32-byte public x-only key hex>"
+$env:BITAGENT_RESERVE_GUARDIAN_XONLY="<independent 32-byte public x-only key hex>"
+$env:BITAGENT_RESERVE_RECOVERY_XONLY="<optional 32-byte public x-only key hex>"
+$env:BITAGENT_RESERVE_RECOVERY_CSV_DELAY="2016"
+$env:BITAGENT_RESERVE_PROPERTY_ID="<reviewed tlBTC receipt property id>"
 ```
 
 Loopback HTTP is accepted for local testnet integration; non-loopback endpoints
@@ -223,6 +228,7 @@ $env:BITAGENT_WALLET_BITCOIN_RPC_CONNECT="127.0.0.1"
 $env:BITAGENT_WALLET_BITCOIN_RPC_PORT="<testnet4 RPC port>"
 $env:BITAGENT_WALLET_BITCOIN_WALLET="utxoref-testnet"
 $env:BITAGENT_WALLET_TESTNET_STRATEGY_FEE_SATS="<reviewed candidate fee>"
+$env:BITAGENT_WALLET_TESTNET_MAX_RESERVE_FEE_SATS="3000"
 $env:BITAGENT_WALLET_TESTNET_MAX_WITHDRAWAL_FEE_SATS="3000"
 $env:BITAGENT_WALLET_TESTNET_FEE_RATE_SAT_VB="2"
 $env:BITAGENT_WALLET_CANDIDATE_TTL_MS="120000"
@@ -249,10 +255,14 @@ remains locked; do not retry or manually unlock the selected input.
 Point BitAgent at `http://127.0.0.1:1986` with the same process-secret bearer
 token. Open the wallet's BitVM page to refresh the public Bitcoin session and
 review pending exact effects. Rejecting is always available. A starter
-strategy cannot be approved until both reserve preflight and the deployed tx11
-release pass. With execution left at its default, approving a withdrawal only
-records a scoped grant and execution remains disabled. Never put the bearer token in the
-browser, a referral link, model context, or the authority JSON.
+strategy with unverified funding first creates a separate exact reserve
+candidate. It cannot be approved until reserve preflight and the deployed tx11
+release pass. Rejection releases its selected input; a preflight outage
+preserves the candidate and lock for recovery. Reserve signing and broadcast
+remain disabled even if withdrawal execution is enabled. With withdrawal
+execution left at its default, approval records only a scoped grant. Never put
+the bearer token in the browser, a referral link, model context, or the
+authority JSON.
 
 The withdrawal fee is not an operator guess. The wallet prepares and decodes
 an unsigned Bitcoin Core candidate, retains its raw PSBT privately, and shows

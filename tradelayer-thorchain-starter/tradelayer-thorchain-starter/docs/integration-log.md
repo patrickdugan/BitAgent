@@ -1143,3 +1143,27 @@
 - This extends walletless recovery evidence only. No wallet was loaded or
   created, and no PSBT, approval, signature, activation, or broadcast was
   requested or produced.
+
+## Wallet-owned reserve candidate and approval seam - 2026-08-06
+
+- Added `fund_starter_strategy` as an internal action distinct from the later
+  tx5 starter order. Pending or temporarily unavailable funding evidence now
+  produces an exact testnet4 reserve plan instead of inventing tlBTC state.
+- The remote wallet protocol validates a public candidate with one exact
+  wallet input, P2TR reserve at vout 0, procedural tx11 payload at vout 1,
+  positive wallet change at vout 2, fee arithmetic, expiry, plan/binding hash,
+  and explicit `signingPerformed=false` / `broadcastPerformed=false` fields.
+  The PSBT remains private to the wallet.
+- Wallet authority candidate preparation and durable approval are implemented
+  in `tradelayer-wallet`. Independent TradeLayer preflight gates approval;
+  rejection or cancellation releases the exact selected input. Reserve
+  execution remains deliberately disabled.
+- BitAgent independently verifies the submitted reserve outpoint, intake txid,
+  plan/manifest hash, confirmation depth, wallet session, locked amount, and
+  tlBTC availability. Wallet self-report cannot verify the action. Reserve
+  verification does not activate referral attribution, and the tx5 order still
+  requires its own simulation and approval.
+- Focused tests cover candidate tampering, exact-effects simulation, pending to
+  verified recovery, balance mutation only after verification, referral timing,
+  and rejection without execution. No wallet, signing, or broadcast action was
+  performed during this implementation pass.

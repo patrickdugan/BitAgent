@@ -33,7 +33,7 @@ process.
 | --- | --- | --- |
 | `POST /v1/wallet/connect` | `bitagent_wallet_connect_v1` | Connected network, opaque session ID, public address, confirmed sats, all four capabilities, timestamp |
 | `POST /v1/wallet/deposit-address` | `bitagent_wallet_deposit_address_v1` | Wallet-owned address and its exact scriptPubKey |
-| `POST /v1/wallet/fee-estimate` | `bitagent_wallet_fee_estimate_v1` | Strategy fee, or an exact sanitized unsigned Bitcoin withdrawal candidate with decoded fee/change |
+| `POST /v1/wallet/fee-estimate` | `bitagent_wallet_fee_estimate_v1` | Strategy fee, exact sanitized unsigned Bitcoin withdrawal candidate, or exact reserve-vout0/tx11-vout1/change-vout2 candidate |
 | `POST /v1/wallet/approvals` | `bitagent_wallet_approval_v1` | `pending` plus stable request ID, `rejected`, or `approved` plus an opaque one-time grant |
 | `POST /v1/wallet/executions` | `bitagent_wallet_execution_v1` | Exact action/simulation binding, full txid, public submission time, optional order ID |
 
@@ -94,22 +94,32 @@ requires an independent UTXORef reserve/tlBTC funding source, an independent
 synchronized TradeLayer order source, and an independent Bitcoin withdrawal
 source before it will install this broker.
 
-### Required reserve-intake extension (not implemented)
+### Reserve-intake candidate and approval boundary
 
-The current fee endpoint is insufficient for the starter strategy because a
-tx5 order does not lock Bitcoin. Before funded launch, the wallet service must
-prepare and retain an unsigned `bitagent_reserve_intake_plan_v1` candidate with
-the displayed reserve amount/script at vout 0, the exact procedural tx11
-payload at vout 1, and wallet change at vout 2. Its public response may expose
-only the candidate ID/hash/expiry, unsigned txid, public inputs/outputs/change,
-fee, and UTXORef manifest fields; it must not return a PSBT or signed/raw
-transaction to BitAgent. Approval, signing, and broadcast remain wallet-owned.
+Because a tx5 order does not lock Bitcoin, BitAgent treats reserve funding as
+a separate internal `fund_starter_strategy` action. The kernel builds a
+hash-bound `bitagent_reserve_intake_plan_v1`; the wallet service prepares and
+retains the unsigned candidate with reserve amount/script at vout 0, the exact
+procedural tx11 payload at vout 1, and wallet change at vout 2. The public
+response contains only candidate ID/hash/expiry, unsigned txid and PSBT hash,
+public inputs/outputs/change, fee, and plan bindings. It never returns the
+PSBT, signed transaction, raw transaction, signature, or key material to
+BitAgent.
 
-The candidate is executable only after independent preflight proves tx11 is
+The wallet authority persists this candidate and binds approval to its exact
+simulation hash. Independent TradeLayer preflight runs before approval; a
+failed preflight preserves the candidate and input lock for safe retry, while
+explicit rejection or cancellation releases the exact lock. Funding execution
+is still deliberately disabled. The generic withdrawal release switch does
+not authorize reserve signing or broadcast.
+
+Future candidate execution is permitted only after independent preflight proves tx11 is
 active and the target TradeLayer deployment has the exact property, template
 hash, contract state, and reserve redeem address. After broadcast, BitAgent
-must independently join the on-chain reserve output to the processed tx11
-credit before allowing a tx5 strategy simulation.
+already has a read-only verification boundary that joins the submitted txid's
+vout 0, plan hash, confirmation count, wallet session, and processed tx11 tlBTC
+credit before allowing a separately simulated tx5 strategy order. It never
+accepts the wallet's self-reported verification result.
 
 ## Local configuration
 
@@ -118,9 +128,15 @@ $env:BITAGENT_PRODUCTION="true"
 $env:BITAGENT_WALLET_BROKER_URL="http://127.0.0.1:<wallet-owned-port>"
 $env:BITAGENT_WALLET_BROKER_TOKEN="<opaque operator secret>"
 $env:BITAGENT_WALLET_BROKER_TIMEOUT_MS="10000"
+$env:BITAGENT_RESERVE_OPERATOR_XONLY="<32-byte public x-only key hex>"
+$env:BITAGENT_RESERVE_GUARDIAN_XONLY="<independent 32-byte public x-only key hex>"
+$env:BITAGENT_RESERVE_RECOVERY_XONLY="<optional 32-byte public x-only key hex>"
+$env:BITAGENT_RESERVE_RECOVERY_CSV_DELAY="2016"
+$env:BITAGENT_RESERVE_PROPERTY_ID="<reviewed tlBTC receipt property id>"
 ```
 
 The conformance fixture in `test/remote-wallet-broker.test.ts` covers bearer
 authentication, pending-to-approved recovery, exact simulation binding,
 unsigned-candidate tampering, idempotency, secret-bearing response rejection,
-mismatched receipts, and the independent-verifier production gate.
+mismatched receipts, exact reserve candidates, tx11/output tampering,
+funding cancellation, and the independent-verifier production gate.

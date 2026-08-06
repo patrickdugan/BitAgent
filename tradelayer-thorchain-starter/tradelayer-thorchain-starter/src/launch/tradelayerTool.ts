@@ -4,10 +4,12 @@ import { externalRepos } from "../config.js";
 import { formatUnits, hashObject, opaqueId, parseDecimal } from "./canonical.js";
 import { validateBitcoinAddress } from "./bitcoin.js";
 import { LaunchKernelError } from "./errors.js";
+import { verifyReserveIntakePlan, type ReserveIntakePlan } from "./reserveIntake.js";
 import type {
   QuoteSnapshot,
   StarterStrategyParameters,
   TransactionSimulation,
+  WalletReserveIntakeCandidate,
   WalletWithdrawalCandidate
 } from "./types.js";
 
@@ -114,6 +116,111 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
     if (error instanceof LaunchKernelError) throw error;
     throw new LaunchKernelError("validation_error", "Unable to simulate the starter strategy", error);
   }
+}
+
+export function simulateReserveIntake(input: {
+  plan: ReserveIntakePlan;
+  balanceSats: string;
+  networkFeeSats: string;
+  walletCandidate: WalletReserveIntakeCandidate;
+  now: Date;
+  ttlMs: number;
+}): TransactionSimulation {
+  const plan = input.plan;
+  const candidate = input.walletCandidate;
+  if (!verifyReserveIntakePlan(plan)) {
+    throw new LaunchKernelError("validation_error", "Reserve intake plan failed deterministic verification");
+  }
+  if (!/^(0|[1-9][0-9]*)$/.test(input.balanceSats)
+    || !/^[1-9][0-9]*$/.test(input.networkFeeSats)) {
+    throw new LaunchKernelError("validation_error", "Reserve balance and fee must be canonical satoshi amounts");
+  }
+  const amount = BigInt(plan.amountSats);
+  const balance = BigInt(input.balanceSats);
+  const fee = BigInt(input.networkFeeSats);
+  const wallet = validateBitcoinAddress(plan.walletAddress, plan.network);
+  const candidateInput = candidate.inputUtxos[0];
+  const { candidateId, candidateHash, ...candidateCore } = candidate;
+  const expectedCandidateHash = hashObject(candidateCore);
+  if (amount <= 0n || fee <= 0n || amount + fee > balance) {
+    throw new LaunchKernelError("insufficient_funds", "Confirmed Bitcoin cannot cover reserve amount and fee");
+  }
+  if (candidate.schema !== "bitagent_wallet_reserve_intake_candidate_v1"
+    || candidateHash !== expectedCandidateHash
+    || candidateId !== `reserve_candidate_${expectedCandidateHash.slice(0, 32)}`
+    || candidate.network !== plan.network
+    || candidate.workflowId !== plan.workflowId
+    || candidate.walletSessionId !== plan.walletSessionId
+    || candidate.planHash !== plan.planHash
+    || candidate.bindingHash !== plan.bindingHash
+    || candidate.reserveOutput.address !== plan.reserve.address
+    || candidate.reserveOutput.scriptPubKeyHex !== plan.reserve.scriptPubKeyHex.toLowerCase()
+    || candidate.reserveOutput.valueSats !== plan.amountSats
+    || candidate.dataOutput.payloadHex !== plan.tradeLayer.payloadHex.toLowerCase()
+    || candidate.dataOutput.payloadBytes !== plan.tradeLayer.payloadBytes
+    || candidate.reserveOutput.vout !== 0
+    || candidate.dataOutput.vout !== 1
+    || candidate.changeOutput.vout !== 2
+    || candidate.inputUtxos.length !== 1
+    || !candidateInput
+    || !/^[a-f0-9]{64}$/.test(candidateInput.txid)
+    || !Number.isSafeInteger(candidateInput.vout) || candidateInput.vout < 0
+    || candidateInput.address !== wallet.address
+    || candidateInput.scriptPubKeyHex !== wallet.scriptPubKeyHex
+    || candidate.changeOutput.address !== wallet.address
+    || candidate.changeOutput.scriptPubKeyHex !== wallet.scriptPubKeyHex
+    || !/^[1-9][0-9]*$/.test(candidateInput.valueSats)
+    || !/^[1-9][0-9]*$/.test(candidate.changeOutput.valueSats)
+    || BigInt(candidate.changeOutput.valueSats) <= 0n
+    || BigInt(candidateInput.valueSats) !== amount + fee + BigInt(candidate.changeOutput.valueSats)
+    || candidate.feeSats !== fee.toString()
+    || !Number.isSafeInteger(candidate.feeRateSatVb)
+    || candidate.feeRateSatVb < 1 || candidate.feeRateSatVb > 1000
+    || !/^[a-f0-9]{64}$/.test(candidate.unsignedTxid)
+    || !/^[a-f0-9]{64}$/.test(candidate.unsignedPsbtHash)
+    || !Number.isFinite(Date.parse(candidate.preparedAt))
+    || !Number.isFinite(Date.parse(candidate.expiresAt))
+    || Date.parse(candidate.expiresAt) <= Date.parse(candidate.preparedAt)
+    || candidate.signingPerformed !== false || candidate.broadcastPerformed !== false
+    || Date.parse(candidate.expiresAt) <= input.now.getTime()) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve candidate differs from the exact intake plan");
+  }
+  const expiresAt = new Date(Math.min(
+    input.now.getTime() + input.ttlMs,
+    Date.parse(candidate.expiresAt)
+  )).toISOString();
+  const core = {
+    action: "fund_starter_strategy" as const,
+    createdAt: input.now.toISOString(),
+    expiresAt,
+    effects: [{
+      asset: "BTC" as const,
+      direction: "lock" as const,
+      amount: amount.toString(),
+      unit: "sats" as const,
+      destination: plan.reserve.address,
+      condition: "immediate" as const
+    }],
+    fees: {
+      networkFeeSats: fee.toString(),
+      protocolFeeSats: "0",
+      totalFeeSats: fee.toString()
+    },
+    balanceBeforeSats: balance.toString(),
+    balanceAfterSats: (balance - amount - fee).toString(),
+    payload: plan.tradeLayer.payload,
+    payloadHex: plan.tradeLayer.payloadHex,
+    reservePlan: plan,
+    walletCandidate: candidate,
+    warnings: [
+      "This transaction locks Bitcoin into the displayed UTXORef reserve and publishes the exact tx11 intake payload.",
+      "TradeLayer tx11 activation, property, template, contract, and reserve-address parity must pass before wallet approval.",
+      "The strategy order is a later, separately simulated and approved wallet action.",
+      "Only the wallet may sign and broadcast this exact candidate."
+    ]
+  };
+  const hash = hashObject(core);
+  return { id: opaqueId("sim", core), hash, ...core };
 }
 
 export function simulateBitcoinWithdrawal(input: {

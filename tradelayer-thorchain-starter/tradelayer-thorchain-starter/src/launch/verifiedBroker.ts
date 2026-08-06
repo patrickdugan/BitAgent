@@ -2,8 +2,10 @@ import { formatUnits } from "./canonical.js";
 import { validateBitcoinAddress } from "./bitcoin.js";
 import type {
   ActionVerification,
+  StrategyFundingReadSource,
   WalletExecutionBroker
 } from "./types.js";
+import { verifyStrategyFundingEvidence } from "./strategyFunding.js";
 import {
   observeBitcoinWithdrawal,
   type BitcoinWithdrawalVerification
@@ -18,6 +20,7 @@ import {
 export class IndependentlyVerifyingWalletBroker implements WalletExecutionBroker {
   constructor(
     private readonly wallet: WalletExecutionBroker,
+    private readonly strategyFunding?: StrategyFundingReadSource,
     private readonly tradeLayer?: TradeLayerOrderReadSource,
     private readonly bitcoin?: BitcoinWithdrawalReadSource,
     private readonly withdrawalConfirmations = 1
@@ -44,6 +47,9 @@ export class IndependentlyVerifyingWalletBroker implements WalletExecutionBroker
   }
 
   async verify(input: Parameters<WalletExecutionBroker["verify"]>[0]): Promise<ActionVerification> {
+    if (input.simulation.action === "fund_starter_strategy") {
+      return this.strategyFunding ? this.verifyStrategyFunding(input) : this.wallet.verify(input);
+    }
     if (input.simulation.action === "withdraw_bitcoin") {
       return this.bitcoin ? this.verifyWithdrawal(input) : this.wallet.verify(input);
     }
@@ -113,6 +119,81 @@ export class IndependentlyVerifyingWalletBroker implements WalletExecutionBroker
         sync: result.sync
       }
     };
+  }
+
+  private async verifyStrategyFunding(
+    input: Parameters<WalletExecutionBroker["verify"]>[0]
+  ): Promise<ActionVerification> {
+    const source = this.strategyFunding!;
+    const txid = String(input.execution.txid || "").toLowerCase();
+    const plan = input.simulation.reservePlan;
+    const lockEffects = input.simulation.effects.filter((effect) =>
+      effect.asset === "BTC"
+      && effect.direction === "lock"
+      && effect.unit === "sats"
+      && effect.destination === plan?.reserve.address
+    );
+    if (!plan || lockEffects.length !== 1 || lockEffects[0]!.amount !== plan.amountSats
+      || !/^[a-f0-9]{64}$/.test(txid)) {
+      return {
+        action: "fund_starter_strategy",
+        status: "failed",
+        checkedAt: input.now.toISOString(),
+        txid: input.execution.txid,
+        evidence: {
+          source: source.source,
+          reason: "Submitted reserve intake lacks the exact public fields required for independent verification"
+        }
+      };
+    }
+    try {
+      const evidence = await source.observe({
+        state: input.state,
+        requestedAmountSats: plan.amountSats,
+        now: input.now
+      });
+      if (evidence.status === "pending") {
+        return {
+          action: "fund_starter_strategy",
+          status: "pending",
+          checkedAt: input.now.toISOString(),
+          txid,
+          confirmations: evidence.confirmations,
+          evidence: { ...evidence, source: evidence.source }
+        };
+      }
+      const exactEvidence = verifyStrategyFundingEvidence(evidence, input.state, plan.amountSats)
+        && evidence.intakeTxid === txid
+        && evidence.reserveOutpoint === `${txid}:0`
+        && evidence.reserveManifestHash === plan.planHash;
+      return {
+        action: "fund_starter_strategy",
+        status: exactEvidence ? "verified" : "failed",
+        checkedAt: input.now.toISOString(),
+        txid,
+        confirmations: evidence.confirmations,
+        evidence: {
+          ...evidence,
+          source: evidence.source,
+          reason: exactEvidence
+            ? evidence.reason || "Independent reserve output and TradeLayer tlBTC intake match the submitted transaction"
+            : evidence.reason || "Independent reserve or TradeLayer funding evidence differs from the submitted intake"
+        }
+      };
+    } catch (error) {
+      return {
+        action: "fund_starter_strategy",
+        status: "pending",
+        checkedAt: input.now.toISOString(),
+        txid,
+        evidence: {
+          source: source.source,
+          reason: error instanceof Error
+            ? `Independent reserve funding observation is temporarily unavailable: ${error.message}`
+            : "Independent reserve funding observation is temporarily unavailable"
+        }
+      };
+    }
   }
 
   private async verifyWithdrawal(

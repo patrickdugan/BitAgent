@@ -3,7 +3,8 @@ import { validateBitcoinAddress } from "./bitcoin.js";
 import { LaunchKernelError } from "./errors.js";
 import { parseReferralLink } from "./referral.js";
 import { assertVerifiedStrategyFunding } from "./strategyFunding.js";
-import { simulateBitcoinWithdrawal, simulateStarterStrategy } from "./tradelayerTool.js";
+import { buildReserveIntakePlan } from "./reserveIntake.js";
+import { simulateBitcoinWithdrawal, simulateReserveIntake, simulateStarterStrategy } from "./tradelayerTool.js";
 import { observeBitcoinDeposit } from "./utxoTool.js";
 import type {
   BitAgentWorkflowState,
@@ -24,7 +25,23 @@ type KernelOptions = {
   now?: () => Date;
   requiredConfirmations?: number;
   simulationTtlMs?: number;
+  reserveIntake?: {
+    operatorXonly: string;
+    guardianXonly: string;
+    recoveryXonly?: string;
+    recoveryCsvDelay?: number;
+    propertyId?: number;
+  };
 };
+
+function actionStage(
+  action: TransactionSimulation["action"],
+  phase: "simulated" | "approval_pending" | "approved" | "submitted" | "verified"
+): WorkflowStage {
+  if (action === "fund_starter_strategy") return `strategy_funding_${phase}` as WorkflowStage;
+  if (action === "starter_strategy") return `strategy_${phase}` as WorkflowStage;
+  return `withdrawal_${phase}` as WorkflowStage;
+}
 
 function simulationCore(simulation: TransactionSimulation) {
   const { id: _id, hash: _hash, ...core } = simulation;
@@ -208,34 +225,53 @@ export class BitAgentLaunchKernel {
     const state = await this.get(workflowId);
     this.assertConfirmedDeposit(state);
     const now = this.now();
-    const funding = await this.options.strategyFundingSource.observe({
-      state,
-      requestedAmountSats: input.amountSats,
-      now
-    });
-    state.strategyFunding = funding;
-    this.event(state, `strategy.funding_${funding.status}`, {
-      source: funding.source,
-      evidenceHash: funding.evidenceHash,
-      reserveOutpoint: funding.reserveOutpoint || null,
-      reserveLockedSats: funding.reserveLockedSats,
-      tlBtcAvailableSats: funding.tlBtcAvailableSats,
-      bitcoinSpendableSats: funding.bitcoinSpendableSats,
-      confirmations: funding.confirmations
-    });
-    await this.persist(state);
-    const verifiedFunding = assertVerifiedStrategyFunding(funding, state, input.amountSats);
+    const amountSats = String(input.amountSats || "").trim();
+    if (!/^[1-9][0-9]*$/.test(amountSats)) {
+      throw new LaunchKernelError("validation_error", "Strategy amount must be canonical positive satoshis");
+    }
+    let funding;
+    try {
+      funding = await this.options.strategyFundingSource.observe({
+        state,
+        requestedAmountSats: amountSats,
+        now
+      });
+      state.strategyFunding = funding;
+      this.event(state, `strategy.funding_${funding.status}`, {
+        source: funding.source,
+        evidenceHash: funding.evidenceHash,
+        reserveOutpoint: funding.reserveOutpoint || null,
+        reserveLockedSats: funding.reserveLockedSats,
+        tlBtcAvailableSats: funding.tlBtcAvailableSats,
+        bitcoinSpendableSats: funding.bitcoinSpendableSats,
+        confirmations: funding.confirmations
+      });
+      await this.persist(state);
+    } catch (error) {
+      if (!this.options.reserveIntake || !(error instanceof LaunchKernelError)
+        || error.code !== "provider_unavailable") throw error;
+      this.event(state, "strategy.funding_observation_unavailable", {
+        errorCode: error.code,
+        source: this.options.strategyFundingSource.source
+      });
+      await this.persist(state);
+      return this.prepareStrategyFunding(state, amountSats, now);
+    }
+    if (funding.status === "pending") {
+      return this.prepareStrategyFunding(state, amountSats, now);
+    }
+    const verifiedFunding = assertVerifiedStrategyFunding(funding, state, amountSats);
     const quote = await this.options.quoteProvider.getStarterStrategyQuote({
-      amountSats: input.amountSats,
+      amountSats,
       now
     });
     const fee = await this.options.walletBroker.estimateFee({
       action: "starter_strategy",
-      amountSats: input.amountSats,
+      amountSats,
       state
     });
     const simulation = simulateStarterStrategy({
-      amountSats: input.amountSats,
+      amountSats,
       balanceSats: verifiedFunding.bitcoinSpendableSats,
       tlBtcAvailableSats: verifiedFunding.tlBtcAvailableSats,
       networkFeeSats: fee.networkFeeSats,
@@ -251,7 +287,7 @@ export class BitAgentLaunchKernel {
     state.stage = "strategy_simulated";
     this.event(state, "strategy.simulated", {
       simulationHash: simulation.hash,
-      amountSats: input.amountSats,
+      amountSats,
       quoteId: quote.quoteId,
       quoteSource: quote.source,
       feeSource: fee.source,
@@ -335,9 +371,7 @@ export class BitAgentLaunchKernel {
       status: "pending",
       requestedAt: this.now().toISOString()
     };
-    state.stage = simulation.action === "starter_strategy"
-      ? "strategy_approval_pending"
-      : "withdrawal_approval_pending";
+    state.stage = actionStage(simulation.action, "approval_pending");
     this.event(state, "wallet.approval_requested", {
       approvalId: state.pendingApproval.id,
       action: simulation.action,
@@ -360,7 +394,7 @@ export class BitAgentLaunchKernel {
     if (decision !== "approve") {
       approval.status = decision === "reject" ? "rejected" : "cancelled";
       approval.resolvedAt = this.now().toISOString();
-      state.stage = simulation.action === "starter_strategy" ? "strategy_simulated" : "withdrawal_simulated";
+      state.stage = actionStage(simulation.action, "simulated");
       state.recoveryInstructions = [
         "No transaction was executed.",
         "Review the saved simulation, change parameters if needed, then request a new wallet approval."
@@ -397,7 +431,7 @@ export class BitAgentLaunchKernel {
       approval.resolvedAt = this.now().toISOString();
       approval.walletApprovalRequestId = authorized.walletApprovalRequestId;
       approval.walletApprovalToken = authorized.walletApprovalToken;
-      state.stage = simulation.action === "starter_strategy" ? "strategy_approved" : "withdrawal_approved";
+      state.stage = actionStage(simulation.action, "approved");
       this.event(state, "wallet.approval_approved", {
         approvalId: approval.id,
         simulationHash: approval.simulationHash
@@ -422,7 +456,7 @@ export class BitAgentLaunchKernel {
       }
       approval.status = "rejected";
       approval.resolvedAt = this.now().toISOString();
-      state.stage = simulation.action === "starter_strategy" ? "strategy_simulated" : "withdrawal_simulated";
+      state.stage = actionStage(simulation.action, "simulated");
       state.recoveryInstructions = [
         "The wallet rejected or could not complete approval; no transaction was executed.",
         "Reconnect the same wallet and request approval again from the saved simulation."
@@ -460,7 +494,7 @@ export class BitAgentLaunchKernel {
       txid: execution.txid,
       orderId: execution.orderId
     };
-    state.stage = simulation.action === "starter_strategy" ? "strategy_submitted" : "withdrawal_submitted";
+    state.stage = actionStage(simulation.action, "submitted");
     state.recoveryInstructions = [
       "The action was submitted. Do not approve a replacement until BitAgent checks the recorded txid.",
       "Reconnect and choose Verify to resume safely."
@@ -491,10 +525,15 @@ export class BitAgentLaunchKernel {
     state.verification = verification;
     if (verification.status === "verified") {
       state.wallet.confirmedBalanceSats = simulation.balanceAfterSats;
-      state.stage = simulation.action === "starter_strategy" ? "strategy_verified" : "withdrawal_verified";
-      state.recoveryInstructions = simulation.action === "starter_strategy"
-        ? ["The starter order is verified. Its UTXORef reserve remains separate from spendable wallet Bitcoin."]
-        : ["The withdrawal is verified. Keep the txid for your records."];
+      state.stage = actionStage(simulation.action, "verified");
+      state.recoveryInstructions = simulation.action === "fund_starter_strategy"
+        ? [
+          "The reserve intake is independently verified. Simulate the starter strategy again to inspect its separate tx5 order.",
+          "The reserve Bitcoin remains distinct from spendable wallet Bitcoin and TradeLayer tlBTC."
+        ]
+        : simulation.action === "starter_strategy"
+          ? ["The starter order is verified. Its UTXORef reserve remains separate from spendable wallet Bitcoin."]
+          : ["The withdrawal is verified. Keep the txid for your records."];
       if (simulation.action === "starter_strategy" && state.referral?.status === "pending") {
         state.referral.status = "activated";
         state.referral.activatedAt = this.now().toISOString();
@@ -518,6 +557,83 @@ export class BitAgentLaunchKernel {
     });
     await this.persist(state);
     return clone(verification);
+  }
+
+  private async prepareStrategyFunding(
+    state: BitAgentWorkflowState,
+    amountSats: string,
+    now: Date
+  ): Promise<TransactionSimulation> {
+    const config = this.options.reserveIntake;
+    const walletSessionId = String(state.wallet.walletSessionId || "");
+    const walletAddress = String(state.wallet.bitcoinAddress || "");
+    if (!config || state.wallet.network !== "bitcoin-testnet4" || !walletSessionId || !walletAddress) {
+      throw new LaunchKernelError(
+        "provider_unavailable",
+        "Exact testnet4 reserve-intake configuration is unavailable"
+      );
+    }
+    if (BigInt(amountSats) >= BigInt(state.wallet.confirmedBalanceSats)) {
+      throw new LaunchKernelError(
+        "insufficient_funds",
+        "Confirmed Bitcoin cannot cover the reserve amount and transaction fee"
+      );
+    }
+    const plan = buildReserveIntakePlan({
+      workflowId: state.id,
+      walletSessionId,
+      walletAddress,
+      amountSats,
+      operatorXonly: config.operatorXonly,
+      guardianXonly: config.guardianXonly,
+      recoveryXonly: config.recoveryXonly,
+      recoveryCsvDelay: config.recoveryCsvDelay,
+      propertyId: config.propertyId
+    });
+    const fee = await this.options.walletBroker.estimateFee({
+      action: "fund_starter_strategy",
+      amountSats,
+      reservePlan: plan,
+      state
+    });
+    if (!fee.reserveCandidate) {
+      throw new LaunchKernelError(
+        "provider_unavailable",
+        "Wallet broker did not return the exact reserve-intake candidate"
+      );
+    }
+    const simulation = simulateReserveIntake({
+      plan,
+      balanceSats: state.wallet.confirmedBalanceSats,
+      networkFeeSats: fee.networkFeeSats,
+      walletCandidate: fee.reserveCandidate,
+      now,
+      ttlMs: this.simulationTtlMs
+    });
+    state.currentIntent = "starter_strategy";
+    state.selectedStrategy = undefined;
+    state.simulation = simulation;
+    state.pendingApproval = undefined;
+    state.execution = undefined;
+    state.verification = undefined;
+    state.stage = "strategy_funding_simulated";
+    state.recoveryInstructions = [
+      "Inspect the exact reserve address, Bitcoin amount, tx11 payload, fee, change, expiry, and candidate hash.",
+      "Wallet approval remains blocked until independent TradeLayer reserve preflight passes."
+    ];
+    this.event(state, "strategy.funding_simulated", {
+      simulationHash: simulation.hash,
+      amountSats,
+      feeSource: fee.source,
+      planHash: plan.planHash,
+      bindingHash: plan.bindingHash,
+      candidateId: fee.reserveCandidate.candidateId,
+      candidateHash: fee.reserveCandidate.candidateHash,
+      unsignedTxid: fee.reserveCandidate.unsignedTxid,
+      totalFeeSats: simulation.fees.totalFeeSats
+    });
+    await this.persist(state);
+    return clone(simulation);
   }
 
   private assertWallet(state: BitAgentWorkflowState) {

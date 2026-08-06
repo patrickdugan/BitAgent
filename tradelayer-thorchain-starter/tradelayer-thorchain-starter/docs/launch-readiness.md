@@ -13,10 +13,11 @@ version 3, source commit `e2ced291b2e4cf4457aebb5b907c9c0facca4d02`.
 The narrow referral-to-deposit-to-strategy-to-withdraw journey is complete and
 observable in a deterministic testnet demo. Production execution remains
 fail-closed, so no known issue in this build can broadcast or lose real funds.
-The authenticated BitAgent-side broker client and wallet-owned read-only
-reserve/preflight display are implemented. The matching one-time-grant
-approval/signing service and live verification providers remain release
-blockers for funded use.
+The authenticated BitAgent client, wallet-owned public sessions, exact
+withdrawal and reserve candidates, durable one-time approvals, reserve
+preflight, and independent reserve-verification boundary are implemented.
+Reserve signing/broadcast, deployed tx11 consensus support, synchronized live
+verification providers, and the funded tx5 path remain release blockers.
 
 ## Passed checks
 
@@ -24,7 +25,7 @@ blockers for funded use.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Local launch test process | 70/70 tests passed |
+| Local launch test process | 91/91 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -44,6 +45,8 @@ blockers for funded use.
 | Interrupted-session resume | Passed |
 | Duplicate execution | Idempotent |
 | Malformed withdrawal address | Rejected |
+| Reserve intake and tx5 order approval boundaries | Separate and hash-bound |
+| Reserve candidate tampering and cancellation recovery | Passed |
 
 The end-to-end suite covers normal completion, cancellation, insufficient
 funds, malformed addresses and txids, unconfirmed deposits, rejected wallet
@@ -59,25 +62,28 @@ Machine-readable evidence:
 
 ## Remaining release blockers
 
-1. **Wallet authority and ownership.** BitAgent has a strict authenticated
-   remote-broker client and conformance suite. The local wallet now reads and
-   displays sanitized candidate/preflight evidence, but it still lacks the
-   matching public-session and approval endpoints that issue and consume
-   opaque one-time grants. Hosted demo workflow IDs remain unowned demo
-   identifiers, not production authorization.
+1. **Reserve execution and deployed tx11 support.** Public wallet sessions,
+   exact reserve candidates, durable approval grants, rejection cleanup, and
+   preflight gating are implemented. Reserve signing/broadcast remains
+   deliberately disabled, and the exact candidate-8 tx11 source is not
+   deployed or active on synchronized TradeLayer listeners. Hosted demo
+   workflow IDs remain unowned demo identifiers, not production authorization.
 2. **Live Bitcoin intake.** The launch UI uses a deterministic confirmed UTXO
    event. A production chain source must prove address ownership, outpoint,
    value, network, block height, confirmation count, and reorg handling.
 3. **Live strategy quote/configuration.** The quote, property IDs, order
    minimums, and fee policy are scripted. They must come from live,
    operator-approved TradeLayer configuration.
-4. **Safe wallet execution.** The local wallet and `tradelayer.js` precedents
-   expose WIF/internal-signing paths that BitAgent does not call. The typed
-   client contract exists, but its wallet-owned PSBT/order implementation and
-   human approval surface are still required.
-5. **Independent verification.** Production needs stable Bitcoin transaction,
-   TradeLayer order/position, fill, balance, and withdrawal confirmation
-   queries. Provider results, not the language model, must drive state.
+4. **Safe wallet execution.** The local wallet's testnet4 withdrawal path is
+   exact-candidate and release-gated, but reserve and live tx5 execution are
+   not complete. Legacy WIF/internal-signing paths remain prohibited; any new
+   executor must consume only the wallet-held approval grant and revalidate the
+   exact simulation before signing.
+5. **Independent verification.** Deterministic reserve, TradeLayer order, and
+   Bitcoin withdrawal verifier boundaries exist, but production still needs
+   stable synchronized providers for transaction, order/position, fill,
+   balance, PnL, and withdrawal truth. Provider results, never the language
+   model or submitting wallet, must drive state.
 6. **NEAR origin-wallet execution.** The live 1Click quote/status adapter is
    present, but a funded route still needs an authenticated wallet-owned EVM
    or NEAR broker plus a destination outpoint observer. Preview/stale quotes

@@ -14,6 +14,10 @@ simulation.
 
 ## Request path
 
+The diagram's UTXO-Ref funding step now expands into an exact reserve/tx11
+simulation, a separate wallet approval and submission, and independent reserve
+output plus tlBTC verification. Only then can the later tx5 order be simulated.
+
 ```text
 referral URL
   → intent-scoped conversation
@@ -96,6 +100,17 @@ action and simulation hash. Its `verify()` method always fails closed; only the
 independent wrappers below may verify execution.
 
 When an authenticated external broker is supplied with a
+`StrategyFundingReadSource` and reserve public-key configuration, pending
+strategy funding produces a wallet-owned candidate rather than a fictional
+tlBTC balance. The candidate binds one input, reserve vout 0, tx11 payload
+vout 1, change vout 2, exact fee, expiry, wallet session, plan hash, and
+simulation hash. Approval and any later execution remain wallet-owned.
+Independent verification requires the submitted txid at reserve outpoint
+vout 0, the same plan/manifest hash, adequate confirmations, and matching
+tlBTC intake before the later tx5 order can be simulated. Reserve verification
+does not activate referral attribution.
+
+When an authenticated external broker is also supplied with a
 `TradeLayerOrderReadSource`, `IndependentlyVerifyingWalletBroker` delegates
 connect, fee, approval, and execution to the wallet boundary but replaces its
 starter-strategy verification result. The independent path requires

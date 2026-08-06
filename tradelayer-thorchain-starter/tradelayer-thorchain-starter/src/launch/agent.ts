@@ -19,6 +19,9 @@ function status(
 function basePlan(state: BitAgentWorkflowState, intent: SupportedIntent | "unsupported"): StructuredPlan {
   const connected = state.wallet.status === "connected";
   const confirmed = state.deposit.status === "confirmed";
+  const verifiedFunding = state.stage === "strategy_funding_verified"
+    || state.strategyFunding?.status === "verified"
+    || state.events.some((event) => event.type === "fund_starter_strategy.verification_verified");
   const verifiedStrategy = state.stage === "strategy_verified"
     || state.events.some((event) => event.type === "starter_strategy.verification_verified");
   const verifiedWithdrawal = state.stage === "withdrawal_verified";
@@ -30,11 +33,16 @@ function basePlan(state: BitAgentWorkflowState, intent: SupportedIntent | "unsup
       { sequence: 2, label: "Receive confirmed Bitcoin", status: status(confirmed, connected && !confirmed) },
       {
         sequence: 3,
-        label: "Simulate and approve the starter strategy",
-        status: status(verifiedStrategy, confirmed && intent === "starter_strategy")
+        label: "Fund the UTXORef reserve",
+        status: status(verifiedFunding || verifiedStrategy, confirmed && intent === "starter_strategy")
       },
       {
         sequence: 4,
+        label: "Simulate and approve the starter order",
+        status: status(verifiedStrategy, verifiedFunding && intent === "starter_strategy")
+      },
+      {
+        sequence: 5,
         label: "Verify the action",
         status: status(
           intent === "withdraw_bitcoin" ? verifiedWithdrawal : verifiedStrategy,
@@ -120,6 +128,14 @@ export class BitAgentConversation {
           ? `Wallet spendable: ${state.wallet.confirmedBalanceSats} sats; UTXORef reserve: ${state.strategyFunding.reserveLockedSats} sats; verified tlBTC available: ${state.strategyFunding.tlBtcAvailableSats} sats.`
           : `You have ${state.wallet.confirmedBalanceSats} confirmed wallet sats. Choose an amount; BitAgent will require independent UTXORef reserve and tlBTC funding evidence before simulation.`;
         plan.missingParameters = ["amountSats"];
+        return plan;
+      }
+      if (state.simulation?.action === "fund_starter_strategy"
+        && state.simulation.effects[0]?.amount === amountSats
+        && state.stage.startsWith("strategy_funding_")) {
+        plan.summary = state.stage === "strategy_funding_verified"
+          ? "The UTXORef reserve intake is verified. Simulate the separately approved starter order next."
+          : `The exact ${amountSats}-sat reserve candidate is saved at ${state.stage}. Review its reserve output, tx11 payload, fee, change, and expiry in the wallet.`;
         return plan;
       }
       plan.summary = `Simulate an order using exactly ${amountSats} sats. No wallet action occurs during simulation.`;

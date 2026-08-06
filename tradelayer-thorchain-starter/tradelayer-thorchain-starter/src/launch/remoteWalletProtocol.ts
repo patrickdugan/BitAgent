@@ -1,9 +1,11 @@
 import { LaunchKernelError } from "./errors.js";
 import { hashObject } from "./canonical.js";
 import { validateBitcoinAddress } from "./bitcoin.js";
+import { verifyReserveIntakePlan, type ReserveIntakePlan } from "./reserveIntake.js";
 import type {
   BitAgentWorkflowState,
   LaunchErrorCode,
+  WalletReserveIntakeCandidate,
   WalletWithdrawalCandidate
 } from "./types.js";
 
@@ -210,6 +212,137 @@ export function validatedWithdrawalCandidate(input: {
   const candidateId = `withdrawal_candidate_${candidateHash.slice(0, 32)}`;
   if (candidate.candidateHash !== candidateHash || candidate.candidateId !== candidateId) {
     throw new LaunchKernelError("state_conflict", "Wallet withdrawal candidate hash is invalid");
+  }
+  return { candidateId, candidateHash, ...core };
+}
+
+export function validatedReserveIntakeCandidate(input: {
+  value: unknown;
+  plan: ReserveIntakePlan;
+  workflowId: string;
+  walletSessionId: string;
+  network: "bitcoin" | "bitcoin-testnet4";
+  walletAddress: string;
+  amountSats: string;
+  networkFeeSats: string;
+}): WalletReserveIntakeCandidate {
+  const candidate = record(input.value, "reserve intake candidate");
+  const plan = input.plan;
+  if (!verifyReserveIntakePlan(plan)
+    || candidate.schema !== "bitagent_wallet_reserve_intake_candidate_v1"
+    || input.network !== "bitcoin-testnet4"
+    || candidate.network !== input.network
+    || candidate.workflowId !== input.workflowId
+    || candidate.walletSessionId !== input.walletSessionId
+    || candidate.planHash !== plan.planHash
+    || candidate.bindingHash !== plan.bindingHash
+    || candidate.signingPerformed !== false
+    || candidate.broadcastPerformed !== false) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve candidate authority binding is invalid");
+  }
+
+  const rawInputs = Array.isArray(candidate.inputUtxos) ? candidate.inputUtxos : [];
+  if (rawInputs.length !== 1) {
+    throw new LaunchKernelError("provider_unavailable", "Wallet reserve candidate must expose one exact input");
+  }
+  const rawInput = record(rawInputs[0], "reserve candidate input");
+  const connectedWallet = validatedProviderBitcoinAddress(input.walletAddress, input.network);
+  const inputAddress = validatedProviderBitcoinAddress(rawInput.address, input.network);
+  const parsedInput = {
+    txid: boundedWalletText(rawInput.txid, "reserve input txid", TXID_PATTERN),
+    vout: Number(rawInput.vout),
+    valueSats: canonicalWalletSats(rawInput.valueSats, "reserve input value"),
+    address: inputAddress.address,
+    scriptPubKeyHex: candidateScript(rawInput.scriptPubKeyHex, "reserve input script")
+  };
+  if (!Number.isSafeInteger(parsedInput.vout) || parsedInput.vout < 0
+    || parsedInput.address !== connectedWallet.address
+    || parsedInput.scriptPubKeyHex !== inputAddress.scriptPubKeyHex) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve candidate input is not the connected wallet input");
+  }
+
+  const rawReserve = record(candidate.reserveOutput, "reserve output");
+  const reserve = validatedProviderBitcoinAddress(rawReserve.address, input.network);
+  const reserveOutput = {
+    vout: Number(rawReserve.vout) as 0,
+    address: reserve.address,
+    scriptPubKeyHex: candidateScript(rawReserve.scriptPubKeyHex, "reserve output script"),
+    valueSats: canonicalWalletSats(rawReserve.valueSats, "reserve output value")
+  };
+  if (reserveOutput.vout !== 0
+    || reserveOutput.address !== plan.reserve.address
+    || reserveOutput.scriptPubKeyHex !== plan.reserve.scriptPubKeyHex.toLowerCase()
+    || reserveOutput.valueSats !== canonicalWalletSats(input.amountSats, "amountSats", "validation_error")
+    || reserveOutput.valueSats !== plan.amountSats) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve output differs from the exact plan");
+  }
+
+  const rawData = record(candidate.dataOutput, "reserve data output");
+  const dataOutput = {
+    vout: Number(rawData.vout) as 1,
+    payloadHex: String(rawData.payloadHex || "").toLowerCase(),
+    payloadBytes: Number(rawData.payloadBytes)
+  };
+  if (dataOutput.vout !== 1
+    || !/^(?:[a-f0-9]{2})+$/.test(dataOutput.payloadHex)
+    || dataOutput.payloadHex !== plan.tradeLayer.payloadHex.toLowerCase()
+    || dataOutput.payloadBytes !== plan.tradeLayer.payloadBytes) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve data output differs from the exact tx11 plan");
+  }
+
+  const rawChange = record(candidate.changeOutput, "reserve change output");
+  const change = validatedProviderBitcoinAddress(rawChange.address, input.network);
+  const changeOutput = {
+    vout: Number(rawChange.vout) as 2,
+    address: change.address,
+    scriptPubKeyHex: candidateScript(rawChange.scriptPubKeyHex, "reserve change script"),
+    valueSats: canonicalWalletSats(rawChange.valueSats, "reserve change value")
+  };
+  if (changeOutput.vout !== 2
+    || changeOutput.address !== connectedWallet.address
+    || changeOutput.scriptPubKeyHex !== connectedWallet.scriptPubKeyHex
+    || BigInt(changeOutput.valueSats) <= 0n) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve change is not positive wallet-owned change");
+  }
+
+  const preparedAt = walletIsoTime(candidate.preparedAt, "reserve preparedAt");
+  const expiresAt = walletIsoTime(candidate.expiresAt, "reserve expiresAt");
+  const feeRateSatVb = Number(candidate.feeRateSatVb);
+  const feeSats = canonicalWalletSats(candidate.feeSats, "reserve fee");
+  if (preparedAt !== candidate.preparedAt || expiresAt !== candidate.expiresAt
+    || Date.parse(expiresAt) <= Date.parse(preparedAt)
+    || !Number.isSafeInteger(feeRateSatVb) || feeRateSatVb < 1 || feeRateSatVb > 1000
+    || feeSats !== canonicalWalletSats(input.networkFeeSats, "networkFeeSats")
+    || BigInt(feeSats) <= 0n
+    || BigInt(parsedInput.valueSats) !== BigInt(reserveOutput.valueSats)
+      + BigInt(changeOutput.valueSats) + BigInt(feeSats)) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve candidate fee or arithmetic is invalid");
+  }
+
+  const core = {
+    schema: "bitagent_wallet_reserve_intake_candidate_v1" as const,
+    workflowId: input.workflowId,
+    walletSessionId: input.walletSessionId,
+    network: "bitcoin-testnet4" as const,
+    preparedAt,
+    expiresAt,
+    planHash: plan.planHash,
+    bindingHash: plan.bindingHash,
+    unsignedTxid: boundedWalletText(candidate.unsignedTxid, "reserve unsigned txid", TXID_PATTERN),
+    unsignedPsbtHash: boundedWalletText(candidate.unsignedPsbtHash, "reserve unsigned PSBT hash", TXID_PATTERN),
+    inputUtxos: [parsedInput],
+    reserveOutput,
+    dataOutput,
+    changeOutput,
+    feeSats,
+    feeRateSatVb,
+    signingPerformed: false as const,
+    broadcastPerformed: false as const
+  };
+  const candidateHash = hashObject(core);
+  const candidateId = `reserve_candidate_${candidateHash.slice(0, 32)}`;
+  if (candidate.candidateHash !== candidateHash || candidate.candidateId !== candidateId) {
+    throw new LaunchKernelError("state_conflict", "Wallet reserve candidate hash is invalid");
   }
   return { candidateId, candidateHash, ...core };
 }

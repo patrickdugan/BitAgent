@@ -27,6 +27,51 @@ import {
 import { BitcoinCliChainSource } from "../settlement/bitcoinCliChainSource.js";
 import type { BitcoinWithdrawalReadSource } from "../settlement/types.js";
 
+export type ReserveIntakeConfiguration = {
+  operatorXonly: string;
+  guardianXonly: string;
+  recoveryXonly?: string;
+  recoveryCsvDelay?: number;
+  propertyId?: number;
+};
+
+function configuredReserveIntake(
+  provided?: ReserveIntakeConfiguration
+): ReserveIntakeConfiguration | undefined {
+  if (provided) return provided;
+  const operatorXonly = String(process.env.BITAGENT_RESERVE_OPERATOR_XONLY || "").trim().toLowerCase();
+  const guardianXonly = String(process.env.BITAGENT_RESERVE_GUARDIAN_XONLY || "").trim().toLowerCase();
+  const recoveryXonly = String(process.env.BITAGENT_RESERVE_RECOVERY_XONLY || "").trim().toLowerCase();
+  const delayText = String(process.env.BITAGENT_RESERVE_RECOVERY_CSV_DELAY || "").trim();
+  const propertyText = String(process.env.BITAGENT_RESERVE_PROPERTY_ID || "").trim();
+  const anyConfigured = Boolean(
+    operatorXonly || guardianXonly || recoveryXonly || delayText || propertyText
+  );
+  if (!anyConfigured) return undefined;
+  if (!/^[a-f0-9]{64}$/.test(operatorXonly) || !/^[a-f0-9]{64}$/.test(guardianXonly)
+    || (recoveryXonly && !/^[a-f0-9]{64}$/.test(recoveryXonly))) {
+    throw new Error(
+      "BITAGENT_RESERVE_OPERATOR_XONLY and BITAGENT_RESERVE_GUARDIAN_XONLY must be configured together as 32-byte public x-only keys"
+    );
+  }
+  const recoveryCsvDelay = delayText ? Number(delayText) : undefined;
+  const propertyId = propertyText ? Number(propertyText) : undefined;
+  if (recoveryCsvDelay !== undefined
+    && (!Number.isSafeInteger(recoveryCsvDelay) || recoveryCsvDelay < 1 || recoveryCsvDelay > 65_535)) {
+    throw new Error("BITAGENT_RESERVE_RECOVERY_CSV_DELAY must be an integer from 1 through 65535");
+  }
+  if (propertyId !== undefined && (!Number.isSafeInteger(propertyId) || propertyId < 1)) {
+    throw new Error("BITAGENT_RESERVE_PROPERTY_ID must be a positive safe integer");
+  }
+  return {
+    operatorXonly,
+    guardianXonly,
+    recoveryXonly: recoveryXonly || undefined,
+    recoveryCsvDelay,
+    propertyId
+  };
+}
+
 function withdrawalConfirmationTarget(configured?: number): number {
   const value = configured ?? Number(process.env.BITAGENT_WITHDRAWAL_CONFIRMATIONS || "1");
   if (!Number.isSafeInteger(value) || value < 1) {
@@ -68,6 +113,7 @@ export function createLaunchKernel(options: {
   tradeLayerOrderSource?: TradeLayerOrderReadSource;
   bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
   withdrawalConfirmations?: number;
+  reserveIntake?: ReserveIntakeConfiguration;
 } = {}) {
   const production = options.production
     ?? String(process.env.BITAGENT_PRODUCTION || "false").toLowerCase() === "true";
@@ -76,6 +122,10 @@ export function createLaunchKernel(options: {
     provided: options.walletBroker,
     scripted: options.scriptedBroker
   });
+  const strategyFundingSource = options.strategyFundingSource || (
+    production ? new UnavailableStrategyFundingSource() : new ScriptedStrategyFundingSource()
+  );
+  const reserveIntake = configuredReserveIntake(options.reserveIntake);
   const tradeLayerOrderSource = options.tradeLayerOrderSource || (
     production && process.env.TRADELAYER_RELAYER_URL
       ? new RelayerTradeLayerOrderReadSource(process.env.TRADELAYER_RELAYER_URL)
@@ -102,18 +152,18 @@ export function createLaunchKernel(options: {
   return new BitAgentLaunchKernel({
     store: options.store || new FileWorkflowStore(path.join(runtimeDir, "bitagent-workflows.json")),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),
-    strategyFundingSource: options.strategyFundingSource || (
-      production ? new UnavailableStrategyFundingSource() : new ScriptedStrategyFundingSource()
-    ),
-    walletBroker: tradeLayerOrderSource || bitcoinWithdrawalSource
+    strategyFundingSource,
+    walletBroker: tradeLayerOrderSource || bitcoinWithdrawalSource || reserveIntake
       ? new IndependentlyVerifyingWalletBroker(
         walletBroker,
+        strategyFundingSource,
         tradeLayerOrderSource,
         bitcoinWithdrawalSource,
         withdrawalConfirmationTarget(options.withdrawalConfirmations)
       )
       : walletBroker,
-    now: options.now
+    now: options.now,
+    reserveIntake
   });
 }
 
@@ -126,6 +176,7 @@ export function createTestLaunchKernel(options: {
   tradeLayerOrderSource?: TradeLayerOrderReadSource;
   bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
   withdrawalConfirmations?: number;
+  reserveIntake?: ReserveIntakeConfiguration;
 } = {}) {
   return createLaunchKernel({
     store: options.store || new InMemoryWorkflowStore(),
@@ -135,6 +186,7 @@ export function createTestLaunchKernel(options: {
     tradeLayerOrderSource: options.tradeLayerOrderSource,
     bitcoinWithdrawalSource: options.bitcoinWithdrawalSource,
     withdrawalConfirmations: options.withdrawalConfirmations,
+    reserveIntake: options.reserveIntake,
     now: options.now
   });
 }

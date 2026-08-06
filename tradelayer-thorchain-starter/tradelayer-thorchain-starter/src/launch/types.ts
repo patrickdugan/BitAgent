@@ -1,3 +1,5 @@
+import type { ReserveIntakePlan } from "./reserveIntake.js";
+
 export type SupportedIntent =
   | "deposit_bitcoin"
   | "starter_strategy"
@@ -8,6 +10,11 @@ export type WorkflowStage =
   | "deposit_address_ready"
   | "deposit_pending"
   | "deposit_confirmed"
+  | "strategy_funding_simulated"
+  | "strategy_funding_approval_pending"
+  | "strategy_funding_approved"
+  | "strategy_funding_submitted"
+  | "strategy_funding_verified"
   | "strategy_parameters_required"
   | "strategy_simulated"
   | "strategy_approval_pending"
@@ -156,10 +163,53 @@ export type WalletWithdrawalCandidate = {
   broadcastPerformed: false;
 };
 
+export type WalletReserveIntakeCandidate = {
+  schema: "bitagent_wallet_reserve_intake_candidate_v1";
+  candidateId: string;
+  candidateHash: string;
+  workflowId: string;
+  walletSessionId: string;
+  network: "bitcoin-testnet4";
+  preparedAt: string;
+  expiresAt: string;
+  planHash: string;
+  bindingHash: string;
+  unsignedTxid: string;
+  unsignedPsbtHash: string;
+  inputUtxos: Array<{
+    txid: string;
+    vout: number;
+    valueSats: string;
+    address: string;
+    scriptPubKeyHex: string;
+  }>;
+  reserveOutput: {
+    vout: 0;
+    address: string;
+    scriptPubKeyHex: string;
+    valueSats: string;
+  };
+  dataOutput: {
+    vout: 1;
+    payloadHex: string;
+    payloadBytes: number;
+  };
+  changeOutput: {
+    vout: 2;
+    address: string;
+    scriptPubKeyHex: string;
+    valueSats: string;
+  };
+  feeSats: string;
+  feeRateSatVb: number;
+  signingPerformed: false;
+  broadcastPerformed: false;
+};
+
 export type TransactionSimulation = {
   id: string;
   hash: string;
-  action: "starter_strategy" | "withdraw_bitcoin";
+  action: "fund_starter_strategy" | "starter_strategy" | "withdraw_bitcoin";
   createdAt: string;
   expiresAt: string;
   effects: ExactEffect[];
@@ -173,7 +223,8 @@ export type TransactionSimulation = {
   payload?: string;
   payloadHex?: string;
   destinationAddress?: string;
-  walletCandidate?: WalletWithdrawalCandidate;
+  reservePlan?: ReserveIntakePlan;
+  walletCandidate?: WalletReserveIntakeCandidate | WalletWithdrawalCandidate;
   quote?: QuoteSnapshot;
   strategy?: StarterStrategyParameters;
   warnings: string[];
@@ -305,11 +356,13 @@ export interface WalletExecutionBroker {
     action: TransactionSimulation["action"];
     amountSats: string;
     destinationAddress?: string;
+    reservePlan?: ReserveIntakePlan;
     state: BitAgentWorkflowState;
   }): Promise<{
     networkFeeSats: string;
     source: string;
     candidate?: WalletWithdrawalCandidate;
+    reserveCandidate?: WalletReserveIntakeCandidate;
   }>;
   authorize(input: {
     approval: WalletApproval;

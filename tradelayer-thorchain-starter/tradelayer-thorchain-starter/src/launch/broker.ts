@@ -82,11 +82,16 @@ export class ScriptedWalletBroker implements WalletExecutionBroker {
     return { address: validated.address, scriptPubKeyHex: validated.scriptPubKeyHex };
   }
 
-  async estimateFee(input: { action: "starter_strategy" | "withdraw_bitcoin"; amountSats: string }) {
+  async estimateFee(input: {
+    action: "fund_starter_strategy" | "starter_strategy" | "withdraw_bitcoin";
+    amountSats: string;
+  }) {
     return {
-      networkFeeSats: input.action === "starter_strategy"
+      networkFeeSats: input.action === "withdraw_bitcoin"
+        ? this.options.withdrawalFeeSats || "600"
+        : input.action === "starter_strategy"
         ? this.options.strategyFeeSats || "900"
-        : this.options.withdrawalFeeSats || "600",
+        : this.options.strategyFeeSats || "900",
       source: "scripted-evaluation"
     };
   }

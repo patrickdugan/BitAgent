@@ -18,6 +18,7 @@ import {
   TXID_PATTERN,
   boundedWalletText,
   canonicalWalletSats,
+  validatedReserveIntakeCandidate,
   validatedProviderBitcoinAddress,
   validatedWithdrawalCandidate,
   walletIsoTime,
@@ -102,14 +103,28 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
     const destinationAddress = input.action === "withdraw_bitcoin"
       ? validateBitcoinAddress(String(input.destinationAddress || ""), input.state.wallet.network).address
       : undefined;
+    if (input.action === "fund_starter_strategy" && !input.reservePlan) {
+      throw new LaunchKernelError("validation_error", "Reserve intake requires an exact deterministic plan");
+    }
     const data = await this.http.call("/v1/wallet/fee-estimate", {
       schema: "bitagent_wallet_fee_estimate_v1",
       ...context,
       action: input.action,
       amountSats,
-      destinationAddress
+      destinationAddress,
+      reservePlan: input.reservePlan
     });
     const networkFeeSats = canonicalWalletSats(data.networkFeeSats, "networkFeeSats");
+    const reserveCandidate = input.action === "fund_starter_strategy"
+      ? validatedReserveIntakeCandidate({
+        value: data.candidate,
+        plan: input.reservePlan!,
+        ...context,
+        walletAddress: context.bitcoinAddress,
+        amountSats,
+        networkFeeSats
+      })
+      : undefined;
     const candidate = input.action === "withdraw_bitcoin"
       ? validatedWithdrawalCandidate({
         value: data.candidate,
@@ -121,12 +136,13 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
       })
       : undefined;
     if (input.action === "starter_strategy" && data.candidate !== undefined) {
-      throw new LaunchKernelError("state_conflict", "Strategy fee response cannot contain a withdrawal candidate");
+      throw new LaunchKernelError("state_conflict", "Strategy order fee response cannot contain a Bitcoin candidate");
     }
     return {
       networkFeeSats,
       source: boundedWalletText(data.source, "fee source"),
-      candidate
+      candidate,
+      reserveCandidate
     };
   }
 
