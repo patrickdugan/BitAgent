@@ -6,12 +6,19 @@
 - Canonical hashing and policy evaluation: `src/survival/policy.ts`
 - Default policy and demo harness: `src/survival/harness.ts`
 - Hash-linked recovery journal: `src/survival/journal.ts`
+- Candidate-only typed tool registry: `src/survival/tools.ts`
 
 Use these exports rather than model arithmetic:
 
 - `assessSurvival(snapshot, policy, now)`
 - `evaluateSpendIntent(intent, policy, snapshot, now)`
 - `verifySurvivalJournal(records)`
+
+The model-facing tool names are `bitagent.survival.assess`,
+`bitagent.survival.evaluate`, and `bitagent.survival.journal.verify`. Policy,
+treasury state, clock, and raw journal records are injected by the
+deterministic host. Tool arguments carry only exact public bindings and the
+typed spend intent.
 
 ## Required intent fields
 

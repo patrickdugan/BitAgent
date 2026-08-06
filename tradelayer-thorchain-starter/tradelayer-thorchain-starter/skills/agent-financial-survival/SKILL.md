@@ -39,9 +39,10 @@ changing policy behavior or claiming that an expense is authorized.
    destination, quote hash, expiry, policy ID, and idempotency key exactly.
 3. Collect missing public fields. Do not substitute a destination, quote,
    amount, rail, or policy value.
-4. Call the deterministic host implementation of `assessSurvival(...)` and
-   `evaluateSpendIntent(...)`. Do not reproduce their arithmetic in a model
-   answer.
+4. Call `bitagent.survival.assess` and `bitagent.survival.evaluate` through the
+   deterministic `FinancialSurvivalToolRegistry`. The host supplies the bound
+   policy, treasury snapshot, evidence receipt, and clock. Do not reproduce
+   their arithmetic in a model answer or pass raw observations as arguments.
 5. Explain the exact decision, reason codes, intent hash, constraints hash,
    expiry, and the named next capability, if any.
 6. Stage only the returned unsigned capability. A broker must independently
@@ -62,7 +63,10 @@ as the resource-selection contract:
 - carry only the task card, compact snapshot facts, policy identifiers,
   typed input schema, current evidence ledger, and one matching recovery hint;
 - compact after each tool result and stop after three rounds or six calls;
-- fail closed if no deterministic survival-policy MCP wrapper is registered.
+- use `bitagent.survival.journal.verify` for recovery; the host resolves the
+  journal URI and returns only its integrity result, length, and head hash;
+- fail closed if the deterministic survival-policy registry or any requested
+  host evidence binding is unavailable.
 
 This mode changes retrieval and packet size only. It grants no financial
 authority.

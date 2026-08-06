@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { launchToolSchemas } from "../src/launch/tools.js";
 import { committedSignalToolSchemas } from "../src/signals/tools.js";
+import { financialSurvivalToolSchemas } from "../src/survival/tools.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const skillsRoot = path.join(root, "skills");
@@ -27,6 +28,7 @@ type ResourceManifest = {
   }>;
   resources?: Array<{ id: string }>;
   entrypoints?: Array<{ id: string; source: string; effect: string }>;
+  tools?: Array<{ id: string; name: string; source: string; effect: string }>;
   mcpStatus?: string;
 };
 
@@ -103,9 +105,9 @@ test("lifecycle MCP packets expose only implemented candidate tools and known re
   }
 });
 
-test("financial-survival short-context mode fails closed until deterministic wrappers exist", async () => {
+test("financial-survival short-context mode exposes only its deterministic wrappers", async () => {
   const { value } = await loadManifest("agent-financial-survival");
-  assert.equal(value.mcpStatus, "requires_deterministic_wrapper");
+  assert.equal(value.mcpStatus, "ready_deterministic_wrapper");
   const entrypoints = new Map((value.entrypoints || []).map((entrypoint) => [entrypoint.id, entrypoint]));
   assert.deepEqual([...entrypoints.keys()].sort(), ["assess", "evaluate", "journal_verify"]);
 
@@ -114,5 +116,12 @@ test("financial-survival short-context mode fails closed until deterministic wra
     const [relativePath, exportName] = entrypoint.source.split("#");
     const source = await fs.readFile(path.join(root, relativePath), "utf8");
     assert.match(source, new RegExp(`export (?:async )?function ${exportName}\\b`));
+  }
+
+  const declaredTools = new Map((value.tools || []).map((tool) => [tool.name, tool]));
+  assert.deepEqual([...declaredTools.keys()].sort(), Object.keys(financialSurvivalToolSchemas).sort());
+  for (const tool of declaredTools.values()) assert.equal(tool.effect, "none");
+  for (const packet of value.phasePackets) {
+    for (const tool of packet.tools || []) assert.ok(declaredTools.has(tool));
   }
 });

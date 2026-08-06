@@ -671,8 +671,9 @@ Remaining launch blockers:
 
 - the Bonsai runtime still reports `adapter_artifacts_not_trained`; current
   base-model screening is benchmark evidence, not a promoted adapter runtime;
-- the financial-survival skill has deterministic local functions but no typed
-  MCP wrapper, so its short-context mode correctly fails closed;
+- the financial-survival skill now has three deterministic, effect-free typed
+  tools and a bounded 12k manifest; adapter promotion and any external payment
+  broker remain unavailable;
 - tx11 release remains `candidate_not_deployed`, and two independent current
   TradeLayer listeners have not passed the reserve/intake preflight;
 - there is no independently verified funded tx5 placement/fill, closed
@@ -721,3 +722,32 @@ Boundaries:
 - all browser execution and verification in this regression were scripted;
   no real transaction was signed, finalized, or broadcast;
 - the funded TradeLayer and PnL claims listed above remain launch blockers.
+
+## Financial-survival MCP closure (2026-08-06)
+
+Decision: **accept the deterministic short-context wrapper; do not interpret a
+policy decision as wallet approval or payment.**
+
+Passed:
+
+- `bitagent.survival.assess`, `bitagent.survival.evaluate`, and
+  `bitagent.survival.journal.verify` are registered as typed tools with
+  `additionalProperties=false` and `effect=none`;
+- policy, treasury snapshot, clock, and raw journal records stay inside a
+  host-owned provider; model arguments carry only exact evidence hashes,
+  public identifiers, and the typed spend intent;
+- changed evidence bindings, unexpected/secret-bearing intent fields, corrupt
+  journals, and unresolved journal URIs fail closed;
+- the generated Bonsai tool bundle now contains the three contracts and 114
+  deterministic seed examples, with no detected secret values or raw
+  transcripts;
+- the skill packet contract remains capped at three tools, three rounds, six
+  calls, and the inclusive 12,000-token window.
+
+Boundaries:
+
+- `authorized` means only that deterministic policy permits staging the named
+  unsigned capability; it does not request approval, sign, broadcast, spend,
+  settle, or prove a payment;
+- these three new seed rows are contract coverage, not an independently
+  reviewed promotion corpus or evidence that a Bonsai adapter was trained.

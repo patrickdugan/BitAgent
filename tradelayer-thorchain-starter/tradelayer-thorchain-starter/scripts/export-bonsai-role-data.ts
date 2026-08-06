@@ -6,6 +6,7 @@ import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { extractAmountSats } from "../src/launch/intent.js";
 import { launchToolSchemas } from "../src/launch/tools.js";
 import { committedSignalToolSchemas } from "../src/signals/tools.js";
+import { financialSurvivalToolSchemas } from "../src/survival/tools.js";
 
 type Role =
   | "intent_planner"
@@ -58,13 +59,18 @@ const ROLE_AUTHORITY: Record<Role, string[]> = {
   ],
   risk_approval_guard: [
     "bitagent.workflow.get",
-    "bitagent.signal.get"
+    "bitagent.signal.get",
+    "bitagent.survival.assess",
+    "bitagent.survival.evaluate"
   ],
   recovery_operator: [
     "bitagent.workflow.get",
     "bitagent.action.verify",
     "bitagent.signal.get",
-    "bitagent.signal.verify"
+    "bitagent.signal.verify",
+    "bitagent.survival.assess",
+    "bitagent.survival.evaluate",
+    "bitagent.survival.journal.verify"
   ]
 };
 
@@ -206,6 +212,7 @@ async function main() {
   const shadowFailurePath = path.join(root, "eval", "fixtures", "shadow-feeder-failure-traces.seed.jsonl");
   const launchToolsPath = path.join(root, "src", "launch", "tools.ts");
   const signalToolsPath = path.join(root, "src", "signals", "tools.ts");
+  const survivalToolsPath = path.join(root, "src", "survival", "tools.ts");
   const sourceFiles = [
     agentCasesPath,
     failurePath,
@@ -213,7 +220,8 @@ async function main() {
     covenantFailurePath,
     shadowFailurePath,
     launchToolsPath,
-    signalToolsPath
+    signalToolsPath,
+    survivalToolsPath
   ];
   const sourceHashes = new Map<string, string>();
   for (const file of sourceFiles) sourceHashes.set(file, hash(await fs.readFile(file)));
@@ -389,14 +397,19 @@ async function main() {
 
   const toolSources = [
     { file: launchToolsPath, schemas: launchToolSchemas, lane: "launch" },
-    { file: signalToolsPath, schemas: committedSignalToolSchemas, lane: "committed_signal" }
+    { file: signalToolsPath, schemas: committedSignalToolSchemas, lane: "committed_signal" },
+    { file: survivalToolsPath, schemas: financialSurvivalToolSchemas, lane: "financial_survival" }
   ];
   for (const source of toolSources) {
     for (const [name, schema] of Object.entries(source.schemas)) {
       if (/execute|resolve_approval|request_approval/.test(name)) continue;
-      const role: Role = /simulate|deposit\.observe|signal\.ingest/.test(name)
-        ? "utxo_tradelayer_specialist"
-        : "recovery_operator";
+      const role: Role = name === "bitagent.survival.journal.verify"
+        ? "recovery_operator"
+        : name.startsWith("bitagent.survival.")
+          ? "risk_approval_guard"
+          : /simulate|deposit\.observe|signal\.ingest/.test(name)
+            ? "utxo_tradelayer_specialist"
+            : "recovery_operator";
       if (!ROLE_AUTHORITY[role].includes(name)) continue;
       examples.push(makeExample({
         id: `tool-${name}`,

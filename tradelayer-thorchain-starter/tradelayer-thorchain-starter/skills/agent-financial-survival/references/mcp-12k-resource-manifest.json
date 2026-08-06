@@ -25,7 +25,13 @@
     "execution": false,
     "stateTruth": "deterministic_host"
   },
-  "mcpStatus": "requires_deterministic_wrapper",
+  "mcpStatus": "ready_deterministic_wrapper",
+  "wrapper": {
+    "source": "src/survival/tools.ts#FinancialSurvivalToolRegistry",
+    "stateProviderOwner": "deterministic_host",
+    "rawTreasuryStateInArguments": false,
+    "rawJournalRecordsInArguments": false
+  },
   "entrypoints": [
     {
       "id": "assess",
@@ -43,18 +49,38 @@
       "effect": "none"
     }
   ],
+  "tools": [
+    {
+      "id": "assess",
+      "name": "bitagent.survival.assess",
+      "source": "src/survival/tools.ts#financialSurvivalToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "evaluate",
+      "name": "bitagent.survival.evaluate",
+      "source": "src/survival/tools.ts#financialSurvivalToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "journal_verify",
+      "name": "bitagent.survival.journal.verify",
+      "source": "src/survival/tools.ts#financialSurvivalToolSchemas",
+      "effect": "none"
+    }
+  ],
   "phasePackets": [
     {
       "phase": "classify",
-      "entrypoints": ["assess"]
+      "tools": ["bitagent.survival.assess"]
     },
     {
       "phase": "evaluate",
-      "entrypoints": ["assess", "evaluate"]
+      "tools": ["bitagent.survival.assess", "bitagent.survival.evaluate"]
     },
     {
       "phase": "recover",
-      "entrypoints": ["journal_verify", "assess", "evaluate"]
+      "tools": ["bitagent.survival.journal.verify", "bitagent.survival.assess", "bitagent.survival.evaluate"]
     }
   ],
   "externalEvidence": [

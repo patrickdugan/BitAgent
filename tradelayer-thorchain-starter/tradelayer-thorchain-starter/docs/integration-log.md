@@ -875,3 +875,23 @@
 - The successful rendered demo ended at 148500 confirmed sats after a
   separately approved 50000-sat scripted withdrawal with a 600-sat fee. This
   is UI/kernel evidence only; no Bitcoin transaction was signed or broadcast.
+
+## Financial-survival typed MCP wrapper — 2026-08-06
+
+- Added a deterministic `FinancialSurvivalToolRegistry` with exactly three
+  model-facing, effect-free methods: assessment, spend-intent evaluation, and
+  journal integrity verification.
+- The registry injects current policy, treasury snapshot, host clock, and raw
+  journal records outside model arguments. Every assessment/evaluation binds
+  the policy hash and treasury evidence receipt; drift fails before policy
+  arithmetic runs.
+- Tool validation rejects unknown fields, malformed integer/date/hash values,
+  secret-bearing intent extras, policy/snapshot mismatch, corrupt journals,
+  and unresolved journal URIs. Results explicitly report no wallet approval,
+  signing, broadcast, or execution.
+- Updated the financial-survival skill manifest from
+  `requires_deterministic_wrapper` to `ready_deterministic_wrapper` while
+  preserving the inclusive 12k, three-round, six-call, three-tool contract.
+- The Bonsai export now includes the three typed contracts and role allowlists
+  for risk and recovery. The regenerated deterministic seed corpus contains
+  114 rows. It remains below the reviewed adapter-promotion floor.
