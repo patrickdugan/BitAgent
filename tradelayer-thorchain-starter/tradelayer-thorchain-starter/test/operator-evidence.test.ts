@@ -38,7 +38,9 @@ async function fixture() {
   await fs.writeFile(paths.preflightPath, JSON.stringify({
     schema: "bitagent_tradelayer_reserve_preflight_v1",
     status: "verified",
+    planHash: "d".repeat(64),
     assessedAt: "2026-08-06T00:00:00.000Z",
+    maxAgeMs: 60000,
     minimumIndependentNodes: 2,
     nodes: [{}, {}],
     gates: { tx11Active: true, tx11CodeHash: true },
@@ -63,6 +65,8 @@ test("operator evidence is read-only and strips signing material", async () => {
     assert.equal(evidence.approvalAvailable, false);
     assert.equal(evidence.safetyBoundary, "read_only_no_sign_or_broadcast");
     assert.equal(evidence.preflight?.status, "verified");
+    assert.equal(evidence.preflight?.planHash, "d".repeat(64));
+    assert.equal(evidence.preflight?.maxAgeMs, 60000);
     assert.equal(evidence.release?.status, "candidate_not_deployed");
     const serialized = JSON.stringify(evidence);
     assert.doesNotMatch(serialized, /must-not-leak|rawPsbt|privateKey|seedPhrase|payloadHex/);

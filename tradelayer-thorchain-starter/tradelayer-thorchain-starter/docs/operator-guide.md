@@ -107,7 +107,7 @@ Passing this check does not request approval, sign, or broadcast.
 
 Expected results:
 
-- 70/70 launch tests and 24/24 end-to-end trajectories pass.
+- 91/91 launch tests and 24/24 end-to-end trajectories pass.
 - 50/50 focused agent cases pass.
 - Every evaluation score is `1`.
 - `eval/artifacts/failure-traces.jsonl` is empty on a clean run.
@@ -235,11 +235,20 @@ $env:BITAGENT_WALLET_CANDIDATE_TTL_MS="120000"
 ```
 
 Only for a separately reviewed testnet4 release, after explicit operator
-authorization, add:
+authorization, enable withdrawal execution with its own release digest:
 
 ```powershell
 $env:BITAGENT_WALLET_TESTNET_EXECUTION_ENABLED="true"
 $env:BITAGENT_WALLET_TESTNET_EXECUTION_RELEASE_ID="<reviewed 64-hex release digest>"
+```
+
+Reserve intake has a separate release gate and digest. Enable it only after the
+exact tx11 release is deployed and fresh independent preflight passes every
+gate:
+
+```powershell
+$env:BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_ENABLED="true"
+$env:BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_RELEASE_ID="<reviewed 64-hex reserve release digest>"
 ```
 
 The execution provider refuses any network other than testnet4. It consumes
@@ -259,10 +268,12 @@ strategy with unverified funding first creates a separate exact reserve
 candidate. It cannot be approved until reserve preflight and the deployed tx11
 release pass. Rejection releases its selected input; a preflight outage
 preserves the candidate and lock for recovery. Reserve signing and broadcast
-remain disabled even if withdrawal execution is enabled. With withdrawal
-execution left at its default, approval records only a scoped grant. Never put
-the bearer token in the browser, a referral link, model context, or the
-authority JSON.
+remain disabled unless the separate reserve release gate is enabled; enabling
+withdrawal alone has no effect. The wallet re-fetches fresh plan-specific
+preflight immediately before reserve signing, then consumes the one-time grant
+before calling Bitcoin Core. With either execution action left at its default,
+approval records only a scoped grant. Never put the bearer token in the
+browser, a referral link, model context, or the authority JSON.
 
 The withdrawal fee is not an operator guess. The wallet prepares and decodes
 an unsigned Bitcoin Core candidate, retains its raw PSBT privately, and shows

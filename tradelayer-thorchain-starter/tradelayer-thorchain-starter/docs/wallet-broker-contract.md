@@ -62,13 +62,16 @@ approval request ID in the receipt. Duplicate calls return the original receipt.
 A grant must be scoped to one wallet session, approval ID, simulation hash,
 action, and expiry.
 
-The current wallet implementation enables withdrawal execution only when both
-`BITAGENT_WALLET_TESTNET_EXECUTION_ENABLED=true` and an explicit 64-hex release
-digest are configured. The provider itself accepts only Bitcoin testnet4. It
-requires the selected inputs to remain locked, signs inside Bitcoin Core,
-finalizes and decodes the transaction, rechecks every input and both exact
-outputs, verifies the decoded fee through `testmempoolaccept`, and only then
-calls `sendrawtransaction`. It never returns a PSBT, signed transaction, or
+The current wallet implementation gives withdrawal and reserve intake separate
+default-disabled release gates. Withdrawal requires
+`BITAGENT_WALLET_TESTNET_EXECUTION_ENABLED=true`; reserve intake requires
+`BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_ENABLED=true`. Each action also
+requires its own explicit 64-hex release digest. Enabling one action never
+enables the other. Both providers accept only Bitcoin testnet4. They require
+the selected inputs to remain locked, sign inside Bitcoin Core, finalize and
+decode the transaction, recheck every approved input and output, verify the
+decoded fee through `testmempoolaccept`, and only then call
+`sendrawtransaction`. Neither provider returns a PSBT, signed transaction, or
 signature. A send error or mismatched returned txid is persisted as
 `reconciliation_required`, and automatic retry is refused.
 
@@ -109,15 +112,17 @@ BitAgent.
 The wallet authority persists this candidate and binds approval to its exact
 simulation hash. Independent TradeLayer preflight runs before approval; a
 failed preflight preserves the candidate and input lock for safe retry, while
-explicit rejection or cancellation releases the exact lock. Funding execution
-is still deliberately disabled. The generic withdrawal release switch does
-not authorize reserve signing or broadcast.
+explicit rejection or cancellation releases the exact lock. Reserve execution
+is implemented but disabled by default. It requires both the separate reserve
+release switch and a reviewed reserve release digest; the withdrawal switch
+does not authorize reserve signing or broadcast.
 
-Future candidate execution is permitted only after independent preflight proves tx11 is
-active and the target TradeLayer deployment has the exact property, template
-hash, contract state, and reserve redeem address. After broadcast, BitAgent
-already has a read-only verification boundary that joins the submitted txid's
-vout 0, plan hash, confirmation count, wallet session, and processed tx11 tlBTC
+Immediately before reserve signing, the wallet fetches fresh operator evidence
+and requires the exact plan hash, evidence age limit, all eight launch gates,
+deployed release ID, and code hash to match the approval record. The one-time
+grant is durably consumed before signing. After broadcast, BitAgent uses a
+separate read-only verification boundary that joins the submitted txid's vout
+0, plan hash, confirmation count, wallet session, and processed tx11 tlBTC
 credit before allowing a separately simulated tx5 strategy order. It never
 accepts the wallet's self-reported verification result.
 
@@ -133,6 +138,15 @@ $env:BITAGENT_RESERVE_GUARDIAN_XONLY="<independent 32-byte public x-only key hex
 $env:BITAGENT_RESERVE_RECOVERY_XONLY="<optional 32-byte public x-only key hex>"
 $env:BITAGENT_RESERVE_RECOVERY_CSV_DELAY="2016"
 $env:BITAGENT_RESERVE_PROPERTY_ID="<reviewed tlBTC receipt property id>"
+```
+
+The wallet-side execution switches are deliberately absent from the BitAgent
+process. For a reviewed testnet4 reserve release they are configured only in
+the wallet process:
+
+```powershell
+$env:BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_ENABLED="true"
+$env:BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_RELEASE_ID="<reviewed 64-hex reserve release digest>"
 ```
 
 The conformance fixture in `test/remote-wallet-broker.test.ts` covers bearer

@@ -1167,3 +1167,37 @@
   verified recovery, balance mutation only after verification, referral timing,
   and rejection without execution. No wallet, signing, or broadcast action was
   performed during this implementation pass.
+
+## Default-disabled reserve execution provider - 2026-08-06
+
+- Added a wallet-private Bitcoin Core execution provider for the exact reserve
+  candidate. It validates the public candidate against the retained PSBT,
+  requires synchronized testnet4 and an intact input lock, signs inside the
+  wallet boundary, finalizes and re-decodes all three outputs, checks exact fee
+  and txid through `testmempoolaccept`, then broadcasts.
+- Reserve execution has a separate enable flag and release digest from Bitcoin
+  withdrawal. Enabling withdrawal cannot authorize reserve intake. Both remain
+  disabled by default.
+- Funding approval stores plan-specific preflight evidence. Immediately before
+  execution, the wallet requires the same plan hash, a fresh assessment inside
+  its declared maximum age, all eight launch gates, and the exact deployed
+  release ID/code hash. Missing or stale evidence preserves the unconsumed
+  grant and candidate; a definite disabled/failing execution releases the
+  lock; an ambiguous submission stays locked for positive-proof reconciliation.
+- The operator evidence surface now exposes the sanitized preflight `planHash`
+  and `maxAgeMs` needed for that exact binding. It still exposes no PSBT,
+  signature, key, credential, or execution capability.
+- Deterministic provider and authority tests cover successful submission,
+  signature rejection, finalized-payload mutation, mempool rejection,
+  ambiguous send/reconciliation, candidate tampering, plan mismatch,
+  preflight outage recovery, idempotency, and raw-PSBT/token redaction. The
+  wallet release suite, wallet server/frontend TypeScript checks, and frontend
+  Angular AOT compiler pass.
+- The complete launch preflight passes 91/91 checks, all 24 scripted
+  trajectories, and 50/50 focused agent cases with every score equal to 1 and
+  zero generated failure traces. Candidate-8 source verification passes at
+  commit `dabbaf485dda99b2b0626120942190b5873fd2f3` and hash
+  `fee1c7c5de3b33e1facb1dc95a60e54e243169a5d7a2aa8b982785f478be7b1c`.
+- This is implementation and simulated-provider evidence only. The live tx11
+  release remains `candidate_not_deployed`, so reserve approval/execution is
+  still blocked and no transaction was signed, finalized, or broadcast.

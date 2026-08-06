@@ -902,3 +902,39 @@ Boundaries:
   independent or remotely attested operators;
 - funded execution remains disabled and no wallet, signing, or broadcast
   action occurred.
+
+## Wallet-owned reserve execution checkpoint (2026-08-06)
+
+Decision: **accept the default-disabled reserve execution implementation and
+recovery tests; do not enable or claim a funded launch.**
+
+Passed:
+
+- the wallet-owned reserve provider validates the retained PSBT commitment,
+  synchronized testnet4 state, selected input lock, finalized transaction,
+  reserve vout 0, tx11 data vout 1, wallet change vout 2, exact fee, unsigned
+  identity, mempool result, and broadcast txid;
+- reserve intake and withdrawal use independent enable flags and independent
+  64-hex release digests;
+- approval and execution are bound to the exact plan hash, all eight fresh
+  independent preflight gates, and the deployed release ID/code hash;
+- one-time approval consumption is persisted before signing, successful replay
+  is idempotent, definite failure cleans up, and ambiguous submission remains
+  locked until positive exact-transaction reconciliation;
+- public state and UI expose only sanitized candidates, capabilities, exact
+  effects, fees, receipts, and recovery state; no PSBT, signed transaction,
+  signature, key, or bearer token is returned or persisted publicly;
+- wallet server/provider/authority regressions, both TypeScript checks, the
+  frontend Angular AOT compiler, and the 91/91 launch preflight pass; all 24
+  trajectories and 50/50 agent cases pass with zero generated failure traces.
+
+Remaining:
+
+- candidate 8 is not deployed and the live listener preflight gates remain
+  false, so reserve approval and execution must stay disabled;
+- the Angular production bundle was not completed under the active low-end
+  desktop load; the frontend TypeScript and Angular AOT compilers passed;
+- no live user approval was granted and no testnet4 transaction was signed,
+  finalized, or broadcast;
+- independent reserve confirmation/tlBTC credit, tx5 placement/fill, settled
+  PnL, and the separately approved withdrawal remain launch blockers.

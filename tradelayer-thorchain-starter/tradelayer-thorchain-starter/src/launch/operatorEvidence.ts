@@ -122,7 +122,9 @@ function preflightView(source: JsonRecord): JsonRecord | null {
   return {
     schema: source.schema,
     status: text(source.status),
+    planHash: text(source.planHash),
     assessedAt: text(source.assessedAt),
+    maxAgeMs: number(source.maxAgeMs),
     minimumIndependentNodes: number(source.minimumIndependentNodes),
     observedNodeCount: Array.isArray(source.nodes) ? source.nodes.length : 0,
     gates: {
