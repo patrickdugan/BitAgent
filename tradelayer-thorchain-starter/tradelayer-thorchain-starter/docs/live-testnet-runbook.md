@@ -195,26 +195,39 @@ drill must report `inputLockReleased=true`, `signingPerformed=false`, and
 `broadcastPerformed=false`. This does not prove tx11 activation, registry
 identity, independent guardian availability, or data-carrier relay policy.
 
-Run the read-only TradeLayer registry gate after candidate construction:
+For the launch gate, configure each TradeLayer process with a durable public
+identity and the exact deployed release commit before starting it:
 
 ```powershell
-$env:TRADELAYER_PREFLIGHT_DB_PATHS="<node-a-db-path>;<node-b-db-path>"
-$env:TRADELAYER_PREFLIGHT_NODE_IDS="listener-a;listener-b"
-$env:TRADELAYER_PREFLIGHT_BLOCK_HEIGHTS="<height-a>;<height-b>"
-$env:TRADELAYER_ACCEPTED_TX11_CODE_HASHES="<audited-and-deployed-32-byte-release-hash>"
-npm run observe:reserve-preflight
+$env:CHAIN="BTCTEST"
+$env:TL_LISTENER_NODE_ID="listener-a"
+$env:TL_LISTENER_INSTANCE_ID="<durable-unique-instance-id>"
+$env:TL_RELEASE_COMMIT="<full-40-character-deployed-commit>"
 ```
 
-The command reads only `activations.db`, `propertyList.db`, and
-`procedural.db`. A launchable result requires `status=verified` and every gate
-true. Do not duplicate one database under two node IDs: duplicate or divergent
-node identities fail the parity requirement. File freshness is a local-snapshot
-check; production must additionally authenticate each node and independently
-observe its synchronization height.
+Use different node IDs, instance IDs, ports, Bitcoin Core backends, and data
+directories for the second listener. Then run the challenge-bound live check:
 
-Never populate `TRADELAYER_ACCEPTED_TX11_CODE_HASHES` from whatever value a
-node happens to report. It is an operator release allowlist and must be fixed
-from the audited deployment artifact before observing node results.
+```powershell
+$env:TRADELAYER_PREFLIGHT_ENDPOINTS="http://127.0.0.1:3101;http://127.0.0.1:3102"
+npm run observe:listener-preflight
+```
+
+The command calls only `POST /tl_getLaunchAttestation`. A launchable result
+requires `status=verified` and every gate true: unique endpoints, node IDs,
+instance IDs, and challenges; fresh realtime synchronization; bounded block
+lag; an allowlisted release commit and tx11 code hash; and exact property,
+template, contract, and reserve-address parity. The receipt is hash-bound and
+declares `read_only_observer` / `effect=none`.
+
+This proves two distinct live endpoints with distinct operator-declared
+instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
+proof; operators must still ensure the endpoints do not proxy the same process
+or Bitcoin Core backend. `npm run observe:reserve-preflight` remains available
+as an offline NeDB diagnostic, but it is not sufficient for launch promotion.
+
+The live observer obtains both allowlists from the tracked release manifest,
+never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is

@@ -6,7 +6,8 @@
   "tradelayerCommits": [
     "db4728444bcbc2b9249654243e8bd1c5843987ed",
     "c860c3c9b5d65bf33b61acac820d89eca82c6833",
-    "c80f703aea9d9dece4fe4204ee4a4c2a9ecec56d"
+    "c80f703aea9d9dece4fe4204ee4a4c2a9ecec56d",
+    "4657e6232bea8fd67d5af6dbe3e9c407f237060b"
   ],
   "consensusSourceFiles": [
     "activation.js",

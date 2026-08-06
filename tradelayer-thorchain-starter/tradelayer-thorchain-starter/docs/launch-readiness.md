@@ -24,7 +24,7 @@ blockers for funded use.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Local launch test process | 63/63 tests passed |
+| Local launch test process | 70/70 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -474,6 +474,9 @@ approve funds yet**.
   as live activation transactions.
 - TradeLayer commit `c80f703` selects block 1 for BTCTEST/testnet4 replay
   instead of the legacy Bitcoin testnet height above the current testnet4 tip.
+- TradeLayer commit `4657e62` exposes a challenge-bound, read-only launch
+  attestation carrying live synchronization, explicit node/instance identity,
+  the exact release commit, and the tx11/property/procedural registry view.
 - BitAgent derives a unique per-workflow contract ID and requires the activated
   tx11 code hash to be explicitly allowlisted in preflight evidence.
 - The new real unsigned testnet4 candidate was cancelled at a 776-sat fee; no
@@ -761,14 +764,14 @@ remains disabled.**
 
 Passed:
 
-- `npm run preflight:launch` ran 63/63 launch checks, found all 24 named
+- `npm run preflight:launch` ran 70/70 launch checks, found all 24 named
   end-to-end trajectories, passed 50/50 focused agent cases with every score
   equal to 1, and found zero generated failure traces;
 - the command emits `.runtime/launch-preflight/latest.json` with command-output
   hashes, counted evidence, the `read_only_no_sign_or_broadcast` authority
   boundary, and a decision that keeps `fundedExecutionAllowed` false;
 - the same command recomputed the canonical TradeLayer consensus source hash,
-  bound it to commit `c80f703`, and verified candidate source integrity while
+  bound it to commit `4657e62`, and verified candidate source integrity while
   separately retaining `deploymentVerified=false` and `executable=false`;
 - the rendered local referral flow again passed wallet rejection and refresh
   recovery: the exact 50000-sat simulation, 900-sat fee, 199100-sat projected
@@ -783,3 +786,32 @@ Boundaries:
 - no approval was granted and no transaction was signed, finalized, or
   broadcast in this regression;
 - the funded blockers in the preceding checkpoint remain unchanged.
+
+## Live listener attestation gate (2026-08-06)
+
+Decision: **accept the read-only verifier contract; deployment evidence is not
+yet available.**
+
+Passed:
+
+- each listener can expose one challenge-bound response containing only
+  synchronization, release, activation, property, template, and contract
+  evidence;
+- BitAgent requires unique endpoints, node IDs, instance IDs, and challenges,
+  rejects credentials in endpoint URLs and secret-bearing response fields,
+  and enforces fresh realtime testnet4 state within the configured block lag;
+- release commit and tx11 code-hash allowlists come from the tracked release
+  manifest, not from listener claims;
+- seven focused cases cover valid parity, duplicate identities, stale/lagged
+  listeners, unallowlisted releases, challenge substitution, secret-bearing
+  responses, and evidence tampering;
+- the full launch suite passes 70/70 and the current consensus source hash is
+  unchanged.
+
+Boundaries:
+
+- the independence claim is limited to distinct live endpoints and
+  operator-declared node instances; it is not remote code attestation or proof
+  that two endpoints cannot proxy one backend;
+- no two listener processes are currently running, so no deployment or parity
+  receipt has been promoted and funded execution remains disabled.

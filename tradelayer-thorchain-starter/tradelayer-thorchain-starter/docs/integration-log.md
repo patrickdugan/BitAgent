@@ -942,3 +942,25 @@
 - Deployment, listener parity, and executability remain false. The verified
   source candidate must still run on two fresh independently identified
   listeners with the exact template before any wallet approval becomes legal.
+
+## Challenge-bound live listener preflight - 2026-08-06
+
+- TradeLayer commit `4657e62` adds `POST /tl_getLaunchAttestation`. It echoes a
+  verifier challenge and exposes only read-only sync, release, tx11, property,
+  template, and contract evidence. Listener startup must supply explicit
+  testnet4 node identity, durable instance identity, and the exact full release
+  commit.
+- BitAgent now captures that endpoint under response-size and timeout bounds,
+  rejects credentials and secret-like response fields, and emits hash-bound
+  observations with `authority=read_only_observer` and `effect=none`.
+- The live parity gate requires at least two unique endpoints, node IDs,
+  instance IDs, and challenges; fresh realtime testnet4 state; bounded lag;
+  allowlisted release and tx11 hashes; and exact registry/reserve parity.
+- Seven focused live-listener cases pass, and the complete launch suite is now
+  70/70. The consensus source hash remains
+  `6b2f30c4b845b7ea7dee70efb30b2a4361ec4d8031a417fb76b8d9865880ea19`.
+- This closes accidental duplicate-endpoint and stale-snapshot promotion. It
+  does not provide TEE-backed remote attestation or prove that distinct
+  endpoints use distinct Bitcoin backends. No listener deployment was running,
+  so funded execution remains disabled and no transaction was signed or
+  broadcast.
