@@ -1050,3 +1050,9 @@ Remaining:
   model load or benchmark was performed;
 - no approval, signing, activation transaction, broadcast, tlBTC credit, trade,
   PnL settlement, or withdrawal occurred.
+
+Post-checkpoint continuation: a bounded 75,000 target exhausted its 20-minute
+runtime with A exact at 73,524 and B exact at 74,037. Both listeners remained
+realtime/error-free, both prune horizons remained behind the checkpoints, the
+terminal receipt recorded successful pause RPCs, and independent reads showed
+zero peers. The 75,000 target is not complete and must be resumed.

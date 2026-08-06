@@ -1325,3 +1325,9 @@
   activation transaction, or broadcast was requested or produced.
 - The RTX 3050 was 73 C after recovery work, above the 64 C Bonsai start gate,
   so no model weights were loaded and no inference benchmark was claimed.
+- A follow-on 75,000 target ran for its exact 20-minute budget and preserved
+  additional valid progress at A 73,524/73,524 and B 74,037/74,037. It ended
+  with `sync throttle exceeded BITAGENT_SYNC_MAX_RUNTIME_MS`, not a listener or
+  pruning fault. The terminal failure receipt records successful pause results
+  for both backends; independent RPC reads confirmed networking off and zero
+  peers. This is a resumable bounded stop, not a completed 75,000 claim.
