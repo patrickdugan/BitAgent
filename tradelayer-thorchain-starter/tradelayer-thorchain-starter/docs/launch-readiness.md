@@ -867,8 +867,11 @@ Passed:
 
 Boundaries:
 
-- both Bitcoin backends and TradeLayer listeners are still synchronizing, so
-  the `synchronizedTestnet4` gate is false;
+- two fresh 2 GiB-pruned backends were paused at blocks 45,015 and 45,034 with
+  `pruneheight=0`; the preserved listeners caught up to those exact local tips
+  and reported realtime/100%/no error. The live gate nevertheless kept
+  `synchronizedTestnet4=false` because both backends were still in IBD with
+  networking disabled and zero peers;
 - tx11 is not chain-activated with candidate 3, and the required property,
   procedural template, contract, and reserve-address parity gates are false;
 - the nodes are operationally separate local processes, not Byzantine-

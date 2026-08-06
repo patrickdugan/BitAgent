@@ -1035,3 +1035,28 @@
   already-downloaded local block range, while an unreachable/loading RPC still
   enters recovery. Launch attestation continues to require active networking,
   peers, IBD completion, and tip parity, so offline catch-up cannot pass launch.
+
+## Fresh-backend offline catch-up proof - 2026-08-06
+
+- Replaced the exhausted 550 MiB replay backends with two fresh, walletless
+  Bitcoin Core 31.1 testnet4 nodes using separate data directories, RPC ports,
+  cookies, and 2 GiB prune targets. Peer networking was automatically paused
+  at local tips 45,015 and 45,034; both nodes still retained history from
+  genesis (`pruneheight=0`).
+- Restarted the candidate-7 listeners from the preserved TradeLayer databases
+  with decoded-block replay enabled and exact release commit
+  `3728dffc2ee6f20ee38cd1957080e7dd1bdaf03d`. Both logs exercised the explicit
+  `Peer network unavailable; processing the downloaded local block range only`
+  branch without a pruned-block or provider error.
+- Listener A resumed its durable history and reached `trackHeight=45015`;
+  listener B reached `trackHeight=45034`. Both independently reported
+  `phase=realtime`, `percent=100`, and `error=null` against their respective
+  paused local tips.
+- The challenge-bound attestations correctly exposed `testnet4`, IBD true,
+  networking false, zero peers, the local best-block hashes, and inactive tx11.
+  The live BitAgent observer accepted endpoint/instance independence and exact
+  release commit, while failing `synchronizedTestnet4` and every undeployed
+  protocol-state gate. This proves offline recovery without creating a false
+  launch-ready result.
+- No wallet was loaded or created, and no PSBT, signature, or broadcast was
+  requested or produced.
