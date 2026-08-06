@@ -26,6 +26,14 @@ function boundedInteger(value: string | undefined, fallback: number, label: stri
   return number;
 }
 
+function requestTimeoutMs(): number {
+  const timeout = boundedInteger(process.env.BITAGENT_SYNC_REQUEST_TIMEOUT_MS, 15_000, "BITAGENT_SYNC_REQUEST_TIMEOUT_MS");
+  if (timeout < 1_000 || timeout > 60_000) {
+    throw new Error("BITAGENT_SYNC_REQUEST_TIMEOUT_MS must be between 1000 and 60000");
+  }
+  return timeout;
+}
+
 function loopbackUrl(value: string, label: string): string {
   const url = new URL(value);
   if (url.protocol !== "http:" || !loopbackHosts.has(url.hostname)) {
@@ -68,7 +76,7 @@ async function bitcoinRpc<T>(pair: Pair, method: string, params: unknown[] = [])
       "content-type": "application/json"
     },
     body: JSON.stringify({ jsonrpc: "1.0", id: "bitagent-sync-throttle", method, params }),
-    signal: AbortSignal.timeout(5_000)
+    signal: AbortSignal.timeout(requestTimeoutMs())
   });
   const text = await response.text();
   if (text.length > 1_000_000) throw new Error(`pair ${pair.name} RPC response exceeded size limit`);
@@ -83,7 +91,7 @@ async function listenerStatus(pair: Pair): Promise<{ phase: string; error?: stri
     method: "POST",
     headers: { "content-type": "application/json" },
     body: "{}",
-    signal: AbortSignal.timeout(5_000)
+    signal: AbortSignal.timeout(requestTimeoutMs())
   });
   const text = await response.text();
   if (text.length > 1_000_000) throw new Error(`pair ${pair.name} listener response exceeded size limit`);
@@ -123,7 +131,7 @@ async function kickAddrmanPeers(pair: Pair): Promise<number> {
   const entries = await bitcoinRpc<BitcoinAddrmanEntry[]>(pair, "getnodeaddresses", [16]);
   const endpoints = entries.map(formatBitcoinPeerEndpoint)
     .filter((value): value is string => Boolean(value))
-    .slice(0, 4);
+    .slice(0, 1);
   const attempts = await Promise.allSettled(
     endpoints.map((endpoint) => bitcoinRpc(pair, "addnode", [endpoint, "onetry"]))
   );
