@@ -335,3 +335,28 @@ Remaining:
   available together, so no live balance-delta or PnL claim has been made;
 - order/fill identity still needs to be bound to direct `tl_gettransaction`
   and address trade-history observations rather than broker output alone.
+
+## Full-txid order observation (2026-08-06)
+
+Decision: **accept the read-only verifier and new-order identity seam; retain
+the funded-launch block until it succeeds against a synchronized listener**.
+
+Passed:
+
+- TradeLayer new tx5 orderbook records retain the compact display ID and add
+  canonical `fullTxid` identity;
+- BitAgent requires listener sync, exact valid tx5 fields, and a full-txid
+  open-order or address-history match;
+- exact open and filled fixtures verify, while compact-only legacy records,
+  stale listener state, and ambiguous valid transactions remain pending;
+- mismatched transaction fields fail and hash-bound result tampering is
+  detected;
+- the sibling TradeLayer regression and four BitAgent verifier tests pass.
+
+Remaining:
+
+- no synchronized local TradeLayer listener was available for a live order
+  observation in this run;
+- historical maker-fill linkage remains incomplete because current trade
+  history identifies the taker transaction but not always the original maker
+  transaction.

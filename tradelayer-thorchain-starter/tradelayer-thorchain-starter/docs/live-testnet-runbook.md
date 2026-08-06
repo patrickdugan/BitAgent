@@ -114,7 +114,20 @@ The receipt contains txids, fees, payload bindings, and a receipt hash. It conta
 
 ## 5. Observe TradeLayer Balances
 
-Wait for Bitcoin confirmations and TradeLayer processing, then capture the post-trade balance:
+First verify that the synchronized TradeLayer listener exposes the exact valid
+tx5 as either a full-txid open order or an address trade-history fill:
+
+```powershell
+npm run observe:order -- --endpoint=http://127.0.0.1:3000 --txid=<broadcast-txid> --address=<approved-sender> --offered-property=1 --desired-property=2 --amount-offered=<exact-decimal> --amount-expected=<exact-decimal> --output=.runtime/testnet-agent/order-observation.json
+```
+
+The command queries `tl_getsyncstatus`, `tl_gettransaction`,
+`tl_getorderbook`, and `tl_tokentradehistoryforaddress` through the local
+relayer. It exits nonzero for pending or failed observations. A shortened
+order ID is never accepted as proof; current TradeLayer orderbook entries keep
+their legacy display ID and also expose `fullTxid` for this verifier.
+
+After exact order/fill verification, capture the post-trade balance:
 
 ```powershell
 npm run observe:pnl -- --action=snapshot --output=.runtime/testnet-agent/balance-after.json

@@ -480,3 +480,28 @@
   or honest.
 - Production evidence still needs direct transaction/order/fill observations
   and a durable receipt for the independent valuation source.
+
+## Full-txid TradeLayer order verification — 2026-08-06
+
+### Resolved
+
+- The sibling TradeLayer orderbook now preserves its legacy compact `txid`
+  display field and adds the canonical `fullTxid` to new on-chain token orders.
+- Added a read-only BitAgent verifier over relayer `tl_getsyncstatus`,
+  `tl_gettransaction`, `tl_getorderbook`, and
+  `tl_tokentradehistoryforaddress`.
+- Verification requires a synchronized listener, exact valid tx5 sender,
+  property IDs, amounts, and post-only flag, plus a full-txid open-order or
+  address-history match.
+- Legacy compact-only order identities and otherwise valid but unobservable
+  order states remain pending. They are never promoted to fabricated fills.
+- Added an operator command and focused open, filled, truncated, mismatched,
+  stale-listener, and evidence-tamper tests.
+
+### Unresolved
+
+- Existing orderbook records created before the `fullTxid` change cannot be
+  upgraded from seven-character IDs without replaying canonical transaction
+  history.
+- Maker orders filled by later taker transactions need full maker/taker txid
+  linkage in TradeLayer trade-history records for exact historical fill proof.
