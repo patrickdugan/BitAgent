@@ -515,7 +515,7 @@ test("stale independent TradeLayer state keeps strategy and referral pending", a
   assert.equal(verification.status, "pending");
   assert.equal(state.stage, "strategy_submitted");
   assert.equal(state.referral?.status, "pending");
-  assert.equal(state.wallet.confirmedBalanceSats, "250000");
+  assert.equal(state.wallet.confirmedBalanceSats, "150000");
 });
 
 test("temporarily unavailable independent verification persists a retryable pending state", async () => {

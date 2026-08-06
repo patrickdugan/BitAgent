@@ -51,9 +51,7 @@ export class IndependentlyVerifyingWalletBroker implements WalletExecutionBroker
     const strategy = input.simulation.strategy;
     const txid = String(input.execution.txid || "").toLowerCase();
     const address = String(input.state.wallet.bitcoinAddress || "");
-    const expectedTlUsdAtoms = input.simulation.effects.find((effect) =>
-      effect.asset === "tlUSD" && effect.direction === "credit" && effect.unit === "token_atoms"
-    )?.amount;
+    const expectedTlUsdAtoms = strategy?.expectedTlUsdAtoms;
     if (!strategy || !expectedTlUsdAtoms || !/^[a-f0-9]{64}$/.test(txid) || !address) {
       return {
         action: "starter_strategy",

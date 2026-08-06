@@ -1,5 +1,38 @@
 # Repo Map
 
+## UTXORef reserve and tlBTC intake correction (2026-08-06)
+
+- Source-of-truth reserve template:
+  `C:\projects\UTXORef\UTXO-Ref\bitvm3\utxo_referee\taproot_reserve_vault.js`.
+  Reused export: `buildTaprootReserveVaultTemplate(...)`. The template commits
+  an optional 32-byte binding in both the operator+guardian and CSV recovery
+  leaves, and UTXORef counts it only when the exact P2TR amount/script remains
+  unspent and outside the recovery-risk window.
+- Source-of-truth procedural intake encoder:
+  `C:\projects\tradelayer.js\src\txEncoder.js#encodeGrantManagedToken(...)`
+  (transaction type 11). The local indexer in `src\txIndex.js` admits vout 0/1
+  reference outputs, and procedural validation in `src\validity.js` binds the
+  chain reference amount, DLC template hash, contract, state, and redeem
+  address before issuance.
+- Implemented candidate-only composition:
+  `src/launch/reserveIntake.ts` produces one hash-bound testnet4 layout with
+  the exact P2TR reserve at vout 0, the tx11 OP_RETURN at vout 1, and wallet
+  change at vout 2. It contains public keys only and never signs or broadcasts.
+- Implemented accounting boundary:
+  `src/launch/strategyFunding.ts` requires independent evidence for Bitcoin
+  spendable sats, UTXORef reserve sats, and TradeLayer tlBTC available/reserved
+  sats. Production remote execution now fails construction without such a
+  source. Scripted evaluation uses an explicitly labeled fixture.
+- Corrected tx5 semantics:
+  a starter order locks already-issued tlBTC; it does not itself lock wallet
+  Bitcoin. The wallet balance changes only by the Bitcoin carrier fee, and the
+  displayed tlUSD amount is conditional on a fill.
+- Remaining seam:
+  no local production service yet prepares this exact reserve+tx11 candidate,
+  proves type-11 activation and registry state, obtains wallet approval,
+  signs/broadcasts inside the wallet, and independently joins Bitcoin reserve
+  evidence to synchronized TradeLayer issuance evidence.
+
 ## Committed Algorithmic Signal Seam (2026-07-26)
 
 - Discovered algorithm folder: `C:\projects\Trading Algos`.

@@ -16,6 +16,7 @@ const encoder = require(path.join(externalRepos.tradelayer, "src", "txEncoder.js
 type StrategySimulationInput = {
   amountSats: string;
   balanceSats: string;
+  tlBtcAvailableSats: string;
   networkFeeSats: string;
   quote: QuoteSnapshot;
   now: Date;
@@ -27,10 +28,14 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
   try {
     const amountSats = BigInt(input.amountSats);
     const balance = BigInt(input.balanceSats);
+    const tlBtcAvailable = BigInt(input.tlBtcAvailableSats);
     const networkFee = BigInt(input.networkFeeSats);
     if (amountSats <= 0n) throw new Error("amountSats must be positive");
-    if (amountSats + networkFee > balance) {
-      throw new LaunchKernelError("insufficient_funds", "Confirmed balance cannot cover strategy amount and fee");
+    if (amountSats > tlBtcAvailable) {
+      throw new LaunchKernelError("insufficient_funds", "Verified tlBTC availability cannot cover the strategy amount");
+    }
+    if (networkFee > balance) {
+      throw new LaunchKernelError("insufficient_funds", "Spendable Bitcoin cannot cover the strategy carrier fee");
     }
     if (input.now.getTime() >= new Date(input.quote.expiresAt).getTime()) {
       throw new LaunchKernelError("simulation_stale", "Strategy quote is already stale");
@@ -42,6 +47,7 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
       strategyId: "starter-tlbtc-tlusd-limit-v1",
       amountSats: amountSats.toString(),
       limitPriceUsd: formatUnits(priceCents, 2),
+      expectedTlUsdAtoms: expectedTlUsdAtoms.toString(),
       postOnly: true,
       offeredPropertyId: input.offeredPropertyId || 1,
       desiredPropertyId: input.desiredPropertyId || 2
@@ -61,14 +67,27 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
       createdAt: input.now.toISOString(),
       expiresAt: input.quote.expiresAt,
       effects: [
-        { asset: "tlBTC" as const, direction: "lock" as const, amount: amountSats.toString(), unit: "sats" as const },
+        {
+          asset: "tlBTC" as const,
+          direction: "lock" as const,
+          amount: amountSats.toString(),
+          unit: "sats" as const,
+          condition: "immediate" as const
+        },
         {
           asset: "tlUSD" as const,
           direction: "credit" as const,
           amount: expectedTlUsdAtoms.toString(),
-          unit: "token_atoms" as const
+          unit: "token_atoms" as const,
+          condition: "on_fill" as const
         },
-        { asset: "BTC_ORDER" as const, direction: "credit" as const, amount: "1", unit: "order" as const }
+        {
+          asset: "BTC_ORDER" as const,
+          direction: "credit" as const,
+          amount: "1",
+          unit: "order" as const,
+          condition: "immediate" as const
+        }
       ],
       fees: {
         networkFeeSats: networkFee.toString(),
@@ -76,13 +95,15 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
         totalFeeSats: networkFee.toString()
       },
       balanceBeforeSats: balance.toString(),
-      balanceAfterSats: (balance - amountSats - networkFee).toString(),
+      balanceAfterSats: (balance - networkFee).toString(),
       payload: String(payload),
       payloadHex: Buffer.from(String(payload), "utf8").toString("hex"),
       quote: input.quote,
       strategy: parameters,
       warnings: [
         "This is a post-only limit order; it may remain open and does not guarantee a fill.",
+        "The tlUSD amount is conditional on a fill, not an immediate credit.",
+        "The selected amount comes from independently verified tlBTC backed by a separate UTXORef reserve.",
         "Only the exact displayed payload may be approved."
       ]
     };

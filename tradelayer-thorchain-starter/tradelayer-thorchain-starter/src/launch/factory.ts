@@ -7,8 +7,17 @@ import {
   type ScriptedBrokerOptions
 } from "./broker.js";
 import { BitAgentLaunchKernel } from "./kernel.js";
+import {
+  ScriptedStrategyFundingSource,
+  UnavailableStrategyFundingSource
+} from "./strategyFunding.js";
 import { FileWorkflowStore, InMemoryWorkflowStore } from "./store.js";
-import type { QuoteProvider, WalletExecutionBroker, WorkflowStore } from "./types.js";
+import type {
+  QuoteProvider,
+  StrategyFundingReadSource,
+  WalletExecutionBroker,
+  WorkflowStore
+} from "./types.js";
 import { IndependentlyVerifyingWalletBroker } from "./verifiedBroker.js";
 import { RemoteWalletExecutionBroker } from "./remoteWalletBroker.js";
 import {
@@ -55,6 +64,7 @@ export function createLaunchKernel(options: {
   now?: () => Date;
   production?: boolean;
   scriptedBroker?: ScriptedBrokerOptions;
+  strategyFundingSource?: StrategyFundingReadSource;
   tradeLayerOrderSource?: TradeLayerOrderReadSource;
   bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
   withdrawalConfirmations?: number;
@@ -84,14 +94,17 @@ export function createLaunchKernel(options: {
       : undefined
   );
   if (production && walletBroker instanceof RemoteWalletExecutionBroker
-    && (!tradeLayerOrderSource || !bitcoinWithdrawalSource)) {
+    && (!tradeLayerOrderSource || !bitcoinWithdrawalSource || !options.strategyFundingSource)) {
     throw new Error(
-      "Remote production wallet execution requires both independent TradeLayer order and Bitcoin withdrawal sources"
+      "Remote production wallet execution requires independent strategy funding, TradeLayer order, and Bitcoin withdrawal sources"
     );
   }
   return new BitAgentLaunchKernel({
     store: options.store || new FileWorkflowStore(path.join(runtimeDir, "bitagent-workflows.json")),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),
+    strategyFundingSource: options.strategyFundingSource || (
+      production ? new UnavailableStrategyFundingSource() : new ScriptedStrategyFundingSource()
+    ),
     walletBroker: tradeLayerOrderSource || bitcoinWithdrawalSource
       ? new IndependentlyVerifyingWalletBroker(
         walletBroker,
@@ -108,6 +121,7 @@ export function createTestLaunchKernel(options: {
   now?: () => Date;
   walletBroker?: WalletExecutionBroker;
   quoteProvider?: QuoteProvider;
+  strategyFundingSource?: StrategyFundingReadSource;
   store?: WorkflowStore;
   tradeLayerOrderSource?: TradeLayerOrderReadSource;
   bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
@@ -117,6 +131,7 @@ export function createTestLaunchKernel(options: {
     store: options.store || new InMemoryWorkflowStore(),
     walletBroker: options.walletBroker || new ScriptedWalletBroker(),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),
+    strategyFundingSource: options.strategyFundingSource || new ScriptedStrategyFundingSource(),
     tradeLayerOrderSource: options.tradeLayerOrderSource,
     bitcoinWithdrawalSource: options.bitcoinWithdrawalSource,
     withdrawalConfirmations: options.withdrawalConfirmations,

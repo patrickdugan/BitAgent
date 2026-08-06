@@ -1,11 +1,13 @@
 import { hashObject, opaqueId } from "./canonical.js";
 import { LaunchKernelError } from "./errors.js";
 import { parseReferralLink } from "./referral.js";
+import { assertVerifiedStrategyFunding } from "./strategyFunding.js";
 import { simulateBitcoinWithdrawal, simulateStarterStrategy } from "./tradelayerTool.js";
 import { observeBitcoinDeposit } from "./utxoTool.js";
 import type {
   BitAgentWorkflowState,
   QuoteProvider,
+  StrategyFundingReadSource,
   SupportedIntent,
   TransactionSimulation,
   WalletExecutionBroker,
@@ -16,6 +18,7 @@ import type {
 type KernelOptions = {
   store: WorkflowStore;
   quoteProvider: QuoteProvider;
+  strategyFundingSource: StrategyFundingReadSource;
   walletBroker: WalletExecutionBroker;
   now?: () => Date;
   requiredConfirmations?: number;
@@ -204,6 +207,24 @@ export class BitAgentLaunchKernel {
     const state = await this.get(workflowId);
     this.assertConfirmedDeposit(state);
     const now = this.now();
+    const funding = await this.options.strategyFundingSource.observe({
+      state,
+      requestedAmountSats: input.amountSats,
+      now
+    });
+    state.strategyFunding = funding;
+    this.event(state, `strategy.funding_${funding.status}`, {
+      source: funding.source,
+      evidenceHash: funding.evidenceHash,
+      reserveOutpoint: funding.reserveOutpoint || null,
+      reserveLockedSats: funding.reserveLockedSats,
+      tlBtcAvailableSats: funding.tlBtcAvailableSats,
+      bitcoinSpendableSats: funding.bitcoinSpendableSats,
+      confirmations: funding.confirmations
+    });
+    await this.persist(state);
+    const verifiedFunding = assertVerifiedStrategyFunding(funding, state, input.amountSats);
+    state.wallet.confirmedBalanceSats = verifiedFunding.bitcoinSpendableSats;
     const quote = await this.options.quoteProvider.getStarterStrategyQuote({
       amountSats: input.amountSats,
       now
@@ -216,6 +237,7 @@ export class BitAgentLaunchKernel {
     const simulation = simulateStarterStrategy({
       amountSats: input.amountSats,
       balanceSats: state.wallet.confirmedBalanceSats,
+      tlBtcAvailableSats: verifiedFunding.tlBtcAvailableSats,
       networkFeeSats: fee.networkFeeSats,
       quote,
       now
@@ -233,6 +255,8 @@ export class BitAgentLaunchKernel {
       quoteId: quote.quoteId,
       quoteSource: quote.source,
       feeSource: fee.source,
+      fundingEvidenceHash: verifiedFunding.evidenceHash,
+      reserveOutpoint: verifiedFunding.reserveOutpoint,
       totalFeeSats: simulation.fees.totalFeeSats
     });
     await this.persist(state);
@@ -452,7 +476,7 @@ export class BitAgentLaunchKernel {
       state.wallet.confirmedBalanceSats = simulation.balanceAfterSats;
       state.stage = simulation.action === "starter_strategy" ? "strategy_verified" : "withdrawal_verified";
       state.recoveryInstructions = simulation.action === "starter_strategy"
-        ? ["The starter order is verified. Remaining Bitcoin can now be withdrawn."]
+        ? ["The starter order is verified. Its UTXORef reserve remains separate from spendable wallet Bitcoin."]
         : ["The withdrawal is verified. Keep the txid for your records."];
       if (simulation.action === "starter_strategy" && state.referral?.status === "pending") {
         state.referral.status = "activated";

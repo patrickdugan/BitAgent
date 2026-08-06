@@ -17,7 +17,7 @@
     "demo:launch": "tsx scripts/demo-launch-kernel.ts",
     "launch": "tsx scripts/bitagent-server.ts",
     "eval:launch": "tsx eval/run-evaluations.ts",
-    "test:launch": "tsx --test test/launch-kernel.e2e.test.ts test/agent-eval.test.ts test/launch-server.test.ts test/remote-wallet-broker.test.ts",
+    "test:launch": "tsx --test test/launch-kernel.e2e.test.ts test/agent-eval.test.ts test/launch-server.test.ts test/remote-wallet-broker.test.ts test/strategy-funding.test.ts",
     "test:near": "tsx --test test/near-chain-abstraction.test.ts",
     "demo:phantom": "tsx scripts/demo-onboard.ts",
     "demo:survival": "tsx scripts/demo-survival.ts",

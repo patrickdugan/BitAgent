@@ -78,6 +78,7 @@ export type StarterStrategyParameters = {
   strategyId: "starter-tlbtc-tlusd-limit-v1";
   amountSats: string;
   limitPriceUsd: string;
+  expectedTlUsdAtoms: string;
   postOnly: true;
   offeredPropertyId: number;
   desiredPropertyId: number;
@@ -97,6 +98,26 @@ export type ExactEffect = {
   amount: string;
   unit: "sats" | "token_atoms" | "order";
   destination?: string;
+  condition?: "immediate" | "on_fill";
+};
+
+export type StrategyFundingEvidence = {
+  schema: "bitagent_strategy_funding_evidence_v1";
+  status: "pending" | "verified" | "failed";
+  network: PublicWalletConnection["network"];
+  walletSessionId: string;
+  bitcoinSpendableSats: string;
+  reserveLockedSats: string;
+  tlBtcAvailableSats: string;
+  tlBtcReservedSats: string;
+  reserveOutpoint?: string;
+  reserveManifestHash?: string;
+  intakeTxid?: string;
+  confirmations: number;
+  observedAt: string;
+  source: string;
+  reason: string;
+  evidenceHash: string;
 };
 
 export type TransactionSimulation = {
@@ -175,6 +196,7 @@ export type BitAgentWorkflowState = {
   wallet: PublicWalletConnection;
   deposit: BitcoinDepositState;
   selectedStrategy?: StarterStrategyParameters;
+  strategyFunding?: StrategyFundingEvidence;
   simulation?: TransactionSimulation;
   pendingApproval?: WalletApproval;
   execution?: ActionExecution;
@@ -200,6 +222,9 @@ export type StructuredPlan = {
   walletTruth: {
     connected: boolean;
     confirmedBalanceSats: string;
+    reserveLockedSats: string;
+    tlBtcAvailableSats: string;
+    strategyFundingSource?: string;
     depositConfirmations: number;
     depositRequiredConfirmations: number;
   };
@@ -217,6 +242,15 @@ export interface QuoteProvider {
     amountSats: string;
     now: Date;
   }): Promise<QuoteSnapshot>;
+}
+
+export interface StrategyFundingReadSource {
+  readonly source: string;
+  observe(input: {
+    state: BitAgentWorkflowState;
+    requestedAmountSats: string;
+    now: Date;
+  }): Promise<StrategyFundingEvidence>;
 }
 
 export interface WalletExecutionBroker {

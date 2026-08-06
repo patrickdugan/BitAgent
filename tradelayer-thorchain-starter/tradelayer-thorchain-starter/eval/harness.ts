@@ -47,6 +47,8 @@ export async function evaluateAgentCase(agentCase: AgentCase) {
     || plan.missingParameters.includes(agentCase.expectedMissing);
   const truth = plan.walletTruth.connected === (before.wallet.status === "connected")
     && plan.walletTruth.confirmedBalanceSats === before.wallet.confirmedBalanceSats
+    && plan.walletTruth.reserveLockedSats === (before.strategyFunding?.reserveLockedSats || "0")
+    && plan.walletTruth.tlBtcAvailableSats === (before.strategyFunding?.tlBtcAvailableSats || "0")
     && plan.walletTruth.depositConfirmations === before.deposit.confirmations;
   const approvalBoundary = !["bitagent.action.execute", "bitagent.wallet.resolve_approval"]
     .includes(actualTool || "");

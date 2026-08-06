@@ -65,8 +65,26 @@ action, and expiry.
   execute calls return the same receipt.
 
 The remote wallet is never accepted as the verifier. Production factory setup
-requires both an independent synchronized TradeLayer order source and an
-independent Bitcoin withdrawal source before it will install this broker.
+requires an independent UTXORef reserve/tlBTC funding source, an independent
+synchronized TradeLayer order source, and an independent Bitcoin withdrawal
+source before it will install this broker.
+
+### Required reserve-intake extension (not implemented)
+
+The current fee endpoint is insufficient for the starter strategy because a
+tx5 order does not lock Bitcoin. Before funded launch, the wallet service must
+prepare and retain an unsigned `bitagent_reserve_intake_plan_v1` candidate with
+the displayed reserve amount/script at vout 0, the exact procedural tx11
+payload at vout 1, and wallet change at vout 2. Its public response may expose
+only the candidate ID/hash/expiry, unsigned txid, public inputs/outputs/change,
+fee, and UTXORef manifest fields; it must not return a PSBT or signed/raw
+transaction to BitAgent. Approval, signing, and broadcast remain wallet-owned.
+
+The candidate is executable only after independent preflight proves tx11 is
+active and the target TradeLayer deployment has the exact property, template
+hash, contract state, and reserve redeem address. After broadcast, BitAgent
+must independently join the on-chain reserve output to the processed tx11
+credit before allowing a tx5 strategy simulation.
 
 ## Local configuration
 

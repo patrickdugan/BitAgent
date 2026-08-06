@@ -46,6 +46,9 @@ function basePlan(state: BitAgentWorkflowState, intent: SupportedIntent | "unsup
     walletTruth: {
       connected,
       confirmedBalanceSats: state.wallet.confirmedBalanceSats,
+      reserveLockedSats: state.strategyFunding?.reserveLockedSats || "0",
+      tlBtcAvailableSats: state.strategyFunding?.tlBtcAvailableSats || "0",
+      strategyFundingSource: state.strategyFunding?.source,
       depositConfirmations: state.deposit.confirmations,
       depositRequiredConfirmations: state.deposit.requiredConfirmations
     },
@@ -113,7 +116,9 @@ export class BitAgentConversation {
       }
       const amountSats = extractAmountSats(message);
       if (!amountSats) {
-        plan.summary = `You have ${state.wallet.confirmedBalanceSats} confirmed sats. Choose the exact amount to place in the starter strategy.`;
+        plan.summary = state.strategyFunding?.status === "verified"
+          ? `Wallet spendable: ${state.wallet.confirmedBalanceSats} sats; UTXORef reserve: ${state.strategyFunding.reserveLockedSats} sats; verified tlBTC available: ${state.strategyFunding.tlBtcAvailableSats} sats.`
+          : `You have ${state.wallet.confirmedBalanceSats} confirmed wallet sats. Choose an amount; BitAgent will require independent UTXORef reserve and tlBTC funding evidence before simulation.`;
         plan.missingParameters = ["amountSats"];
         return plan;
       }

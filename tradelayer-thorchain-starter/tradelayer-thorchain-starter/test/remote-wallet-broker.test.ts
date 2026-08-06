@@ -280,7 +280,7 @@ test("remote wallet broker rejects insecure configuration and production without
   const broker = new RemoteWalletExecutionBroker({ endpoint: "http://127.0.0.1:9000", authToken: AUTH_TOKEN });
   assert.throws(
     () => createLaunchKernel({ production: true, walletBroker: broker }),
-    /both independent TradeLayer order and Bitcoin withdrawal sources/i
+    /independent strategy funding, TradeLayer order, and Bitcoin withdrawal sources/i
   );
 });
 

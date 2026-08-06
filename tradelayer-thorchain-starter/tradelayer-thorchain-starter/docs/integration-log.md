@@ -560,3 +560,41 @@
   implementation of `docs/wallet-broker-contract.md`. Its wallet-owned session,
   approval UI, PSBT/order construction, one-time grant consumption, signing,
   and broadcast endpoints remain the next funded-launch blocker.
+
+## Reserve/intake accounting correction — 2026-08-06
+
+### Resolved
+
+- Found that the previous tx5-only simulation conflated three different
+  ledgers: wallet Bitcoin, UTXORef reserve Bitcoin, and TradeLayer tlBTC. A tx5
+  order only reserves an existing TradeLayer token balance and cannot prove a
+  Bitcoin collateral lock.
+- Reused UTXORef's `buildTaprootReserveVaultTemplate(...)` rather than creating
+  a local vault format. The workflow/session/amount/procedural context hash is
+  embedded in both Taproot spend leaves.
+- Reused TradeLayer tx11 procedural issuance and fixed the candidate output
+  topology to reserve vout 0, OP_RETURN vout 1, change vout 2, matching the
+  local reference-output parser.
+- Added hash-bound strategy-funding evidence with separate
+  `bitcoinSpendableSats`, `reserveLockedSats`, `tlBtcAvailableSats`, and
+  `tlBtcReservedSats` fields. Strategy simulation fails closed without a
+  verified independent source in production.
+- Corrected the exact-effects display: the wallet pays only the tx5 carrier
+  fee, the selected amount comes from verified tlBTC, and tlUSD proceeds are
+  explicitly conditional on a fill.
+- Added four focused reserve/accounting regressions. The complete launch suite
+  passes 46/46 and TypeScript compilation passes.
+
+### Unresolved
+
+- `tradelayer.js` initializes tx11 as inactive; the candidate must not be
+  broadcast until the synchronized target deployment independently reports it
+  active at the intended block.
+- The procedural registry is local database state. A production verifier must
+  prove that every execution node has the exact template hash, contract state,
+  property ID, and reserve `redeemAddress`; permissive or missing registry data
+  is not launchable.
+- The remote wallet contract still lacks candidate preparation for the combined
+  reserve+tx11 transaction and a wallet-owned operator/guardian approval path.
+- No reserve/intake transaction was signed or broadcast in this correction.
+  The old unsigned tx5 drill remains cancelled and its input remains released.

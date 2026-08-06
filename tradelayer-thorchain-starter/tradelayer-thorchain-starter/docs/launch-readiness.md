@@ -376,3 +376,36 @@ Remaining:
 - the withdrawal verifier has not yet observed a real approved testnet4
   withdrawal broadcast in this run, so funded launch remains blocked on the
   authenticated wallet broker and explicit end-to-end broadcast proof.
+
+## UTXORef reserve/intake correction (2026-08-06)
+
+Decision: **accept the candidate-only reserve/intake composition and corrected
+ledger model; funded starter-strategy execution remains blocked**.
+
+Passed:
+
+- the starter strategy can no longer infer collateral from a tx5 order;
+- one deterministic plan binds the public wallet session, amount, tlBTC
+  property, procedural template/contract/state, and DLC hash into both UTXORef
+  Taproot leaves;
+- the plan requires reserve vout 0, tx11 OP_RETURN vout 1, and wallet change
+  vout 2, and round-trips through the real TradeLayer decoder;
+- wallet spendable Bitcoin, reserve-locked Bitcoin, and TradeLayer tlBTC are
+  represented separately in persisted public workflow truth;
+- production remote-broker construction requires an independent strategy
+  funding source in addition to order and withdrawal sources;
+- the tx5 simulation debits only the carrier fee, labels tlUSD as conditional
+  on fill, and preserves the exact order payload;
+- 46/46 launch/funding tests and TypeScript compilation pass.
+
+Remaining:
+
+- prove tx11 activation, intended tlBTC property identity, and identical
+  procedural registry state on the synchronized target deployment;
+- implement wallet-owned preparation/approval/signing/broadcast for the exact
+  combined candidate without exposing PSBT, signatures, or private material;
+- independently verify the P2TR reserve UTXO, tx11 processing/credit, current
+  wallet spendable balance, tx5 order, fill/PnL, reserve release, and final
+  Bitcoin withdrawal;
+- repeat the browser recovery drill against that real wallet service. No live
+  candidate may be approved or broadcast before these gates pass.
