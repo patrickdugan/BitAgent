@@ -107,7 +107,7 @@ Passing this check does not request approval, sign, or broadcast.
 
 Expected results:
 
-- 91/91 launch tests and 24/24 end-to-end trajectories pass.
+- 94/94 launch tests and 24/24 end-to-end trajectories pass.
 - 50/50 focused agent cases pass.
 - Every evaluation score is `1`.
 - `eval/artifacts/failure-traces.jsonl` is empty on a clean run.

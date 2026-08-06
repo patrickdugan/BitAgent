@@ -925,8 +925,12 @@ Passed:
   effects, fees, receipts, and recovery state; no PSBT, signed transaction,
   signature, key, or bearer token is returned or persisted publicly;
 - wallet server/provider/authority regressions, both TypeScript checks, the
-  frontend Angular AOT compiler, and the 91/91 launch preflight pass; all 24
+  frontend Angular AOT compiler, and the 94/94 launch preflight pass; all 24
   trajectories and 50/50 agent cases pass with zero generated failure traces.
+- the Bonsai/Hermes v2 corpus has 118 deterministic candidate-only rows and
+  explicit reserve preflight, mempool-rejection, and ambiguous-submission
+  recovery coverage; its tool-contract and authority tests are in the launch
+  gate.
 
 Remaining:
 

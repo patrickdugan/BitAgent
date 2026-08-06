@@ -9,6 +9,8 @@ import { financialSurvivalToolSchemas } from "../src/survival/tools.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const artifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "tool-contracts.json");
+const examplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "examples.jsonl");
+const manifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "manifest.json");
 const legacyArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v1", "tool-contracts.json");
 
 test("Bonsai tool contract bundle mirrors production schemas and denies effectful model calls", async () => {
@@ -46,4 +48,39 @@ test("survival contracts use v2 without contaminating the frozen v1 lane", async
   assert.equal("bitagent.survival.assess" in current.contracts, true);
   assert.equal("bitagent.survival.evaluate" in current.contracts, true);
   assert.equal("bitagent.survival.journal.verify" in current.contracts, true);
+});
+
+test("reserve execution failures produce candidate-only specialist and recovery rows", async () => {
+  const manifest = JSON.parse(await fs.readFile(manifestArtifact, "utf8"));
+  const rows = (await fs.readFile(examplesArtifact, "utf8"))
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  assert.equal(manifest.totalExamples, 118);
+  assert.deepEqual(manifest.countsByRole, {
+    intent_planner: 50,
+    utxo_tradelayer_specialist: 11,
+    risk_approval_guard: 41,
+    recovery_operator: 16
+  });
+  assert.equal(manifest.secretValuesDetected, false);
+  assert.equal(manifest.rawTranscriptsIncluded, false);
+
+  for (const id of [
+    "recovery-reserve-preflight-plan-mismatch",
+    "specialist-reserve-preflight-plan-mismatch",
+    "recovery-reserve-mempool-rejected",
+    "recovery-reserve-submission-unknown"
+  ]) {
+    const row = byId.get(id);
+    assert.ok(row, id);
+    assert.equal(row.authority.proposeOnly, true, id);
+    assert.equal(JSON.parse(row.messages[2].content).execute, false, id);
+  }
+  assert.equal(
+    JSON.parse(byId.get("recovery-reserve-submission-unknown").messages[2].content)
+      .verifyBeforeReplacement,
+    true
+  );
 });

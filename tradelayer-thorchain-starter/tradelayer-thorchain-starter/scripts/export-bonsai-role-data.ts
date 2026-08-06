@@ -290,7 +290,13 @@ async function main() {
       },
       tags: ["recovery", String(row.errorCode)]
     }));
-    if (["malformed_address", "deposit_unconfirmed", "insufficient_funds", "simulation_stale"].includes(String(row.errorCode))) {
+    if ([
+      "malformed_address",
+      "deposit_unconfirmed",
+      "insufficient_funds",
+      "simulation_stale",
+      "preflight_failed"
+    ].includes(String(row.errorCode))) {
       examples.push(makeExample({
         id: `specialist-${id}`,
         role: "utxo_tradelayer_specialist",

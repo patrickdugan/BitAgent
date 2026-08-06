@@ -1,16 +1,16 @@
 {
   "schema": "hermes.bitagent_role_corpus.v1",
-  "generatedAt": "2026-08-06T14:09:10.088Z",
+  "generatedAt": "2026-08-06T21:04:52.099Z",
   "generator": "scripts/export-bonsai-role-data.ts",
-  "totalExamples": 114,
+  "totalExamples": 118,
   "countsByRole": {
     "intent_planner": 50,
-    "utxo_tradelayer_specialist": 10,
+    "utxo_tradelayer_specialist": 11,
     "risk_approval_guard": 41,
-    "recovery_operator": 13
+    "recovery_operator": 16
   },
   "countsBySplit": {
-    "train": 106,
+    "train": 110,
     "validation": 4,
     "test": 4
   },
@@ -65,7 +65,7 @@
     },
     {
       "path": "eval/fixtures/failure-traces.seed.jsonl",
-      "sha256": "a4c237e6cc8842d51459f90c2be2aae95daf53c45f6b4b04be7ff4a13824d64d"
+      "sha256": "a377d9ad5f5c2c15a44aef969df629dec8f15dbcb7a51245f42f8fa869e999a4"
     },
     {
       "path": "eval/fixtures/signal-failure-traces.seed.jsonl",
@@ -92,7 +92,7 @@
       "sha256": "b4022052c47a2133e8d390cbf97de706f5a7f701485b09ffeede8de6f4ddcb8e"
     }
   ],
-  "examplesSha256": "81cc7a1edad89a261eb91f57b0d924503c880d16419cb8f8bf962b060d417478",
+  "examplesSha256": "070d197c2de9d7739121a9c6c4601d5617919d67ea25bc1331be9d3ace9900ca",
   "toolContractsPath": "tool-contracts.json",
   "toolContractsSha256": "3805eb3fe905c759f8a1bb9cf706e45c8c83faaa637092a2236a930f269c133c",
   "toolContractBundleSha256": "65729606fd98ef6d38f8e8965d290b7a46e62f9d945f8c54c0a353f59db12765",

@@ -1193,7 +1193,12 @@
   preflight outage recovery, idempotency, and raw-PSBT/token redaction. The
   wallet release suite, wallet server/frontend TypeScript checks, and frontend
   Angular AOT compiler pass.
-- The complete launch preflight passes 91/91 checks, all 24 scripted
+- Added candidate-only Bonsai/Hermes failure rows for exact-plan preflight
+  mismatch, signed-candidate mempool rejection, and ambiguous reserve
+  submission. The v2 corpus now contains 118 rows: 50 intent, 11 UTXO/
+  TradeLayer specialist, 41 approval-risk, and 16 recovery examples. The new
+  rows cannot approve, sign, broadcast, retry, or invent state.
+- The complete launch preflight passes 94/94 checks, all 24 scripted
   trajectories, and 50/50 focused agent cases with every score equal to 1 and
   zero generated failure traces. Candidate-8 source verification passes at
   commit `dabbaf485dda99b2b0626120942190b5873fd2f3` and hash

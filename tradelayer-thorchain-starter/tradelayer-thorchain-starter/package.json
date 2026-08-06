@@ -19,7 +19,7 @@
     "eval:launch": "tsx eval/run-evaluations.ts",
     "preflight:launch": "tsx scripts/preflight-launch.ts",
     "verify:tradelayer-release": "tsx scripts/verify-tradelayer-release.ts",
-    "test:launch": "tsx --test test/launch-kernel.e2e.test.ts test/agent-eval.test.ts test/launch-server.test.ts test/launch-preflight.test.ts test/operator-evidence.test.ts test/remote-wallet-broker.test.ts test/reserve-funding-kernel.test.ts test/reserve-intake-wallet-protocol.test.ts test/strategy-funding.test.ts test/tradelayer-lifecycle-skill.test.ts test/tradelayer-release.test.ts test/tradelayer-listener-preflight.test.ts test/testnet4-sync-throttle.test.ts test/bitagent-skills.test.ts",
+    "test:launch": "tsx --test test/launch-kernel.e2e.test.ts test/agent-eval.test.ts test/launch-server.test.ts test/launch-preflight.test.ts test/operator-evidence.test.ts test/remote-wallet-broker.test.ts test/reserve-funding-kernel.test.ts test/reserve-intake-wallet-protocol.test.ts test/strategy-funding.test.ts test/tradelayer-lifecycle-skill.test.ts test/tradelayer-release.test.ts test/tradelayer-listener-preflight.test.ts test/testnet4-sync-throttle.test.ts test/bitagent-skills.test.ts test/bonsai-tool-contracts.test.ts",
     "test:wallet-authority-integration": "tsx --test test/wallet-authority-integration.test.ts",
     "test:skills": "tsx --test test/tradelayer-lifecycle-skill.test.ts test/bitagent-skills.test.ts test/financial-survival-tools.test.ts",
     "test:near": "tsx --test test/near-chain-abstraction.test.ts",
