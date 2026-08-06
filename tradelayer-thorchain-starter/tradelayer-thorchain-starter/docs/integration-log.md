@@ -1002,3 +1002,22 @@
 - Commit `0962b5b` also binds the sanitized Bitcoin best-block hash. BitAgent
   requires both listener backends to attest the same 32-byte tip hash, so
   equal heights on divergent forks cannot satisfy `synchronizedTestnet4`.
+- Transaction-dense testnet4 blocks made the legacy two-RPC-per-transaction
+  scan too slow for a bounded recovery drill. Candidate 4 (`d6f2f4f`) adds an
+  opt-in `TL_DECODE_BLOCK_TRANSACTIONS=1` mode that requests Bitcoin Core
+  `getblock` verbosity 2 and parses the returned decoded transactions locally.
+  The legacy block-scoped raw lookup remains the default. Focused tests prove
+  the explicit RPC argument, decoded TradeLayer marker path, absence of
+  per-transaction RPC in that path, and unchanged checkpoint semantics.
+- The accelerated replay reached listener B's paused backend tip at 35,751 and
+  exposed an empty-history transition bug: with no TradeLayer marker
+  transactions, consensus returned while `processedHeight` remained zero.
+  Candidate 5 (`3f3dc62`) now persists indexed, processed, and track heights at
+  the same tip before entering the realtime loop. The no-transaction case is a
+  valid clean history, not a partial consensus state.
+- After peer networking resumed, realtime scanning advanced durable
+  `trackHeight` while the historical `indexedHeight` correctly remained at its
+  reconstruction boundary. The live verifier now measures block lag against
+  `trackHeight`, requires indexed and processed heights not to exceed it, and
+  rejects a track height above the Bitcoin tip. This preserves fail-closed lag
+  checks without requiring the historical index marker to move in realtime.

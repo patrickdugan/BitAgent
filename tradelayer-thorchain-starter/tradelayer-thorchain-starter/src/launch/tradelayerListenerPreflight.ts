@@ -34,6 +34,7 @@ export type TradeLayerListenerObservation = {
     chainTip: number;
     indexedHeight: number;
     processedHeight: number;
+    trackHeight: number;
     updatedAt: number;
     error: unknown;
   };
@@ -196,6 +197,7 @@ function normalizeObservation(input: {
       chainTip: safeInteger(sync.chainTip, "chain tip"),
       indexedHeight: safeInteger(sync.indexedHeight, "indexed height"),
       processedHeight: safeInteger(sync.processedHeight, "processed height"),
+      trackHeight: safeInteger(sync.trackHeight, "track height"),
       updatedAt: safeInteger(sync.updatedAt, "sync timestamp"),
       error: sync.error ?? null
     },
@@ -335,8 +337,9 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
     && item.bitcoinBackend.blocks === item.bitcoinBackend.headers
     && item.bitcoinBackend.blocks === item.sync.chainTip
     && item.bitcoinBackend.verificationProgress >= 0.999999
-    && item.sync.indexedHeight <= item.sync.chainTip && item.sync.processedHeight <= item.sync.chainTip
-    && item.sync.chainTip - Math.min(item.sync.indexedHeight, item.sync.processedHeight) <= maxSyncLagBlocks
+    && item.sync.indexedHeight <= item.sync.trackHeight && item.sync.processedHeight <= item.sync.trackHeight
+    && item.sync.trackHeight <= item.sync.chainTip
+    && item.sync.chainTip - item.sync.trackHeight <= maxSyncLagBlocks
   );
   const exactReleaseCommit = observationsValid && acceptedReleaseCommits.length > 0
     && input.observations.every((item) => acceptedReleaseCommits.includes(item.listener.releaseCommit));

@@ -216,6 +216,12 @@ a partial `MaxHeight` checkpoint every 100 processed blocks. During replay,
 `max Indexed Block` instead of returning to the configured genesis boundary.
 Do not reuse a database from a pre-checkpoint build for launch evidence.
 
+For a reviewed Bitcoin Core backend that supports numeric `getblock`
+verbosity, set `TL_DECODE_BLOCK_TRANSACTIONS=1` before listener startup. This
+uses one decoded block response instead of separate raw/decode RPC calls for
+every transaction. Leave it unset for legacy backends; the block-scoped raw
+lookup remains supported.
+
 ```powershell
 $env:TRADELAYER_PREFLIGHT_ENDPOINTS="http://127.0.0.1:3101;http://127.0.0.1:3102"
 npm run observe:listener-preflight
@@ -235,6 +241,12 @@ peer, the same tip used by the TradeLayer status, and identical best-block
 hashes across listeners. A locally caught-up index over a paused, stale,
 fork-divergent, or still-IBD node is not launch evidence.
 
+During realtime operation, compare the Bitcoin tip with `trackHeight`.
+`indexedHeight` is the completed historical replay boundary and need not move
+on every new block; `processedHeight` may trail when blocks contain no
+TradeLayer transaction. Both must remain at or below durable `trackHeight`,
+and `trackHeight` must be within the configured lag of the Bitcoin tip.
+
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
 proof; operators must still ensure the endpoints do not proxy the same process
@@ -246,7 +258,7 @@ never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`a8e3530a4721efbe7c8f525fdfa016db9ec76ac016a49e5efe617cb0bf54f4de`, but
+`c6f4902d6f7f2cd1e7a16047432cb33bb754cb8f093e536e1fafe83e5c64612d`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.

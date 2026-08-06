@@ -843,7 +843,17 @@ Passed:
   backends.
 - both backend attestations must carry the same validated Bitcoin best-block
   hash; equal heights on different tips fail synchronization parity.
-- the complete launch preflight passes 72/72 launch checks, 24 scripted
+- candidate 4 supports an explicit decoded-block replay mode for reviewed
+  Bitcoin Core backends; it removes per-transaction RPC round trips without
+  changing marker parsing or transaction authority.
+- candidate 5 closes the zero-transaction consensus transition: an empty
+  indexed history must durably align indexed, processed, and track heights
+  before the listener may enter realtime. The combined focused TradeLayer set
+  passes 20/20.
+- realtime launch lag is now bound to durable `trackHeight`; focused tests
+  accept a caught-up track over an older historical index and reject lagged or
+  impossible above-tip tracking.
+- the complete launch preflight passes 73/73 launch checks, 24 scripted
   trajectories, and 50/50 focused agent cases with no generated failure trace.
 
 Boundaries:

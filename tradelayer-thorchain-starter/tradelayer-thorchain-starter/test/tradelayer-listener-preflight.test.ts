@@ -30,6 +30,8 @@ type ResponseInput = {
   instance: string;
   challenge: string;
   lag?: number;
+  historyLag?: number;
+  trackAhead?: number;
   commit?: string;
   secret?: boolean;
   initialBlockDownload?: boolean;
@@ -41,6 +43,7 @@ type ResponseInput = {
 
 function response(input: ResponseInput) {
   const lag = input.lag || 0;
+  const historyLag = input.historyLag ?? lag;
   return {
     schema: "tradelayer_listener_launch_attestation_v1",
     authority: "read_only_observer",
@@ -64,8 +67,9 @@ function response(input: ResponseInput) {
       initialized: true,
       phase: "realtime",
       chainTip: 100,
-      indexedHeight: 100 - lag,
-      processedHeight: 100 - lag,
+      indexedHeight: 100 - historyLag,
+      processedHeight: 100 - historyLag,
+      trackHeight: 100 - lag + (input.trackAhead || 0),
       updatedAt: NOW.getTime(),
       error: null
     },
@@ -162,6 +166,20 @@ test("stale or lagged listeners fail closed", async () => {
   ]);
   assert.equal(evidence(lagged).gates.synchronizedTestnet4, false);
   assert.equal(evidence(await verifiedPair(), new Date(NOW.getTime() + 6_000)).gates.freshObservations, false);
+});
+
+test("realtime lag follows durable track height, not the historical index boundary", async () => {
+  const caughtUp = await Promise.all([
+    observation("http://127.0.0.1:3101", "listener-a", "instance-a-0001", "01".repeat(32), { historyLag: 10 }),
+    observation("http://127.0.0.1:3102", "listener-b", "instance-b-0002", "02".repeat(32), { historyLag: 20 })
+  ]);
+  assert.equal(evidence(caughtUp).gates.synchronizedTestnet4, true);
+
+  const impossibleTrack = await Promise.all([
+    observation("http://127.0.0.1:3101", "listener-a", "instance-a-0001", "01".repeat(32), { trackAhead: 1 }),
+    observation("http://127.0.0.1:3102", "listener-b", "instance-b-0002", "02".repeat(32))
+  ]);
+  assert.equal(evidence(impossibleTrack).gates.synchronizedTestnet4, false);
 });
 
 test("IBD, stale headers, paused networking, or zero peers fail synchronization", async () => {
