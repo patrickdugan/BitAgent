@@ -3,16 +3,13 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { BrokerBroadcastReceipt } from "../src/broker/types.js";
 import { canonicalHash } from "../src/survival/policy.js";
-import { createTradeLayerPnlEvidence, fetchTradeLayerBalances } from "../src/settlement/tradelayerPnlObserver.js";
-import type { TradeLayerBalanceRow } from "../src/settlement/types.js";
-
-type BalanceSnapshot = {
-  address: string;
-  observedAt: string;
-  source: string;
-  rows: TradeLayerBalanceRow[];
-  snapshotHash: string;
-};
+import {
+  createTradeLayerBalanceSnapshot,
+  createTradeLayerPnlEvidence,
+  fetchTradeLayerBalances,
+  verifyTradeLayerBalanceSnapshot
+} from "../src/settlement/tradelayerPnlObserver.js";
+import type { TradeLayerBalanceSnapshot } from "../src/settlement/types.js";
 
 function arg(name: string): string | undefined {
   const prefix = `--${name}=`;
@@ -34,8 +31,12 @@ async function main() {
     const address = process.env.TRADELAYER_AGENT_ADDRESS;
     if (!address) throw new Error("TRADELAYER_AGENT_ADDRESS is required");
     const rows = await fetchTradeLayerBalances({ endpoint, address });
-    const material = { address, observedAt: new Date().toISOString(), source: endpoint, rows };
-    const snapshot: BalanceSnapshot = { ...material, snapshotHash: canonicalHash(material) };
+    const snapshot = createTradeLayerBalanceSnapshot({
+      address,
+      observedAt: new Date().toISOString(),
+      source: endpoint,
+      rows
+    });
     await writeJson(outputPath, snapshot);
     console.log(JSON.stringify({ ok: true, action, output: path.resolve(outputPath), snapshotHash: snapshot.snapshotHash }));
     return;
@@ -45,24 +46,32 @@ async function main() {
     const beforePath = arg("before");
     const afterPath = arg("after");
     const receiptPath = arg("receipt");
-    const valuationPriceUsd = Number(arg("price"));
-    if (!beforePath || !afterPath || !receiptPath || !Number.isFinite(valuationPriceUsd)) {
-      throw new Error("--before, --after, --receipt, and --price are required for evidence");
+    const valuationPriceUsd = arg("price");
+    const valuationSource = arg("price-source");
+    if (!beforePath || !afterPath || !receiptPath || !valuationPriceUsd || !valuationSource) {
+      throw new Error("--before, --after, --receipt, --price, and --price-source are required for evidence");
     }
-    const before = JSON.parse(await fs.readFile(beforePath, "utf8")) as BalanceSnapshot;
-    const after = JSON.parse(await fs.readFile(afterPath, "utf8")) as BalanceSnapshot;
+    const before = JSON.parse(await fs.readFile(beforePath, "utf8")) as TradeLayerBalanceSnapshot;
+    const after = JSON.parse(await fs.readFile(afterPath, "utf8")) as TradeLayerBalanceSnapshot;
     const receipt = JSON.parse(await fs.readFile(receiptPath, "utf8")) as BrokerBroadcastReceipt;
-    if (before.address !== after.address) throw new Error("Balance snapshots use different TradeLayer addresses");
+    if (!verifyTradeLayerBalanceSnapshot(before) || !verifyTradeLayerBalanceSnapshot(after)) {
+      throw new Error("Balance snapshot hash or schema is invalid");
+    }
+    const { receiptHash, ...receiptMaterial } = receipt;
+    if (
+      receipt.schema !== "tradelayer_testnet_broadcast_receipt_v1" ||
+      canonicalHash(receiptMaterial) !== receiptHash
+    ) {
+      throw new Error("Broker broadcast receipt hash or schema is invalid");
+    }
     const feesSats = receipt.transactions.reduce((sum, transaction) => sum + BigInt(transaction.feeSats), 0n).toString();
     const evidence = createTradeLayerPnlEvidence({
-      agentAddress: before.address,
-      before: before.rows,
-      after: after.rows,
+      beforeSnapshot: before,
+      afterSnapshot: after,
       valuationPriceUsd,
+      valuationSource,
       feesSats,
       transactionIds: receipt.transactions.map((transaction) => transaction.txid),
-      observedAt: after.observedAt,
-      source: after.source
     });
     await writeJson(outputPath, evidence);
     console.log(JSON.stringify({ ok: true, action, output: path.resolve(outputPath), settledPnlSats: evidence.settledPnlSats }));
@@ -75,4 +84,3 @@ main().catch((error) => {
   console.error(error instanceof Error ? error.stack : error);
   process.exitCode = 1;
 });
-

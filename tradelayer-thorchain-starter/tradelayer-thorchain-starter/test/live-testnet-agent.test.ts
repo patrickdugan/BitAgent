@@ -22,6 +22,13 @@ import {
 import { proposeShadowMarketOrders } from "../src/market/agent.js";
 import { createRecoveryManifest, verifyRecoveryChain } from "../src/persistence/recoveryManifest.js";
 import { observeTradeLayerSettlement } from "../src/settlement/tradelayerSettlementObserver.js";
+import {
+  createTradeLayerBalanceSnapshot,
+  createTradeLayerPnlEvidence,
+  normalizeTradeLayerBalanceRows,
+  verifyTradeLayerBalanceSnapshot,
+  verifyTradeLayerPnlEvidence
+} from "../src/settlement/tradelayerPnlObserver.js";
 import { canonicalHash } from "../src/survival/policy.js";
 
 let artifact: TradeLayerTestnetArtifact;
@@ -157,6 +164,87 @@ test("settlement observer revokes settlement on reorg evidence", async () => {
 
   assert.equal(report.allSettled, false);
   assert.ok(report.pairs.every((pair) => pair.state === "reorged"));
+});
+
+test("TradeLayer PnL evidence binds exact-decimal snapshots, valuation source, and txids", () => {
+  const before = createTradeLayerBalanceSnapshot({
+    address: "tb1q-pnl-fixture",
+    observedAt: "2026-07-12T11:59:59.000Z",
+    source: "http://127.0.0.1:3000",
+    rows: [{ propertyId: 2, available: "0.00000000" }, { propertyId: 1, available: "1.00000000" }]
+  });
+  const after = createTradeLayerBalanceSnapshot({
+    address: "tb1q-pnl-fixture",
+    observedAt: now.toISOString(),
+    source: "http://127.0.0.1:3000",
+    rows: [{ propertyId: 1, available: "1.00000227" }, { propertyId: 2, available: "0" }]
+  });
+  const txids = [canonicalHash("pnl-tx-b"), canonicalHash("pnl-tx-a")];
+  const evidence = createTradeLayerPnlEvidence({
+    beforeSnapshot: before,
+    afterSnapshot: after,
+    valuationPriceUsd: "65000.00000000",
+    valuationSource: "independent-oracle-fixture",
+    feesSats: "0",
+    transactionIds: txids
+  });
+
+  assert.equal(before.rows[0]?.propertyId, 1);
+  assert.equal(before.rows[0]?.available, "1");
+  assert.equal(evidence.valuationPriceUsd, "65000");
+  assert.equal(evidence.settledPnlSats, "227");
+  assert.deepEqual(evidence.transactionIds, [...txids].sort());
+  assert.equal(verifyTradeLayerBalanceSnapshot(before), true);
+  assert.equal(verifyTradeLayerPnlEvidence(evidence, txids), true);
+});
+
+test("TradeLayer PnL evidence rejects tampered, ambiguous, and non-monotonic observations", () => {
+  const before = createTradeLayerBalanceSnapshot({
+    address: "tb1q-pnl-fixture",
+    observedAt: "2026-07-12T11:59:59.000Z",
+    source: "direct-tradelayer-rpc",
+    rows: [{ propertyId: 1, available: "1" }]
+  });
+  const after = createTradeLayerBalanceSnapshot({
+    address: before.address,
+    observedAt: now.toISOString(),
+    source: before.source,
+    rows: [{ propertyId: 1, available: "1.000001" }]
+  });
+  const txid = canonicalHash("pnl-tx");
+  const evidence = createTradeLayerPnlEvidence({
+    beforeSnapshot: before,
+    afterSnapshot: after,
+    valuationPriceUsd: "65000",
+    valuationSource: "oracle-fixture",
+    feesSats: "1",
+    transactionIds: [txid]
+  });
+  const tampered = structuredClone(evidence);
+  tampered.afterSnapshot.rows[0]!.available = "2";
+  assert.equal(verifyTradeLayerPnlEvidence(tampered, [txid]), false);
+  assert.throws(
+    () => normalizeTradeLayerBalanceRows([
+      { propertyId: 1, available: "1" },
+      { propertyId: "1", available: "2" }
+    ]),
+    /duplicate property/
+  );
+  assert.throws(
+    () => normalizeTradeLayerBalanceRows([{ propertyId: 1, available: "0.000000001" }]),
+    /at most 8 places/
+  );
+  assert.throws(
+    () => createTradeLayerPnlEvidence({
+      beforeSnapshot: after,
+      afterSnapshot: before,
+      valuationPriceUsd: "65000",
+      valuationSource: "oracle-fixture",
+      feesSats: "0",
+      transactionIds: [txid]
+    }),
+    /newer than/
+  );
 });
 
 test("double-entry ledger prohibits spending unrealized revenue", async () => {

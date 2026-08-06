@@ -118,10 +118,16 @@ Wait for Bitcoin confirmations and TradeLayer processing, then capture the post-
 
 ```powershell
 npm run observe:pnl -- --action=snapshot --output=.runtime/testnet-agent/balance-after.json
-npm run observe:pnl -- --action=evidence --before=.runtime/testnet-agent/balance-before.json --after=.runtime/testnet-agent/balance-after.json --receipt=.runtime/testnet-agent/broadcast-receipt.json --price=65000 --output=.runtime/testnet-agent/pnl-evidence.json
+npm run observe:pnl -- --action=evidence --before=.runtime/testnet-agent/balance-before.json --after=.runtime/testnet-agent/balance-after.json --receipt=.runtime/testnet-agent/broadcast-receipt.json --price=65000 --price-source=independent-oracle-receipt-id --output=.runtime/testnet-agent/pnl-evidence.json
 ```
 
-The valuation price must come from an independently accepted market/oracle observation. The starter does not infer it from the agent's own orders.
+The valuation price must come from an independently accepted market/oracle
+observation and `--price-source` must identify that observation. The starter
+does not infer it from the agent's own orders. The observer uses exact decimal
+arithmetic, verifies both balance-snapshot hashes and the broker receipt hash,
+requires the after-snapshot to be newer than the before-snapshot, and binds the
+evidence to unique canonical txids. A changed snapshot, receipt, address,
+source, timestamp order, fee, valuation, or transaction list fails closed.
 
 ## 6. Reconcile
 

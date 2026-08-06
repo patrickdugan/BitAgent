@@ -456,3 +456,27 @@
 - Browser storage is a demo resume mechanism and is not authentication or
   workflow ownership. Production APIs still require an authenticated owner
   binding for every workflow read and mutation.
+
+## Exact TradeLayer balance/PnL evidence — 2026-08-06
+
+### Resolved
+
+- Replaced `Number`-based tlBTC/tlUSD valuation with exact decimal-to-integer
+  conversion at eight-decimal protocol precision.
+- Added canonical, hash-bound balance snapshots with deterministic property
+  ordering and duplicate-property rejection.
+- PnL evidence now embeds and re-verifies the before/after snapshots, enforces
+  same address/source and monotonic observation time, identifies the external
+  valuation source, and independently recomputes the claimed delta.
+- The observer CLI verifies the broadcast-receipt hash before consuming fees
+  or transaction IDs.
+- Focused tests cover exact 227-sat delta reproduction and tampered,
+  over-precision, duplicate, and reversed-time failures.
+
+### Unresolved
+
+- The balance endpoint itself must be backed by a synchronized TradeLayer
+  listener. A hash proves file integrity, not that an upstream node is current
+  or honest.
+- Production evidence still needs direct transaction/order/fill observations
+  and a durable receipt for the independent valuation source.

@@ -71,12 +71,22 @@ export type TradeLayerBalanceRow = {
   margin?: string | number;
 };
 
+export type TradeLayerBalanceSnapshot = {
+  schema: "tradelayer_balance_snapshot_v1";
+  address: string;
+  observedAt: string;
+  source: string;
+  rows: TradeLayerBalanceRow[];
+  snapshotHash: string;
+};
+
 export type TradeLayerPnlEvidence = {
-  schema: "tradelayer_balance_delta_pnl_v1";
+  schema: "tradelayer_balance_delta_pnl_v2";
   agentAddress: string;
-  before: TradeLayerBalanceRow[];
-  after: TradeLayerBalanceRow[];
-  valuationPriceUsd: number;
+  beforeSnapshot: TradeLayerBalanceSnapshot;
+  afterSnapshot: TradeLayerBalanceSnapshot;
+  valuationPriceUsd: string;
+  valuationSource: string;
   feesSats: string;
   settledPnlSats: string;
   transactionIds: string[];

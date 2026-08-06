@@ -304,3 +304,34 @@ Remaining:
 - a real wallet UI rejection, testnet signature/broadcast, TradeLayer indexing,
   fill/position/PnL proof, and real withdrawal are still required for funded
   launch.
+
+## TradeLayer PnL evidence hardening (2026-08-06)
+
+Decision: **accept the deterministic evidence format and verifier; do not
+claim live PnL until direct TradeLayer and independent valuation observations
+are captured**.
+
+Passed:
+
+- replaced floating-point portfolio valuation with exact eight-decimal
+  integer arithmetic;
+- canonical balance snapshots bind address, observation time, source, sorted
+  property rows, and snapshot hash;
+- evidence generation verifies both snapshot hashes, requires the same address
+  and source, and requires a strictly newer after-snapshot;
+- broker broadcast receipt schema and hash are verified before its fees or
+  txids enter PnL evidence;
+- valuation price is canonical decimal data with an explicit independent
+  source identifier;
+- evidence binds unique canonical txids and independently recomputes the
+  balance delta during verification;
+- tampered snapshots, duplicate property rows, excess decimal precision, and
+  reversed observation order are covered by focused tests;
+- TypeScript and all 15 live/testnet tests pass.
+
+Remaining:
+
+- the local TradeLayer listener and independent price source are not currently
+  available together, so no live balance-delta or PnL claim has been made;
+- order/fill identity still needs to be bound to direct `tl_gettransaction`
+  and address trade-history observations rather than broker output alone.

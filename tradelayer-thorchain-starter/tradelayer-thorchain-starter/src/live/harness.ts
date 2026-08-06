@@ -11,7 +11,11 @@ import type { TradeLayerOrderBookSnapshot } from "../market/types.js";
 import { createRecoveryManifest } from "../persistence/recoveryManifest.js";
 import type { BitcoinChainSource, BitcoinTransactionEvidence } from "../settlement/types.js";
 import { observeTradeLayerSettlement } from "../settlement/tradelayerSettlementObserver.js";
-import { createTradeLayerPnlEvidence, verifyTradeLayerPnlEvidence } from "../settlement/tradelayerPnlObserver.js";
+import {
+  createTradeLayerBalanceSnapshot,
+  createTradeLayerPnlEvidence,
+  verifyTradeLayerPnlEvidence
+} from "../settlement/tradelayerPnlObserver.js";
 import type { TradeLayerPnlEvidence } from "../settlement/types.js";
 import { defaultSurvivalPolicy } from "../survival/harness.js";
 import { canonicalHash } from "../survival/policy.js";
@@ -148,14 +152,22 @@ export async function runLiveTestnetAgent(input: {
   ).toString();
   const simulatedPnlEvidence = receipt && input.simulatedSettlement
     ? createTradeLayerPnlEvidence({
-      agentAddress: "simulated-testnet-agent",
-      before: [{ propertyId: 1, available: 1 }, { propertyId: 2, available: 0 }],
-      after: [{ propertyId: 1, available: 1.00000227 }, { propertyId: 2, available: 0 }],
-      valuationPriceUsd: 65_000,
+      beforeSnapshot: createTradeLayerBalanceSnapshot({
+        address: "simulated-testnet-agent",
+        observedAt: new Date(now.getTime() - 1_000).toISOString(),
+        source: "deterministic-pnl-fixture",
+        rows: [{ propertyId: 1, available: "1" }, { propertyId: 2, available: "0" }]
+      }),
+      afterSnapshot: createTradeLayerBalanceSnapshot({
+        address: "simulated-testnet-agent",
+        observedAt: now.toISOString(),
+        source: "deterministic-pnl-fixture",
+        rows: [{ propertyId: 1, available: "1.00000227" }, { propertyId: 2, available: "0" }]
+      }),
+      valuationPriceUsd: "65000",
+      valuationSource: "deterministic-test-fixture",
       feesSats: "0",
       transactionIds: receipt.transactions.map((row) => row.txid),
-      observedAt: now.toISOString(),
-      source: "deterministic-pnl-fixture"
     })
     : undefined;
   const pnlEvidence = input.pnlEvidence || simulatedPnlEvidence;
