@@ -172,6 +172,33 @@ Production construction refuses a configured remote wallet broker unless both
 the synchronized TradeLayer source and the Bitcoin withdrawal source are also
 present. The wallet can submit; it cannot self-verify the result.
 
+### Local testnet4 wallet-authority preview
+
+The current `tradelayer-wallet` implementation supports public session,
+deposit-address, fee-candidate, and durable exact-approval polling. Execution
+is deliberately locked with HTTP 423. Configure the wallet process before it
+starts:
+
+```powershell
+$env:BITAGENT_WALLET_BROKER_TOKEN="<opaque local operator token>"
+$env:BITAGENT_WALLET_AUTHORITY_STATE_PATH="<durable authority JSON path>"
+$env:BITAGENT_WALLET_BITCOIN_CLI="<full path to bitcoin-cli>"
+$env:BITAGENT_WALLET_BITCOIN_DATADIR="<Bitcoin testnet4 data directory>"
+$env:BITAGENT_WALLET_BITCOIN_RPC_CONNECT="127.0.0.1"
+$env:BITAGENT_WALLET_BITCOIN_RPC_PORT="<testnet4 RPC port>"
+$env:BITAGENT_WALLET_BITCOIN_WALLET="utxoref-testnet"
+$env:BITAGENT_WALLET_TESTNET_STRATEGY_FEE_SATS="<reviewed candidate fee>"
+$env:BITAGENT_WALLET_TESTNET_WITHDRAW_FEE_SATS="<reviewed candidate fee>"
+```
+
+Point BitAgent at `http://127.0.0.1:1986` with the same process-secret bearer
+token. Open the wallet's BitVM page to refresh the public Bitcoin session and
+review pending exact effects. Rejecting is always available. A starter
+strategy cannot be approved until both reserve preflight and the deployed tx11
+release pass; approving a withdrawal only records a scoped grant, because the
+execution endpoint remains disabled. Never put the bearer token in the
+browser, a referral link, model context, or the authority JSON.
+
 Keep the scripted broker and demo D1 site visibly labeled and isolated from any
 funded wallet until every remaining item in `docs/launch-readiness.md` is
 closed.

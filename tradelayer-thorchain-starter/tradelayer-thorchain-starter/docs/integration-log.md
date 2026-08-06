@@ -556,10 +556,11 @@
 
 ### Unresolved
 
-- The sibling wallet currently exposes legacy mnemonic/WIF routes and has no
-  implementation of `docs/wallet-broker-contract.md`. Its wallet-owned session,
-  approval UI, PSBT/order construction, one-time grant consumption, signing,
-  and broadcast endpoints remain the next funded-launch blocker.
+- At this checkpoint the sibling wallet still exposed legacy mnemonic/WIF
+  routes and had no implementation of `docs/wallet-broker-contract.md`.
+  The later wallet-owned approval section resolves the non-executing session
+  and approval surface; one-time grant consumption, signing, and broadcast
+  remain blocked.
 
 ## Reserve/intake accounting correction — 2026-08-06
 
@@ -718,3 +719,55 @@
   observed the cancelled 100000-sat reserve candidate, 776-sat fee, six failed
   preflight gates, and `candidate_not_deployed` release status. Approval stayed
   unavailable and no signing or broadcast method was introduced.
+
+## Wallet-owned session and approval boundary — 2026-08-06
+
+### Resolved
+
+- `tradelayer-wallet` now implements authenticated
+  `/v1/wallet/connect`, `/deposit-address`, `/fee-estimate`, and `/approvals`
+  endpoints matching `RemoteWalletExecutionBroker`. Bearer comparison is
+  constant-time, request bodies are capped at 64 KiB, responses are
+  `no-store`, unknown schema fields fail, and neither broker credentials nor
+  wallet grants enter browser responses or durable state.
+- Browser session refresh and approval decisions require a per-process
+  same-origin decision nonce. It is separate from the broker credential and
+  grant, rotates on wallet-server restart, and closes cross-origin form/CSRF
+  attempts without exposing financial execution authority.
+- Public wallet sessions come from a configured Bitcoin Core testnet4
+  descriptor wallet. The wallet process validates synchronization, address
+  ownership, watch-only state, network, Core-derived scriptPubKey, and
+  confirmed balance without reading key material.
+- Exact simulations are re-hashed in the wallet and validated for action,
+  effects, fee arithmetic, balance arithmetic, destination or tx5 payload,
+  expiry, workflow, session, and approval identity before a durable pending
+  prompt is created. Reject and approve decisions survive process restart.
+- The BitVM wallet page now displays the public Bitcoin session, exact effects,
+  fee components, balances, destination/conditions, expiry, simulation hash,
+  and durable approval history. It can reject any pending request. Starter
+  strategy approval is disabled and server-refused while the reserve preflight
+  or tx11 release gate is red.
+- The real BitAgent HTTP client passed a cross-repo loopback test through the
+  real wallet route plugin: connect, deposit script, fee, pending recovery,
+  rejection, approval polling, and execution denial all matched exactly.
+- A read-only run against the synchronized Bitcoin Core 31.1 testnet4 wallet at
+  height 147201 observed 317176 confirmed sats and a wallet-owned P2TR address.
+  The provider returned only the public address/script/balance plus explicitly
+  labeled operator-fixed testnet fee candidates.
+- Wallet authority tests, the existing wallet boundary test, wallet-server
+  TypeScript check, server production bundle, frontend production bundle,
+  cross-repo integration test, 49/49 launch tests, and BitAgent TypeScript all
+  pass.
+
+### Intentionally blocked
+
+- `/v1/wallet/executions` always returns HTTP 423. Approval records no
+  signature and performs no broadcast; the browser never receives the opaque
+  HMAC grant used by BitAgent polling.
+- Operator-fixed testnet candidate fees are not a production final-transaction
+  fee estimator. The future execution implementation must construct the exact
+  wallet-owned transaction, compare its actual effects and fees with the
+  approved simulation, atomically consume the grant, and remain idempotent.
+- No live testnet transaction was signed or broadcast. The funded source UTXO
+  remains outside this approval slice, and strategy approval remains blocked
+  by the undeployed tx11 release and failed independent preflight.

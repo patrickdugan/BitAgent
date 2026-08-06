@@ -521,9 +521,51 @@ Remaining:
 
 - deploy and activate the exact tx11 candidate release on two independently
   identified synchronized listeners and pass every preflight gate;
-- implement the authenticated wallet approval/grant endpoints and explicit
-  rejected-signature recovery against the saved candidate;
+- retain the now-implemented authenticated approval/grant boundary while
+  adding explicit rejected-signature recovery for a future executable saved
+  candidate;
 - after explicit user authority, run signed `testmempoolaccept` before deciding
   whether any broadcast is standard and safe;
 - independently prove tx11 indexing/credit, tx5 order/fill, position/PnL,
   tx12 reserve release, and normal Bitcoin withdrawal.
+
+## Wallet-owned durable approval slice (2026-08-06)
+
+Decision: **accept public sessions, durable exact-simulation approval, and
+rejection/recovery; keep every execution path locked**.
+
+Passed:
+
+- the TradeLayer wallet implements the four non-executing endpoints expected
+  by BitAgent's authenticated remote broker and persists public sessions plus
+  exact approval records atomically;
+- simulation content, effects, fee totals, balance deltas, expiry, action,
+  workflow, public wallet session, and approval identifiers are hash-bound and
+  revalidated inside the wallet;
+- the wallet UI displays exact effects and fees, rejects durably, and refuses
+  starter-strategy approval while release/preflight evidence is not verified;
+- bearer credentials and opaque approval grants never enter the browser,
+  persisted authority JSON, model context, or public workflow state;
+- state-changing operator HTTP calls require a rotating same-origin decision
+  nonce distinct from the bearer credential and broker grant;
+- an actual BitAgent client completed connect/deposit/fee/pending/reject and
+  pending/approve polling against the wallet HTTP routes, while execution
+  failed closed with HTTP 423;
+- the live public provider observed a synchronized testnet4 wallet at height
+  147201 with 317176 confirmed sats without signing or broadcasting;
+- wallet tests/builds, the cross-repo integration, 49/49 launch tests, and both
+  relevant TypeScript checks pass.
+
+Remaining:
+
+- replace the explicitly labeled operator-fixed testnet fee candidate with an
+  exact wallet-constructed transaction whose fee and change are rechecked
+  against the approved simulation;
+- implement atomic one-time grant consumption, wallet-owned signing,
+  `testmempoolaccept`, idempotent broadcast receipts, and independent
+  post-submit verification only after an explicit user-approved release;
+- deploy the exact tx11 release to two independent synchronized listeners and
+  make every reserve/preflight gate pass before enabling starter-strategy
+  approval;
+- complete a fresh-browser interrupted-session drill against the packaged
+  Electron process. No transaction was signed or broadcast in this slice.
