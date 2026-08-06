@@ -96,7 +96,9 @@ async function main() {
   });
   const unresolvedPreconditions = {
     tx11ActiveAtCandidateHeight: false,
+    tx11CodeHashAccepted: false,
     synchronizedProceduralRegistryVerified: false,
+    dynamicContractCreationVerified: false,
     dataCarrierPolicyMempoolVerified: false,
     independentGuardianAvailable: false
   };

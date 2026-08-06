@@ -457,3 +457,21 @@ The evidence is persisted under the ignored local runtime and returns
 `status=failed`. This is a successful safety outcome, not launch readiness.
 Fresh snapshots from at least two independently identified synchronized nodes
 must make every gate true before a wallet can offer execution approval.
+
+## Dynamic contract follow-up (2026-08-06)
+
+Decision: **accept the tested protocol patch as a candidate; do not deploy or
+approve funds yet**.
+
+- TradeLayer commit `db47284` makes tx11 contract creation deterministic and
+  requires the funding output to match the payload reserve address.
+- BitAgent derives a unique per-workflow contract ID and requires the activated
+  tx11 code hash to be explicitly allowlisted in preflight evidence.
+- The new real unsigned testnet4 candidate was cancelled at a 776-sat fee; no
+  signing or broadcast occurred and its input remains unlocked and unspent.
+- The observed node runs an older activation hash and cannot satisfy this gate.
+
+Before promotion, build a release hash for the protocol patch, deploy the same
+code to at least two independently identified synchronized listeners, activate
+tx11 with that exact hash, publish the matching template, and rerun preflight.
+Collateral release/tx12 state transition remains a separate required proof.

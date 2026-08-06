@@ -659,3 +659,38 @@
   `redeemAddress` therefore remain unverified.
 - The preflight result is `failed`. No wallet surface may translate it into an
   executable approval until fresh independent nodes satisfy every gate.
+
+## Dynamic tx11 contract hardening — 2026-08-06
+
+### Resolved
+
+- Added the minimal necessary TradeLayer consensus path in sibling commit
+  `db47284`: a tx11 may create a previously unknown procedural contract during
+  logic application, but only under a known template/hash, `FUNDED` initial
+  state, and a real indexed output paying the payload redeem address.
+- Unknown templates, absent funding outputs, payload/output address mismatch,
+  and non-`FUNDED` creation now fail validation. The effect-free validity phase
+  returns a creation intent; only the logic phase persists it before granting
+  tokens. The focused procedural suite passes 29/29.
+- BitAgent now derives a unique bounded `utxoref-<160-bit>` contract ID from
+  workflow/session/wallet/amount/template state instead of reusing one global
+  contract ID.
+- Preflight evidence now requires an explicitly accepted 32-byte tx11 code
+  hash. Contract absence is acceptable only when all fresh independent nodes
+  agree on the known template and the allowlisted code supports deterministic
+  creation.
+- Regenerated and cancelled the funded local candidate. It used the same
+  302443-sat input, a 100000-sat reserve, a 221-byte tx11 payload, 201667 sats
+  change, and a 776-sat fee. The input lock was released and the source output
+  remained unspent with 3051 confirmations.
+
+### Unresolved
+
+- TradeLayer commit `db47284` is not deployed or activated on the observed
+  listener. Its release/consensus hash is therefore not allowlisted.
+- The local database remains stale and single-node, and its template ID still
+  differs from the candidate template. The rerun correctly fails code-hash,
+  freshness, independent-node, template, contract, and redeem-address gates.
+- Dynamic creation solves intake registration, not DLC settlement itself. A
+  chain-derived state transition and independently verified reserve release
+  remain necessary before collateral withdrawal can be launchable.

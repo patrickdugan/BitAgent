@@ -159,11 +159,27 @@ export function buildReserveIntakePlan(input: {
     throw new LaunchKernelError("validation_error", "A positive TradeLayer tlBTC property id is required");
   }
   const dlcTemplateId = String(input.dlcTemplateId || procedural.templateId);
-  const dlcContractId = String(input.dlcContractId || procedural.contractId);
   const settlementState = String(input.settlementState || procedural.settlementState).toUpperCase();
   const dlcHash = String(input.dlcHash || procedural.templateHash).toLowerCase();
   if (!/^[a-f0-9]{64}$/.test(dlcHash)) {
     throw new LaunchKernelError("validation_error", "The procedural DLC hash must be 32 bytes of hex");
+  }
+  const contractSeed = hashObject({
+    schema: "bitagent_utxoref_contract_id_v1",
+    workflowId: input.workflowId,
+    walletSessionId: input.walletSessionId,
+    walletAddress,
+    amountSats,
+    propertyId,
+    dlcTemplateId,
+    settlementState,
+    dlcHash
+  });
+  const dlcContractId = input.dlcContractId === undefined
+    ? `utxoref-${contractSeed.slice(0, 40)}`
+    : String(input.dlcContractId);
+  if (!/^[a-zA-Z0-9._:-]{1,96}$/.test(dlcContractId)) {
+    throw new LaunchKernelError("validation_error", "The procedural DLC contract id has an invalid format");
   }
   const recoveryXonly = input.recoveryXonly || input.operatorXonly;
   const recoveryCsvDelay = input.recoveryCsvDelay ?? 2016;
@@ -235,8 +251,8 @@ export function buildReserveIntakePlan(input: {
     preconditions: [
       "TradeLayer transaction type 11 is active at the candidate block height.",
       "The configured property is the intended tlBTC procedural receipt property.",
-      "Every synchronized TradeLayer node has the exact template hash and contract state.",
-      "The registry contract redeemAddress equals the displayed P2TR reserve address.",
+      "Every synchronized TradeLayer node has the exact template hash and matching tx11 activation code hash.",
+      "The contract either exists with this P2TR redeemAddress or the activated tx11 code deterministically creates it in FUNDED state.",
       "The wallet node's current data-carrier policy admits the displayed payload byte length.",
       "The wallet owns the operator/recovery key and the guardian is independently available."
     ]

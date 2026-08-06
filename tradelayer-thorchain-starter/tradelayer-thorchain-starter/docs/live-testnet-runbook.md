@@ -201,6 +201,7 @@ Run the read-only TradeLayer registry gate after candidate construction:
 $env:TRADELAYER_PREFLIGHT_DB_PATHS="<node-a-db-path>;<node-b-db-path>"
 $env:TRADELAYER_PREFLIGHT_NODE_IDS="listener-a;listener-b"
 $env:TRADELAYER_PREFLIGHT_BLOCK_HEIGHTS="<height-a>;<height-b>"
+$env:TRADELAYER_ACCEPTED_TX11_CODE_HASHES="<audited-32-byte-release-hash>"
 npm run observe:reserve-preflight
 ```
 
@@ -210,6 +211,10 @@ true. Do not duplicate one database under two node IDs: duplicate or divergent
 node identities fail the parity requirement. File freshness is a local-snapshot
 check; production must additionally authenticate each node and independently
 observe its synchronization height.
+
+Never populate `TRADELAYER_ACCEPTED_TX11_CODE_HASHES` from whatever value a
+node happens to report. It is an operator release allowlist and must be fixed
+from the audited deployment artifact before observing node results.
 
 ## Akash Broker Isolation
 

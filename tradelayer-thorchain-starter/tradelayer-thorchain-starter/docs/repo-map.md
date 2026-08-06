@@ -278,6 +278,11 @@ not part of this user journey.
   creating/updating databases. It hash-binds tx11 activation, property data,
   procedural template/contract state, listener height, and source-file bytes,
   then requires fresh parity from at least two distinct node identities.
+- Dynamic contract seam: sibling TradeLayer commit `db47284` hardens tx11 so
+  an unknown per-intake contract can be created during deterministic logic
+  application only after a known template/hash and exact payload-to-funding
+  address match validate. BitAgent accepts that mode only under an
+  operator-allowlisted tx11 activation code hash.
 
 ## TradeLayer Read-Only Covenant Shadow Seam
 

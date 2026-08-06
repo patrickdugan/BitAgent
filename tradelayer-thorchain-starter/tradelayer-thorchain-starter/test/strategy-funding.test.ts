@@ -97,6 +97,26 @@ test("reserve intake binding changes with the public wallet session and rejects 
   }), false);
 });
 
+test("reserve intake derives a unique bounded contract id when the caller does not provide one", () => {
+  const base = {
+    walletSessionId: "wallet-session-derived-contract",
+    walletAddress: state().wallet.bitcoinAddress!,
+    amountSats: "100000",
+    operatorXonly: OPERATOR,
+    guardianXonly: GUARDIAN,
+    propertyId: 1,
+    dlcTemplateId: "starter-utxoref-v1",
+    settlementState: "FUNDED",
+    dlcHash: "ab".repeat(32)
+  };
+  const first = buildReserveIntakePlan({ ...base, workflowId: "derived-contract-first" });
+  const second = buildReserveIntakePlan({ ...base, workflowId: "derived-contract-second" });
+
+  assert.match(first.tradeLayer.dlcContractId, /^utxoref-[a-f0-9]{40}$/);
+  assert.notEqual(first.tradeLayer.dlcContractId, second.tradeLayer.dlcContractId);
+  assert.equal(verifyReserveIntakePlan(first), true);
+});
+
 test("strategy funding evidence keeps wallet, reserve, and tlBTC amounts separate", async () => {
   const workflow = state();
   const source = new ScriptedStrategyFundingSource();

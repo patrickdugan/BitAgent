@@ -42,7 +42,8 @@ async function main() {
     nodes,
     now: new Date(),
     maxAgeMs: Number(process.env.TRADELAYER_PREFLIGHT_MAX_AGE_MS || 120_000),
-    minimumIndependentNodes: Number(process.env.TRADELAYER_PREFLIGHT_MIN_NODES || 2)
+    minimumIndependentNodes: Number(process.env.TRADELAYER_PREFLIGHT_MIN_NODES || 2),
+    acceptedTx11CodeHashes: list(process.env.TRADELAYER_ACCEPTED_TX11_CODE_HASHES, [])
   });
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");

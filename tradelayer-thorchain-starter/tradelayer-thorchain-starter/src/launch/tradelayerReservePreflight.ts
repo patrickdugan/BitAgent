@@ -46,17 +46,20 @@ export type TradeLayerReservePreflightEvidence = {
   assessedAt: string;
   maxAgeMs: number;
   minimumIndependentNodes: number;
+  acceptedTx11CodeHashes: string[];
   nodes: TradeLayerReserveNodeSnapshot[];
   gates: {
     independentNodeCount: boolean;
     freshSnapshots: boolean;
     tx11Active: boolean;
+    tx11CodeHash: boolean;
     intendedTlBtcProperty: boolean;
     templateParity: boolean;
     contractParity: boolean;
     reserveRedeemAddress: boolean;
   };
   registryParityHash: string | null;
+  contractMode: "existing" | "dynamic_create" | "unverified";
   reasons: string[];
 };
 
@@ -193,10 +196,15 @@ export function buildTradeLayerReservePreflightEvidence(input: {
   now: Date;
   maxAgeMs?: number;
   minimumIndependentNodes?: number;
+  acceptedTx11CodeHashes?: string[];
 }): TradeLayerReservePreflightEvidence {
   if (!verifyReserveIntakePlan(input.plan)) throw new LaunchKernelError("validation_error", "Reserve plan failed verification");
   const maxAgeMs = input.maxAgeMs ?? 120_000;
   const minimumIndependentNodes = input.minimumIndependentNodes ?? 2;
+  const acceptedTx11CodeHashes = [...new Set((input.acceptedTx11CodeHashes || []).map((value) => value.toLowerCase()))].sort();
+  if (acceptedTx11CodeHashes.some((value) => !/^[a-f0-9]{64}$/.test(value))) {
+    throw new LaunchKernelError("validation_error", "Accepted tx11 code hashes must be 32-byte lowercase hex values");
+  }
   if (!Number.isSafeInteger(maxAgeMs) || maxAgeMs <= 0 || !Number.isSafeInteger(minimumIndependentNodes) || minimumIndependentNodes < 2) {
     throw new LaunchKernelError("validation_error", "Preflight freshness and independent-node thresholds are invalid");
   }
@@ -215,12 +223,24 @@ export function buildTradeLayerReservePreflightEvidence(input: {
     node.network === "BTCTEST" && node.tx11.active && node.tx11.activationBlock !== null
     && node.blockHeight >= node.tx11.activationBlock
   );
+  const tx11CodeHash = nodesValid && acceptedTx11CodeHashes.length > 0 && input.nodes.every((node) =>
+    !!node.tx11.codeHash && acceptedTx11CodeHashes.includes(node.tx11.codeHash)
+  );
   const intendedTlBtcProperty = nodesValid && input.nodes.length > 0 && input.nodes.every((node) => isManagedTlBtc(node, input.plan));
   const templateParity = nodesValid && input.nodes.length > 0 && input.nodes.every((node) => templateMatches(node, input.plan));
-  const contractParity = nodesValid && input.nodes.length > 0 && input.nodes.every((node) => contractMatches(node, input.plan));
-  const reserveRedeemAddress = contractParity && input.nodes.every((node) =>
+  const existingContractParity = nodesValid && input.nodes.length > 0 && input.nodes.every((node) => contractMatches(node, input.plan));
+  const dynamicContractCreation = nodesValid && tx11CodeHash && templateParity && input.nodes.length > 0
+    && /^utxoref-[a-f0-9]{40}$/.test(input.plan.tradeLayer.dlcContractId)
+    && input.plan.tradeLayer.settlementState === "FUNDED"
+    && input.nodes.every((node) => node.contract === null);
+  const contractMode: TradeLayerReservePreflightEvidence["contractMode"] = existingContractParity
+    ? "existing"
+    : dynamicContractCreation
+      ? "dynamic_create"
+      : "unverified";
+  const reserveRedeemAddress = existingContractParity && input.nodes.every((node) =>
     String(node.contract?.redeemAddress || "") === input.plan.reserve.address
-  );
+  ) || dynamicContractCreation;
   const parityHashes = new Set(input.nodes.map((node) => hashObject(registryIdentity(node))));
   const independentNodeCount = nodesValid
     && uniqueNodeCount >= minimumIndependentNodes
@@ -231,9 +251,10 @@ export function buildTradeLayerReservePreflightEvidence(input: {
     independentNodeCount,
     freshSnapshots,
     tx11Active,
+    tx11CodeHash,
     intendedTlBtcProperty,
     templateParity: templateParity && exactRegistryParity,
-    contractParity: contractParity && exactRegistryParity,
+    contractParity: (existingContractParity || dynamicContractCreation) && exactRegistryParity,
     reserveRedeemAddress
   };
   const reasons = Object.entries(gates).filter(([, ok]) => !ok).map(([gate]) => `Failed gate: ${gate}`);
@@ -244,9 +265,11 @@ export function buildTradeLayerReservePreflightEvidence(input: {
     assessedAt: input.now.toISOString(),
     maxAgeMs,
     minimumIndependentNodes,
+    acceptedTx11CodeHashes,
     nodes: input.nodes,
     gates,
     registryParityHash: exactRegistryParity ? [...parityHashes][0]! : null,
+    contractMode,
     reasons
   };
   return { ...core, evidenceHash: hashObject(core) };
@@ -262,7 +285,8 @@ export function verifyTradeLayerReservePreflightEvidence(
       nodes: evidence.nodes,
       now: new Date(evidence.assessedAt),
       maxAgeMs: evidence.maxAgeMs,
-      minimumIndependentNodes: evidence.minimumIndependentNodes
+      minimumIndependentNodes: evidence.minimumIndependentNodes,
+      acceptedTx11CodeHashes: evidence.acceptedTx11CodeHashes
     });
     return hashObject(evidenceCore(evidence)) === evidence.evidenceHash
       && rebuilt.evidenceHash === evidence.evidenceHash;
