@@ -31,6 +31,18 @@ test("lifecycle skill example passes the deterministic receipt validator", () =>
   assert.equal(result.transactionCount, 5);
 });
 
+test("lifecycle skill and example bind the current tx11 release manifest", async () => {
+  const manifest = JSON.parse(await fs.readFile(path.join(root, "config", "tradelayer-tx11-release.json"), "utf8"));
+  const receipt = JSON.parse(await fs.readFile(example, "utf8"));
+  const toolMap = await fs.readFile(path.join(skillRoot, "references", "tool-map.md"), "utf8");
+
+  assert.equal(receipt.reserveIntake.release.releaseId, manifest.releaseId);
+  assert.equal(receipt.reserveIntake.release.codeHash, manifest.codeHash);
+  assert.equal(receipt.reserveIntake.release.deploymentCommit, manifest.deploymentCommit);
+  assert.match(toolMap, new RegExp(manifest.codeHash));
+  assert.match(toolMap, new RegExp(manifest.deploymentCommit));
+});
+
 test("lifecycle v2 fails closed when reserve intake provenance or deployment is missing", async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "bitagent-lifecycle-reserve-"));
   const base = JSON.parse(await fs.readFile(example, "utf8"));
