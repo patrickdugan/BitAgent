@@ -1204,3 +1204,16 @@ Remaining:
   claimed;
 - no approval, PSBT, signature, activation transaction, trade, PnL release, or
   withdrawal was requested or performed.
+
+Activation-wire preflight:
+
+- the pinned candidate-10 encoder produces a 56-byte tx11-only payload and its
+  corrected decoder recovers the exact allowlisted 64-hex code hash;
+- this proves wire compatibility only. It does not select a UTXO, calculate an
+  exact fee, request approval, sign, submit, or prove activation;
+- do not use upstream `TxUtils.activationTransaction()` from BitAgent: that
+  legacy helper calls `dumpprivkey` and violates the wallet authority boundary;
+- the activation path must remain candidate-only until a deterministic host
+  simulation displays the exact admin input/change/fee and OP_RETURN, the
+  external wallet approves and signs that exact candidate, Bitcoin Core policy
+  accepts it, and the independent preflight proves its confirmed txid/block.

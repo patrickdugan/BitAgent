@@ -1523,3 +1523,14 @@
   reserve-registry gate. The expanded model-free release gate passes 125/125
   tests, all 24 scripted trajectories, and 50/50 focused agent cases; funded
   execution remains disabled.
+- A read-only call through the pinned candidate-10 encoder produced the exact
+  type-11 activation payload
+  `tl011,4ypfnlsyfm5zcuiw52ts92ccg3p388tdfwjya7w5d0frwpb6eh` (56 bytes).
+  The corrected decoder round-trips it to only tx11 and code hash
+  `c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`.
+  No transaction or PSBT was constructed.
+- The upstream legacy `TxUtils.activationTransaction()` helper is prohibited
+  for BitAgent because it calls Bitcoin Core `dumpprivkey`. Real activation
+  must instead use the existing external wallet candidate/simulation/approval
+  boundary after full synchronization, with exact fees and effects displayed,
+  followed by independent chain verification.
