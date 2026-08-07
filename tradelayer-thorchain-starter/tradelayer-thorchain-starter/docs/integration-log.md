@@ -1384,3 +1384,33 @@
   requested. After the 105,000 checkpoint the zero-utilization RTX 3050
   reported 80 C, so the 64 C Bonsai start gate remained closed and no model
   load, inference score, or training claim was made.
+
+## Hermes 12k gate and single-pair testnet4 continuation - 2026-08-07
+
+- Hermes Lite commit `0f38917` changes the BitAgent DAG-ops model-free receipt
+  to schema v3 and enforces the actual inclusive 12k allocation: 2,400 fixed
+  overhead, 2,000 tool schemas, 4,000 active working packet, 1,500 next tool
+  result, 1,024 model output, and 1,076 safety margin. The 112-row oracle gate
+  estimates a 1,032-token maximum packet, reports mean score 1 with zero
+  authority violations, reproduced byte-for-byte, and passed 48 focused tests.
+- To avoid compounding the hot shared chassis, the next recovery segment ran
+  only candidate-9 pair A. The 100-block lag governor completed target 107,500
+  at Bitcoin/listener height 107,577/107,577 with `phase=realtime`, `error=null`,
+  `networkactive=false`, zero peers, prune height 102,700, and a successful
+  terminal pause receipt at
+  `.runtime/testnet-agent/sync-throttle-candidate9-r2-107500-a.json`.
+- Pair B was deliberately left at its prior safe 105,001/105,001 checkpoint.
+  This asymmetric state is a resumable recovery checkpoint, not listener-tip
+  parity and not launch synchronization. Pair B must catch up under its own
+  bounded receipt before a fresh two-listener preflight can claim tip parity.
+- The complete model-free release preflight still passes 114/114 launch tests,
+  all 24 scripted trajectories, and 50/50 focused agent cases. It truthfully
+  reports `candidate_not_deployed`, `deploymentVerified=false`,
+  `executable=false`, and `fundedExecutionAllowed=false`.
+- NVIDIA process evidence identified the user's running game and GeForce
+  overlay as the active GPU clients while the shared GPU reached 86 C. No
+  BitAgent model weights were loaded, the user process was not terminated, and
+  the Bonsai benchmark remains gated until the GPU is idle and at or below
+  64 C.
+- No wallet approval, PSBT, signature, activation transaction, trade, or
+  broadcast was requested or produced.

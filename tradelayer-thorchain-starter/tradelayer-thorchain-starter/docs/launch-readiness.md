@@ -1081,3 +1081,15 @@ listeners were beyond them. Full IBD completion and every chain-derived tx11
 gate remain outstanding, wallet approval remains disabled, and no transaction
 authority was exercised. The zero-utilization GPU was 80 C, so the 64 C
 Bonsai gate correctly prevented a model load.
+
+Post-105,000 continuation advanced only pair A under a 100-block lag governor
+and stopped at an exact, paused Bitcoin/listener height of 107,577. Pair B
+remains exact and paused at 105,001. This is an intentional asymmetric recovery
+checkpoint: it does not satisfy two-listener tip parity, IBD completion, or any
+tx11 chain-derived gate. The next safe chain action is a separately receipted
+pair-B catch-up after chassis temperature falls; a fresh two-listener preflight
+must follow. The current model-free release gate still passes all 114 tests, 24
+trajectories, and 50 focused cases while keeping deployment, executability, and
+funded execution false. Bonsai remains unrun because a user-owned game process
+raised the shared RTX 3050 above the 64 C start gate; BitAgent did not terminate
+that process or load model weights.
