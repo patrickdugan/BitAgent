@@ -1355,3 +1355,12 @@
   and exact release commit while correctly failing IBD synchronization and all
   real chain-derived tx11 registry gates. GPU temperature was 67 C, so Bonsai
   remained below the launch queue rather than violating the 64 C start gate.
+- The same controller completed the next bounded target at A 90,011/90,011 and
+  B 90,051/90,051 in 15 minutes. Both zero-peer intervals and bursty listener
+  backlogs recovered through the bounded network/addrman policy; the terminal
+  receipt and independent RPC reads agree that both backends are paused with
+  zero peers and realtime listeners without errors. Fresh live preflight keeps
+  the same truthful gate shape: listener independence, freshness, and exact
+  candidate-9 release pass; IBD synchronization and all chain-derived tx11
+  registry gates fail. The idle RTX 3050 was 71 C, so no Bonsai weights were
+  loaded and no model score was claimed.

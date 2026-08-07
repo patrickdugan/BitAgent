@@ -1058,10 +1058,15 @@ pause RPCs. Resumed 74,200 and 75,000 targets then completed at A 75,033 and B
 75,054, both with exact listener parity and networking paused. This remains
 IBD recovery rather than launch synchronization.
 
-Further bounded recovery completed at 80,000, 81,000, and 85,000. Current exact
-paused tips are A 85,042 and B 85,122. A connected peer with no synchronized headers
-or blocks was isolated twice; exact-peer rotation restored progress. The
-controller now performs that rotation automatically only after a bounded
-low-lag stall and preserves synchronized peers. The complete release preflight
-passes 114/114 checks after the new policy tests. Full IBD completion and all
-chain-derived tx11 gates remain outstanding.
+Further bounded recovery completed at 80,000, 81,000, 85,000, and 90,000.
+Current exact paused tips are A 90,011 and B 90,051, with exact listener parity
+and no listener error. A connected peer with no synchronized headers or blocks
+was isolated twice; exact-peer rotation restored progress. The controller now
+performs that rotation automatically only after a bounded low-lag stall and
+preserves synchronized peers. Fresh live preflight at the 90,000 checkpoint
+passes listener independence, observation freshness, and exact candidate-9
+release while correctly failing full IBD synchronization and every real
+chain-derived tx11 registry gate. The complete release preflight passes 114/114
+checks after the new policy tests. Full IBD completion and all chain-derived
+tx11 gates remain outstanding; the idle GPU was 71 C, above the 64 C Bonsai
+start gate.
