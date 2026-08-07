@@ -384,8 +384,8 @@ never from listener responses. Review that manifest before deployment.
 
 The tracked candidate manifest is
 `config/tradelayer-tx11-release.json`. Its current hash is
-`c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`, pinned
-to TradeLayer commit `fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd`, but
+`8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`, pinned
+to TradeLayer commit `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c`, but
 the manifest status is `candidate_not_deployed`. Do not place that hash in the
 runtime allowlist until the exact source bundle has been deployed and tx11 has
 been activated with it on the independent listeners being observed.

@@ -1689,3 +1689,30 @@
   wallet address with no wallet access. Because npm 10.9.4 did not forward CLI
   flags in this Windows environment, the operator runbook now uses the direct
   local `tsx.cmd` path for every argument-bearing activation command.
+
+## Candidate11 decoded-block recovery - 2026-08-07
+
+- Candidate10 listener B failed closed at Bitcoin height 132,733 after
+  `TxIndex.processTransaction` attempted a txid-only raw-transaction lookup on
+  a pruned node and then dereferenced unavailable outputs. Peer networking was
+  independently verified off with zero connections; candidate10 state and logs
+  were preserved.
+- Bitcoin Core verbosity 3 for the exact failing block exposes decoded outputs
+  plus first-input `prevout` address/value. TradeLayer now derives sender and
+  reference metadata from that block object, requests verbosity 3 in decoded
+  mode, rejects incomplete decoded metadata, and never calls the legacy
+  transaction RPC on that path.
+- Replay also exposed an unused duplicate async decode, tx11 empty-reference
+  fallback, and malformed synthetic contract metadata exception. These now
+  fail deterministically without unhandled validation or txid-only lookup.
+- The exact candidate10 descendant is candidate11 commit
+  `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c`, ordered consensus hash
+  `8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`.
+  An accidentally tested older-lineage worktree was preserved as rejected
+  evidence and never selected.
+- A second fresh-state replay reached exact paused tip 132,733 with
+  `phase=realtime`, `error=null`, zero forbidden error signatures, and the
+  formerly fatal tx indexed as chain-derived invalid for its protocol reason.
+  The release-aware gate selects only the clean candidate11 worktree and passes
+  155/155 tests. Release status remains `candidate_not_deployed`; no wallet,
+  approval, signing, broadcast, or funded action occurred.

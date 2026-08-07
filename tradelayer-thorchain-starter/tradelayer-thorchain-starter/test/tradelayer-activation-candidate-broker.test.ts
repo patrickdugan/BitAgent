@@ -13,16 +13,16 @@ const NOW = new Date("2026-08-07T12:00:00.000Z");
 const SENDER = encodeSegwitAddress(Buffer.alloc(20, 17), "bitcoin-testnet4");
 const INPUT_TXID = "31".repeat(32);
 const UNSIGNED_TXID = "42".repeat(32);
-const CODE_HASH = "c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29";
+const CODE_HASH = "8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623";
 const POLICY = canonicalHash({ policy: "tx11-activation-candidate-fixture" });
 const PAYLOAD = buildTradeLayerTx11ActivationPayload(CODE_HASH);
 
 const request = createTradeLayerActivationBrokerRequest({
-  requestId: "candidate10-activation-fixture",
+  requestId: "candidate11-activation-fixture",
   wallet: "fixture-wallet",
   senderAddress: SENDER,
-  releaseId: "tx11-utxoref-dynamic-contract-candidate-10",
-  deploymentCommit: "fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd",
+  releaseId: "tx11-utxoref-dynamic-contract-candidate-11",
+  deploymentCommit: "b3423bf7f72a4e8bfad3fbc61f757505553b9d4c",
   codeHash: CODE_HASH,
   sourceVerificationHash: "90".repeat(32),
   policyFingerprint: POLICY,
@@ -95,9 +95,9 @@ class FakeActivationRpc implements BitcoinCoreBrokerRpc {
   }
 }
 
-test("builds the exact candidate10 tx0 wire payload for activating tx11", () => {
-  assert.equal(PAYLOAD.payloadUtf8, "tl011,4ypfnlsyfm5zcuiw52ts92ccg3p388tdfwjya7w5d0frwpb6eh");
-  assert.equal(PAYLOAD.payloadHex, "746c3031312c347970666e6c7379666d357a637569773532747339326363673370333838746466776a796137773564306672777062366568");
+test("builds the exact candidate11 tx0 wire payload for activating tx11", () => {
+  assert.equal(PAYLOAD.payloadUtf8, "tl011,3kt2z8emstjurxhh7toakivg0l7pslqxy3cwzyg75ewny86fxf");
+  assert.equal(PAYLOAD.payloadHex, "746c3031312c336b74327a38656d73746a757278686837746f616b697667306c3770736c7178793363777a7967373565776e793836667866");
   assert.equal(PAYLOAD.payloadBytes, 56);
   assert.deepEqual(PAYLOAD.activatedTxTypes, [11]);
 });

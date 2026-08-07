@@ -1262,3 +1262,15 @@ Activation approval and execution provider:
   a fresh exact release-source receipt before any wallet RPC can be reached;
 - runtime readiness remains false until full node synchronization, a loaded
   funded wallet, and live positive activation/reconciliation evidence exist.
+
+Candidate11 recovery update:
+
+- pinned source is now TradeLayer commit
+  `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c` with ordered consensus hash
+  `8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`;
+- a fresh recovery replay proved decoded-block sender/reference processing over
+  the exact candidate10 failure boundary at block 132,688 and reached paused
+  tip 132,733 with no listener error or forbidden log signature;
+- the release-aware gate passes 155/155 and selects only the clean candidate11
+  worktree, but deployment, executable release, funded execution, and tx11
+  chain activation remain false.

@@ -21,7 +21,7 @@ const receipt = {
   releaseId: manifest.releaseId,
   releaseStatus: manifest.status,
   selectedSource: {
-    path: "D:/bitagent-testnet4/tradelayer-candidate10",
+    path: "D:/bitagent-testnet4/tradelayer-candidate11",
     commit: manifest.deploymentCommit,
     codeHash: manifest.codeHash,
     trackedClean: true,
@@ -36,7 +36,7 @@ test("builds a candidate-only activation request from fresh exact release eviden
   const request = createReleaseBoundActivationRequest({
     receipt,
     manifest,
-    requestId: "candidate10-live-1",
+    requestId: "candidate11-live-1",
     wallet: "utxoref-testnet",
     senderAddress,
     maxFeeSats: "2000",
@@ -61,7 +61,7 @@ test("rejects a malformed sender before producing a public activation request", 
   assert.throws(() => createReleaseBoundActivationRequest({
     receipt,
     manifest,
-    requestId: "candidate10-live-malformed",
+    requestId: "candidate11-live-malformed",
     wallet: "utxoref-testnet",
     senderAddress: "tb1-not-a-valid-address",
     maxFeeSats: "2000",
@@ -74,7 +74,7 @@ test("rejects a manually supplied policy fingerprint that differs from the deter
   assert.throws(() => createReleaseBoundActivationRequest({
     receipt,
     manifest,
-    requestId: "candidate10-live-wrong-policy",
+    requestId: "candidate11-live-wrong-policy",
     wallet: "utxoref-testnet",
     senderAddress,
     policyFingerprint: "71".repeat(32),

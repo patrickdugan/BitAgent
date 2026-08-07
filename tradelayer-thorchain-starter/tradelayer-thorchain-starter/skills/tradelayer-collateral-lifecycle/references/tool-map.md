@@ -44,8 +44,8 @@ material through BitAgent.
 Read the current tx11 release from `config/tradelayer-tx11-release.json` and
 verify it with `npm run test:launch:release`; do not hardcode an older release
 or weaken the source gate. The current candidate10 commit is
-`fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd`, with ordered consensus hash
-`c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`.
+`b3423bf7f72a4e8bfad3fbc61f757505553b9d4c`, with ordered consensus hash
+`8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`.
 Local database activation seeds and legacy activation rows are explicitly
 non-chain-derived. Candidate10 remains `candidate_not_deployed`, so a complete
 testnet lifecycle receipt must fail closed before reserve execution.
