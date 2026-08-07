@@ -350,8 +350,10 @@ node .\node_modules\tsx\dist\cli.mjs scripts\throttle-testnet4-sync.ts
 
 The controller fails closed if a listener reports an error, a persisted
 checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
-`trackHeight + 1`. A bounded success leaves peer networking disabled so the
-operator can inspect both listeners before selecting the next target.
+`trackHeight + 1`. It also fails if peer delivery overshoots the configured
+stop height; `bitcoinHeight >= stopHeight` is not accepted as exact parity. A
+bounded success leaves peer networking disabled so the operator can inspect
+both listeners before selecting the next target.
 
 For a long supervised run, set `BITAGENT_SYNC_QUIET=1` and launch the
 controller directly. This suppresses per-poll stdout while preserving the
@@ -391,6 +393,35 @@ excludes those exact addresses from the immediate addrman retry, and records
 `peerDisconnectAttempts`. It never disconnects a synchronized peer merely
 because throughput is low. The stall interval must be 30-600 seconds; use the
 120-second default outside a focused recovery drill.
+
+For the final approach to a reviewed height, stop the throttle with enough
+headroom for its observed peer pipeline, explicitly disable target peer
+networking, and wait for exact listener parity. Then use the wallet-free exact
+height relay rather than hoping a P2P burst lands on the requested block:
+
+```powershell
+$env:BITAGENT_TESTNET4_EXACT_HEIGHT_RELAY_JSON = @{
+  schema="bitagent_testnet4_exact_height_relay_config_v1"
+  runtimeRoot="D:\"
+  sourceRpcUrl="http://127.0.0.1:48332"
+  sourceCookieFile="D:\BitcoinTestnet\testnet4\.cookie"
+  targetRpcUrl="http://127.0.0.1:49392"
+  targetCookieFile="D:\bitagent-testnet4\node-g-full-candidate12\testnet4\.cookie"
+  targetHeight=147389
+  maxBlocks=1024
+} | ConvertTo-Json -Compress
+npm run relay:testnet4:exact-height
+```
+
+The source must be a fully synchronized independent testnet4 node and already
+contain the target height. The target must be peer-off, on the source active
+chain, not past the target, and within the configured suffix bound. Every raw
+block is validated by target Bitcoin Core, followed by an exact height/hash
+check. The source's hash at the reviewed height must remain unchanged through
+the run. The receipt contains no raw blocks, RPC cookies, wallet calls,
+signatures, transaction broadcast, or financial authority. After relay,
+restart only the listener catch-up path and require exact error-free parity
+before snapshotting.
 
 If two paused, independent testnet4 nodes finish a bounded recovery only a few
 blocks apart, do not repeatedly enable peers to chase an exact tip. Use
