@@ -6,19 +6,27 @@ import {
   decideTestnet4SyncControl,
   formatBitcoinPeerEndpoint,
   isUnsyncedTestnet4RecoveryPeer,
+  selectTestnet4RecoveryPeer,
   shouldInspectStalledTestnet4Peer,
   validateTestnet4SyncThrottlePolicy,
   type BitcoinAddrmanEntry,
+  type BitcoinPeerSourceObservation,
   type BitcoinRecoveryPeer,
   type Testnet4SyncSnapshot
 } from "../src/launch/testnet4SyncThrottle.js";
 
-type Pair = {
+type RpcEndpoint = {
   name: string;
-  listenerUrl: string;
   rpcUrl: string;
   cookieFile: string;
 };
+
+type Pair = RpcEndpoint & {
+  name: string;
+  listenerUrl: string;
+};
+
+type PeerSource = RpcEndpoint;
 
 type RpcResponse<T> = { result?: T; error?: { code?: number; message?: string } | null };
 
@@ -70,12 +78,37 @@ function parsePairs(raw: string | undefined): Pair[] {
   });
 }
 
-async function bitcoinRpc<T>(pair: Pair, method: string, params: unknown[] = []): Promise<T> {
-  const cookie = (await fs.readFile(pair.cookieFile, "utf8")).trim();
-  if (!cookie.includes(":")) throw new Error(`pair ${pair.name} has an invalid RPC cookie`);
+function parsePeerSources(raw: string | undefined, pairs: Pair[]): Map<string, PeerSource> {
+  if (!raw) return new Map();
+  const parsed = JSON.parse(raw) as unknown;
+  if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > pairs.length) {
+    throw new Error("BITAGENT_TESTNET4_SYNC_PEER_SOURCES_JSON must contain one source per selected pair at most");
+  }
+  const pairNames = new Set(pairs.map((pair) => pair.name));
+  const sources = new Map<string, PeerSource>();
+  for (const [index, value] of parsed.entries()) {
+    const item = value as Partial<PeerSource>;
+    const name = String(item.name || "").trim();
+    if (!pairNames.has(name) || sources.has(name)) {
+      throw new Error(`peer source ${index} has an unknown or duplicate pair name`);
+    }
+    const cookieFile = String(item.cookieFile || "").trim();
+    if (!cookieFile) throw new Error(`peer source ${name} is missing cookieFile`);
+    sources.set(name, {
+      name,
+      rpcUrl: loopbackUrl(String(item.rpcUrl || ""), `peer source ${name} rpcUrl`),
+      cookieFile
+    });
+  }
+  return sources;
+}
+
+async function bitcoinRpc<T>(endpoint: RpcEndpoint, method: string, params: unknown[] = []): Promise<T> {
+  const cookie = (await fs.readFile(endpoint.cookieFile, "utf8")).trim();
+  if (!cookie.includes(":")) throw new Error(`endpoint ${endpoint.name} has an invalid RPC cookie`);
   let response: Response;
   try {
-    response = await fetch(pair.rpcUrl, {
+    response = await fetch(endpoint.rpcUrl, {
       method: "POST",
       headers: {
         authorization: `Basic ${Buffer.from(cookie).toString("base64")}`,
@@ -86,13 +119,13 @@ async function bitcoinRpc<T>(pair: Pair, method: string, params: unknown[] = [])
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`pair ${pair.name} RPC ${method} request failed: ${detail}`);
+    throw new Error(`endpoint ${endpoint.name} RPC ${method} request failed: ${detail}`);
   }
   const text = await response.text();
-  if (text.length > 1_000_000) throw new Error(`pair ${pair.name} RPC response exceeded size limit`);
-  if (!response.ok) throw new Error(`pair ${pair.name} RPC ${method} returned HTTP ${response.status}`);
+  if (text.length > 1_000_000) throw new Error(`endpoint ${endpoint.name} RPC response exceeded size limit`);
+  if (!response.ok) throw new Error(`endpoint ${endpoint.name} RPC ${method} returned HTTP ${response.status}`);
   const body = JSON.parse(text) as RpcResponse<T>;
-  if (body.error) throw new Error(`pair ${pair.name} RPC ${method} failed: ${body.error.message || body.error.code || "unknown"}`);
+  if (body.error) throw new Error(`endpoint ${endpoint.name} RPC ${method} failed: ${body.error.message || body.error.code || "unknown"}`);
   return body.result as T;
 }
 
@@ -155,6 +188,39 @@ async function kickAddrmanPeers(pair: Pair, excluded = new Set<string>()): Promi
   return attempts.filter((attempt) => attempt.status === "fulfilled").length;
 }
 
+async function kickRecoveryPeer(
+  pair: Pair,
+  source: PeerSource | undefined,
+  excluded: Set<string>
+): Promise<{ peerKickAttempts: number; sourcePeerKickAttempts: number; sourcePeerFallbacks: number }> {
+  if (source) {
+    try {
+      const [chain, network, peers] = await Promise.all([
+        bitcoinRpc<{ chain: string; blocks: number; initialblockdownload: boolean }>(source, "getblockchaininfo"),
+        bitcoinRpc<{ networkactive: boolean }>(source, "getnetworkinfo"),
+        bitcoinRpc<BitcoinRecoveryPeer[]>(source, "getpeerinfo")
+      ]);
+      const observation: BitcoinPeerSourceObservation = {
+        chain: chain.chain,
+        blocks: chain.blocks,
+        initialblockdownload: chain.initialblockdownload === true,
+        networkactive: network.networkactive === true
+      };
+      const selected = selectTestnet4RecoveryPeer(observation, peers, excluded);
+      if (selected) {
+        await bitcoinRpc(pair, "addnode", [selected, "onetry"]);
+        return { peerKickAttempts: 1, sourcePeerKickAttempts: 1, sourcePeerFallbacks: 0 };
+      }
+    } catch {
+      // A read-only peer source is optional. Target addrman remains the bounded fallback.
+    }
+    const peerKickAttempts = await kickAddrmanPeers(pair, excluded);
+    return { peerKickAttempts, sourcePeerKickAttempts: 0, sourcePeerFallbacks: 1 };
+  }
+  const peerKickAttempts = await kickAddrmanPeers(pair, excluded);
+  return { peerKickAttempts, sourcePeerKickAttempts: 0, sourcePeerFallbacks: 0 };
+}
+
 async function rotateUnsyncedPeers(
   pair: Pair,
   observed: Testnet4SyncSnapshot,
@@ -192,6 +258,7 @@ async function writeStatus(outputPath: string, value: unknown): Promise<void> {
 
 async function main() {
   const pairs = parsePairs(process.env.BITAGENT_TESTNET4_SYNC_PAIRS_JSON);
+  const peerSources = parsePeerSources(process.env.BITAGENT_TESTNET4_SYNC_PEER_SOURCES_JSON, pairs);
   const quietValue = process.env.BITAGENT_SYNC_QUIET;
   if (quietValue !== undefined && quietValue !== "0" && quietValue !== "1") {
     throw new Error("BITAGENT_SYNC_QUIET must be 0 or 1");
@@ -235,16 +302,22 @@ async function main() {
           lastBitcoinProgressAt.set(pair.name, now);
         }
         let peerKickAttempts = 0;
+        let sourcePeerKickAttempts = 0;
+        let sourcePeerFallbacks = 0;
         let peerDisconnectAttempts = 0;
         const excluded = excludedPeerAddresses.get(pair.name) || new Set<string>();
         excludedPeerAddresses.set(pair.name, excluded);
         if (decision.action === "enable_network" && !observed.networkActive) {
           await setNetwork(pair, true);
-          peerKickAttempts = await kickAddrmanPeers(pair, excluded);
+          ({ peerKickAttempts, sourcePeerKickAttempts, sourcePeerFallbacks } = await kickRecoveryPeer(
+            pair, peerSources.get(pair.name), excluded
+          ));
           lastPeerKick.set(pair.name, Date.now());
         } else if (observed.networkActive && observed.connections === 0 && decision.lag <= policy.lowWatermark
           && Date.now() - (lastPeerKick.get(pair.name) || 0) >= 15_000) {
-          peerKickAttempts = await kickAddrmanPeers(pair, excluded);
+          ({ peerKickAttempts, sourcePeerKickAttempts, sourcePeerFallbacks } = await kickRecoveryPeer(
+            pair, peerSources.get(pair.name), excluded
+          ));
           lastPeerKick.set(pair.name, Date.now());
         } else if (shouldInspectStalledTestnet4Peer({
           snapshot: observed,
@@ -256,7 +329,9 @@ async function main() {
         })) {
           peerDisconnectAttempts = await rotateUnsyncedPeers(pair, observed, excluded);
           if (peerDisconnectAttempts > 0) {
-            peerKickAttempts = await kickAddrmanPeers(pair, excluded);
+            ({ peerKickAttempts, sourcePeerKickAttempts, sourcePeerFallbacks } = await kickRecoveryPeer(
+              pair, peerSources.get(pair.name), excluded
+            ));
             lastPeerKick.set(pair.name, now);
             lastBitcoinProgressAt.set(pair.name, now);
           }
@@ -268,6 +343,8 @@ async function main() {
           ...observed,
           ...decision,
           peerKickAttempts,
+          sourcePeerKickAttempts,
+          sourcePeerFallbacks,
           peerDisconnectAttempts
         };
         if (!quiet) console.log(JSON.stringify(event));
@@ -278,7 +355,8 @@ async function main() {
         schema: "bitagent_testnet4_sync_throttle_status_v1",
         status: "running",
         authority: "bitcoin_peer_network_control_only",
-        effect: "setnetworkactive_and_addrman_onetry",
+        effect: "setnetworkactive_and_bounded_onetry",
+        peerSourceMode: peerSources.size > 0 ? "independent_loopback_bitcoin" : "target_addrman_only",
         updatedAt: new Date().toISOString(),
         stopHeight: policy.stopHeight,
         states: states.map((state) => state.event)
@@ -293,7 +371,8 @@ async function main() {
           schema: "bitagent_testnet4_sync_throttle_status_v1",
           status: "completed",
           authority: "bitcoin_peer_network_control_only",
-          effect: "setnetworkactive_and_addrman_onetry",
+          effect: "setnetworkactive_and_bounded_onetry",
+          peerSourceMode: peerSources.size > 0 ? "independent_loopback_bitcoin" : "target_addrman_only",
           updatedAt: new Date().toISOString(),
           endedAt: new Date().toISOString(),
           stopHeight: policy.stopHeight,
@@ -312,7 +391,8 @@ async function main() {
       schema: "bitagent_testnet4_sync_throttle_status_v1",
       status: "failed",
       authority: "bitcoin_peer_network_control_only",
-      effect: "setnetworkactive_and_addrman_onetry",
+      effect: "setnetworkactive_and_bounded_onetry",
+      peerSourceMode: peerSources.size > 0 ? "independent_loopback_bitcoin" : "target_addrman_only",
       updatedAt: new Date().toISOString(),
       endedAt: new Date().toISOString(),
       stopHeight: policy.stopHeight,

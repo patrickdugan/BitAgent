@@ -4,6 +4,7 @@ import {
   decideTestnet4SyncControl,
   formatBitcoinPeerEndpoint,
   isUnsyncedTestnet4RecoveryPeer,
+  selectTestnet4RecoveryPeer,
   shouldInspectStalledTestnet4Peer
 } from "../src/launch/testnet4SyncThrottle.js";
 
@@ -103,8 +104,28 @@ test("formats only bounded IPv4 and IPv6 addrman peers", () => {
 
 test("rejects unsupported or injection-shaped addrman entries", () => {
   assert.equal(formatBitcoinPeerEndpoint({ address: "peer.example", port: 48_333, network: "ipv4" }), null);
+  assert.equal(formatBitcoinPeerEndpoint({ address: "999.999.999.999", port: 48_333, network: "ipv4" }), null);
   assert.equal(formatBitcoinPeerEndpoint({ address: "127.0.0.1;stop", port: 48_333, network: "ipv4" }), null);
   assert.equal(formatBitcoinPeerEndpoint({ address: "203.0.113.7", port: 0, network: "ipv4" }), null);
+});
+
+test("selects one sanitized synchronized peer from a reviewed testnet4 source", () => {
+  const source = {
+    chain: "testnet4",
+    blocks: 100,
+    initialblockdownload: false,
+    networkactive: true
+  };
+  const peers = [
+    { id: 1, addr: "127.0.0.1:1;bad", synced_headers: 100, synced_blocks: 100, inbound: false, network: "ipv4" },
+    { id: 11, addr: "999.999.999.999:48333", synced_headers: 100, synced_blocks: 100, inbound: false, network: "ipv4" },
+    { id: 2, addr: "198.51.100.20:48333", synced_headers: 99, synced_blocks: 99, inbound: false, network: "ipv4" },
+    { id: 3, addr: "198.51.100.21:48333", synced_headers: 100, synced_blocks: 100, inbound: false, network: "ipv4" }
+  ];
+  assert.equal(selectTestnet4RecoveryPeer(source, peers), "198.51.100.21:48333");
+  assert.equal(selectTestnet4RecoveryPeer(source, peers, new Set(["198.51.100.21:48333"])), null);
+  assert.equal(selectTestnet4RecoveryPeer({ ...source, initialblockdownload: true }, peers), null);
+  assert.equal(selectTestnet4RecoveryPeer({ ...source, chain: "main" }, peers), null);
 });
 
 test("classifies a connected peer with no synchronized headers or blocks as stale", () => {

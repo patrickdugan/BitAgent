@@ -340,6 +340,9 @@ backend on error or completion:
 
 ```powershell
 $env:BITAGENT_TESTNET4_SYNC_PAIRS_JSON='[{"name":"a","listenerUrl":"http://127.0.0.1:3101","rpcUrl":"http://127.0.0.1:49372","cookieFile":"D:\\bitagent-testnet4\\node-e-prune2048\\testnet4\\.cookie"},{"name":"b","listenerUrl":"http://127.0.0.1:3102","rpcUrl":"http://127.0.0.1:49382","cookieFile":"D:\\bitagent-testnet4\\node-f-prune2048\\testnet4\\.cookie"}]'
+# Optional: use outbound peer metadata from an independent synchronized,
+# wallet-opaque loopback Bitcoin node before falling back to target addrman.
+$env:BITAGENT_TESTNET4_SYNC_PEER_SOURCES_JSON='[{"name":"a","rpcUrl":"http://127.0.0.1:48332","cookieFile":"D:\\BitcoinTestnet\\testnet4\\.cookie"}]'
 $env:BITAGENT_SYNC_LOW_WATERMARK="25"
 $env:BITAGENT_SYNC_HIGH_WATERMARK="100"
 $env:BITAGENT_SYNC_STOP_HEIGHT="65000"
@@ -369,8 +372,16 @@ reviewed ceiling for these specific nodes unless new retained-tail evidence
 justifies a different value.
 Run recovery nodes with `maxconnections=1` so an already-requested block
 pipeline cannot greatly overshoot the lag watermark. On each resume, the
-controller selects at most one one-shot peer from Bitcoin Core's own address
-manager; no public peer is hardcoded. Its latest atomic status receipt is
+controller selects at most one one-shot peer. If a matching optional peer
+source is configured, it reads only `getblockchaininfo`, `getnetworkinfo`, and
+`getpeerinfo` from that synchronized testnet4 node and reuses one sanitized
+outbound IPv4/IPv6 peer. It never calls a source wallet RPC or records the peer
+endpoint. If the source is unavailable, in IBD, on another chain, or has no
+suitable peer, the controller falls back to the target Bitcoin Core address
+manager; no public peer is hardcoded. Source URLs must be credential-free
+loopback HTTP endpoints and source names must match selected pair names. The
+status receipt records only source/addrman attempt counts and the source mode.
+Its latest atomic status receipt is
 `.runtime/testnet-agent/sync-throttle-status.json`. For interruption recovery,
 do not rely on Ctrl+C through `npm run`: an npm parent can exit before the child
 finishes asynchronous cleanup. Prefer the direct Node command above (or a

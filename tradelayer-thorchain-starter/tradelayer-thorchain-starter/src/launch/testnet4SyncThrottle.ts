@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 export type Testnet4SyncSnapshot = {
   bitcoinHeight: number;
   headerHeight: number;
@@ -21,6 +23,15 @@ export type BitcoinRecoveryPeer = {
   addr: string;
   synced_headers: number;
   synced_blocks: number;
+  inbound?: boolean;
+  network?: string;
+};
+
+export type BitcoinPeerSourceObservation = {
+  chain: string;
+  blocks: number;
+  initialblockdownload: boolean;
+  networkactive: boolean;
 };
 
 export type Testnet4SyncThrottlePolicy = {
@@ -94,9 +105,31 @@ export function formatBitcoinPeerEndpoint(raw: BitcoinAddrmanEntry): string | nu
   const port = height(raw.port, "peer port");
   if (port < 1 || port > 65_535) return null;
   const address = String(raw.address || "").trim();
-  if (raw.network === "ipv4" && /^\d{1,3}(?:\.\d{1,3}){3}$/.test(address)) return address + ":" + port;
-  if (raw.network === "ipv6" && /^[a-fA-F0-9:]+$/.test(address) && address.includes(":")) {
+  if (raw.network === "ipv4" && isIP(address) === 4) return address + ":" + port;
+  if (raw.network === "ipv6" && isIP(address) === 6) {
     return "[" + address + "]:" + port;
+  }
+  return null;
+}
+
+export function selectTestnet4RecoveryPeer(
+  source: BitcoinPeerSourceObservation,
+  peers: BitcoinRecoveryPeer[],
+  excluded = new Set<string>()
+): string | null {
+  if (source.chain !== "testnet4" || source.initialblockdownload || !source.networkactive
+    || !Number.isSafeInteger(source.blocks) || source.blocks < 1) return null;
+  for (const peer of peers) {
+    if (peer.inbound || !["ipv4", "ipv6"].includes(String(peer.network || ""))
+      || !Number.isSafeInteger(peer.synced_headers) || peer.synced_headers < source.blocks) continue;
+    const endpoint = String(peer.addr || "").trim();
+    const ipv4 = /^([^:]+):(\d{1,5})$/.exec(endpoint);
+    const ipv6 = /^\[([^\]]+)\]:(\d{1,5})$/.exec(endpoint);
+    const validAddress = (ipv4 && isIP(ipv4[1]) === 4) || (ipv6 && isIP(ipv6[1]) === 6);
+    const port = Number(ipv4?.[2] || ipv6?.[2]);
+    if (!validAddress || !Number.isSafeInteger(port) || port < 1 || port > 65_535
+      || excluded.has(endpoint)) continue;
+    return endpoint;
   }
   return null;
 }

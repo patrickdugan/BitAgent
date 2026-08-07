@@ -1841,3 +1841,30 @@
 - Replay completion, two-listener deployment, challenge-bound preflight, and
   explicit release-manifest review remain unresolved. Candidate12 is still
   unpromoted and the expired candidate11 approval remains untouched.
+
+## Candidate12 unattended peer recovery - 2026-08-07
+
+- The bounded testnet4 controller can optionally reuse one sanitized outbound
+  peer observed by an independent synchronized loopback Bitcoin node. The
+  source surface is read-only (`getblockchaininfo`, `getnetworkinfo`, and
+  `getpeerinfo`); it exposes no wallet, signing, or broadcast authority.
+- Peer-source configuration is name-bound to an existing target pair, accepts
+  only credential-free loopback HTTP RPC, and never persists or prints the
+  selected peer endpoint. A source that is unavailable, in IBD, on another
+  chain, or lacks a synchronized IPv4/IPv6 peer falls back to the target's own
+  address manager.
+- Peer endpoints are validated as real IP literals with bounded ports before a
+  single target `addnode ... onetry` call. Receipts contain only aggregate
+  attempt/fallback counters and `independent_loopback_bitcoin` mode.
+- The active replay was paused at target block 98,494 as free space approached
+  the 750 MiB reserve floor. Peer networking was independently set false with
+  zero connections; listener catch-up and automatic prune recovery are being
+  observed before a source-assisted restart.
+- A live peer-source configuration smoke test completed at exact target/listener
+  parity with networking disabled, zero connections, `error=null`, and only
+  `independent_loopback_bitcoin` aggregate mode in the receipt. No endpoint or
+  credential was emitted. The release-aware gate passes 169/169.
+- A proposed 500-block exact relay made no target change because the independent
+  source had already pruned the target's historical height. This was a truthful
+  source-data limitation, not a consensus or listener failure; the raw-block
+  relay remains reserved for a suffix retained by the synchronized source.

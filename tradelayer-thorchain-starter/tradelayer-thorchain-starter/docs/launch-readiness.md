@@ -1328,3 +1328,16 @@ Candidate12 reorg-safety update:
   replay on the current active fork, two-listener parity, release-manifest
   promotion, and a fresh chain activation before any funded execution can be
   considered.
+
+Candidate12 unattended-recovery update:
+
+- the streamed replay is paused at exact Bitcoin/listener height 98,494 with
+  peer networking false, zero connections, and no listener error while disk
+  reserve is protected;
+- the throttle may reuse one sanitized synchronized outbound peer observed by
+  an independent loopback Bitcoin node, with target addrman fallback and no
+  wallet, signing, broadcast, hardcoded-peer, or endpoint-disclosure surface;
+- an exact-parity live smoke receipt proves the new peer-source configuration
+  path terminates peer-off, and the release-aware gate passes 169/169;
+- replay completion, a second independently replayed listener, candidate12
+  release selection, and challenge-bound live preflight remain required.
