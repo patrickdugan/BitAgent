@@ -27,7 +27,7 @@ tx5 path remain release blockers.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Release-aware local launch gate | 147/147 tests passed |
+| Release-aware local launch gate | 148/148 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -1256,7 +1256,7 @@ Activation approval and execution provider:
   exact effects, require the exact approval hash, resume after interruption,
   classify input-lock recovery, and keep PSBT bytes off the public surface;
 - 7/7 focused operator recovery cases pass in addition to the 15 broker cases;
-- the release-aware complete gate passes 147/147 tests, 24/24 scripted
+- the release-aware complete gate passes 148/148 tests, 24/24 scripted
   trajectories, and 50/50 focused agent cases;
 - runtime readiness remains false until full node synchronization, a loaded
   funded wallet, and live positive activation/reconciliation evidence exist.

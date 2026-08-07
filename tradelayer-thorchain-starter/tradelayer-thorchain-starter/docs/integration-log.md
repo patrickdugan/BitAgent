@@ -1641,4 +1641,6 @@
   launch gate still selects commit
   `fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd` with code hash
   `c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`
-  and passes 147/147 tests. Deployment and funded execution remain false.
+  and passes 148/148 tests after binding the repo-shipped lifecycle skill and
+  example to the current manifest. Deployment and funded execution remain
+  false.
