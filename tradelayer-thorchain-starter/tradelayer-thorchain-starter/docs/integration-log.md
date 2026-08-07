@@ -1892,3 +1892,23 @@
   lane contains 126 candidate-only examples, including 24 recovery-operator
   rows. It contains no raw transcript or detected secret and grants no approval,
   signing, broadcast, execution, fabrication, or parameter-mutation authority.
+
+## Candidate12 bounded 200-block replay corridor - 2026-08-07
+
+- A bounded one-peer drill resumed from exact Bitcoin/listener parity at height
+  104,553 and exercised additional automatic prune transitions while using a
+  50-block low-water and 200-block high-water policy.
+- The peer pipeline produced a maximum observed lag of 203 blocks after the
+  pause decision. This is evidence that the high-water value is an operating
+  trigger, not a hard ceiling. The retained prune margin remained above 2,500
+  blocks and no prune overtake, listener error, peer trim, wallet RPC, signing,
+  or broadcast occurred.
+- The P2P target of 111,500 overshot by four blocks. The controller recorded
+  `bounded_target_overshot`, disabled networking, and terminated non-zero. An
+  independent RPC check then found Bitcoin and candidate12 at exact height
+  111,504, listener `phase=realtime`, `error=null`, networking false, zero
+  connections, prune height 108,840, and about 1.04 GiB free.
+- Because the independent synchronized source retains raw blocks from height
+  111,332 onward, later recovery may use the wallet-free exact-height relay for
+  the final bounded suffix. Candidate12 remains unpromoted and the expired
+  candidate11 approval remains untouched.

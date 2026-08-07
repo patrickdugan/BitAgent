@@ -1347,5 +1347,10 @@ Candidate12 unattended-recovery update:
   outbound peer. The release-aware gate passes 171/171;
 - those two live recovery failures are represented in a new 126-row v4 adapter
   corpus while the 124-row v3 evidence lane remains hash-sealed;
+- a one-peer 50/200 replay drill crossed further prune transitions and failed
+  closed on a four-block bounded-target overshoot. Independent verification
+  found Bitcoin/listener exact at 111,504, listener error null, peer networking
+  false, zero connections, and about 1.04 GiB free. The observed lag briefly
+  reached 203, so 200 is an operating trigger and not a hard safety ceiling;
 - replay completion, a second independently replayed listener, candidate12
   release selection, and challenge-bound live preflight remain required.

@@ -369,10 +369,14 @@ controller from running its peer-pause cleanup. After any abnormal supervisor
 exit, independently call `getnetworkinfo` and require `networkactive=false`
 with zero connections before restarting.
 On the current 2 GiB-pruned recovery nodes, a 750-block corridor allowed an
-automatic prune jump to overtake a listener. The replacement pair completed a
-real prune transition with a 100-block high watermark. Treat 100 as the
-reviewed ceiling for these specific nodes unless new retained-tail evidence
-justifies a different value.
+automatic prune jump to overtake a listener. The replacement pair completed
+multiple real prune transitions with 100- and 200-block high-water policies.
+In the bounded 200-block drill, the in-flight peer pipeline briefly produced a
+203-block observed lag; the controller paused networking, the listener caught
+up without error, and the final P2P target overshot by four blocks before the
+controller failed peer-off as designed. Treat 200 as an operating high-water
+target rather than a hard lag ceiling, keep `maxconnections=1`, and require a
+retained-tail margin materially larger than the possible in-flight overshoot.
 Run recovery nodes with `maxconnections=1` so an already-requested block
 pipeline cannot greatly overshoot the lag watermark. On each resume, the
 controller selects at most one one-shot peer. If a matching optional peer
