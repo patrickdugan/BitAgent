@@ -40,6 +40,11 @@ test("fails closed when pruning overtakes the listener", () => {
   assert.equal(result.reason, "prune_horizon_overtook_listener");
 });
 
+test("fails before the configured lag corridor can cross the retained prune window", () => {
+  const result = decideTestnet4SyncControl({ ...base, pruneHeight: 57_650 }, policy);
+  assert.deepEqual(result, { action: "fail", reason: "unsafe_prune_lag_corridor", lag: 100 });
+});
+
 test("fails closed on a listener error", () => {
   assert.equal(decideTestnet4SyncControl({ ...base, listenerPhase: "error", listenerError: "pruned" }, policy).action, "fail");
 });
