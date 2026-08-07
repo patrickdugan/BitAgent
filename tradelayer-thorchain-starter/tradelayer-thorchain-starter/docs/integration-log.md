@@ -1920,3 +1920,51 @@
   and manifest hash is
   `b636cc58d560077b25bd768758f02452f06c083cce58594f5b1adf40540e37b6`.
   Focused corpus tests pass 4/4 and the new row grants no execution authority.
+
+## Candidate12 replay completion and parallel pair - 2026-08-07
+
+- The one-peer v16 replay advanced from 111,504 to a bounded ten-block P2P
+  overshoot at 145,510. It terminated non-zero, paused networking, and left
+  candidate12 at exact error-free parity. No wallet, approval, signing, or
+  broadcast path was called.
+- The exact-height relay now enforces a target-filesystem reserve before and
+  after every block and reserves twice the decoded size of the pending block.
+  Focused relay tests pass 5/5 and TypeScript is clean. It relayed 1,879 source
+  blocks to exact reviewed height 147,389, with final hash
+  `0000000000e15b8ee3fc6fb990590792ca43f593493c73100db4ea25ac762ba7`,
+  target IBD false, networking false, zero peers, and candidate12 exact.
+- Bitcoin Core's configured-pruned-node RPC removed only complete target block
+  files below prune height 137,004, recovering about 779 MiB. The removed
+  testnet data remains recoverable from the independent source, which retains
+  history from 111,332; chain tip, listener state, and wallet state were
+  unchanged.
+- Two quiescent snapshots were sealed at 147,389. Snapshot A internally binds
+  source/copy hash
+  `fa9656b109cffade91081a80248b0309ea73e2f82229c48bc6a6fff9dbaee5ba`;
+  snapshot B binds
+  `8e837f7f4f6cd01342e75b2f63aa99c38776219069d95f2f80c1051230283841`.
+  Their differing hashes reflect the documented append-only pause/resume
+  record; each 34-file copy exactly matches its own stable source inventory.
+- Two existing paused Bitcoin backends independently selected the active fork,
+  then all three backends and all three candidate12 listeners advanced by an
+  exact 43-block suffix to height 147,432 and hash
+  `00000000006c41a526e0745f171becbac265344594d06717c7b2b07a01a3354b`.
+- Candidate12 listeners on ports 3171/3172 run clean commit
+  `8544512bda290f040a112b94f0a4bc6b556101d7` and code hash
+  `57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb`.
+  The deployment receipt remains `candidate_pair_started_unverified`, and the
+  selected candidate11 manifest was not changed.
+- A bounded live challenge passed independent-listener, freshness,
+  synchronized-testnet4, and exact-release-commit gates, then returned both
+  Bitcoin backends peer-off with zero connections. It truthfully failed only
+  the chain-derived candidate12 activation and dependent tlBTC property,
+  template, contract, and reserve gates because the existing on-chain tx11
+  carries the prior release hash.
+- The next state-changing step requires a fresh candidate12 activation
+  simulation and exact wallet-user approval. The expired candidate11 approval
+  and its input lock remain untouched; candidate12 is not promoted.
+- The release-aware regression gate still selects only the tracked-clean
+  candidate11 worktree and passes 172/172 tests, including 24 scripted E2E
+  trajectories, at least 50 focused agent cases, the exact-relay reserve guard,
+  corpus-v5 sealing, listener deployment, activation authority, and reorg
+  recovery suites.

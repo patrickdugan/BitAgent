@@ -1357,5 +1357,18 @@ Candidate12 unattended-recovery update:
   propose-only recovery row and still contains no secrets, raw transcripts, or
   approval, signing, broadcast, execution, fabrication, or parameter-mutation
   authority;
-- replay completion, a second independently replayed listener, candidate12
-  release selection, and challenge-bound live preflight remain required.
+- replay and parallel deployment are now complete: candidate12 reached exact
+  active-chain height 147,432 on three paused Bitcoin backends, and two new
+  listeners on ports 3171/3172 report realtime/error-null parity at exact
+  commit `8544512bda290f040a112b94f0a4bc6b556101d7`;
+- the bounded live challenge passes independent listeners, freshness,
+  synchronized testnet4, and exact release commit. It correctly fails the
+  chain-derived code-hash and dependent property/template/contract/reserve
+  gates because on-chain tx11 still carries the prior release hash;
+- candidate12 activation now requires a fresh explain/simulate/exact-effects
+  approval cycle. The selected candidate11 manifest and expired approval input
+  lock remain unchanged. Candidate12 release selection, chain activation, and
+  the dependent reserve proof remain required;
+- the release-aware gate passes 172/172 and continues to select only the clean
+  candidate11 worktree. Candidate12 parallel deployment does not silently
+  change that selection.
