@@ -1534,3 +1534,30 @@
   must instead use the existing external wallet candidate/simulation/approval
   boundary after full synchronization, with exact fees and effects displayed,
   followed by independent chain verification.
+
+## Candidate-only tx11 activation broker - 2026-08-07
+
+- Added a typed Bitcoin Core simulation broker dedicated to the candidate-10
+  tx0 activation. It builds the exact tx11-only payload locally from the
+  allowlisted 64-hex consensus hash and reproduces the pinned 56-byte wire
+  payload exactly.
+- Preparation requires a fully synchronized testnet4 node, an owned non-watch
+  sender, one confirmed safe input, a source-verification hash, the exact
+  release ID/commit/status, and a positive fee cap. It requests exactly one
+  OP_RETURN at vout 0 and positive wallet change at vout 1, then verifies the
+  decoded PSBT input, output order, payload, change ownership, fee, and unsigned
+  txid.
+- The public candidate contains the exact input, data output, change, fee,
+  unsigned txid/PSBT hash, and approval hash, but never the PSBT. The broker has
+  no signing or broadcast method. Cancellation revalidates the approval-bound
+  candidate, releases its exact input, and proves signing/broadcast remained
+  false.
+- Eight focused tests cover exact candidate-10 wire bytes, normal cancellation,
+  wrong payload, swapped outputs, foreign change, excessive fee, stale/tampered
+  requests, unsynchronized nodes, and tampered cancellation. TypeScript passes.
+- The complete candidate-10 release gate now passes 133/133 launch tests, all
+  24 scripted trajectories, and 50/50 focused agent cases; release status,
+  deployment verification, executability, and funded execution remain false.
+- The live nodes currently contain no loaded or stored wallet, so no candidate,
+  address, PSBT, approval, signature, or transaction was produced. A separate
+  wallet-owned execution provider and funded testnet4 wallet remain required.

@@ -1217,3 +1217,19 @@ Activation-wire preflight:
   simulation displays the exact admin input/change/fee and OP_RETURN, the
   external wallet approves and signs that exact candidate, Bitcoin Core policy
   accepts it, and the independent preflight proves its confirmed txid/block.
+
+Candidate-only activation simulation:
+
+- `TradeLayerActivationCandidateBroker` now provides the deterministic first
+  half of that path without using the legacy key-export helper;
+- it requires full testnet4 synchronization and exact candidate-10 release
+  provenance before it will call wallet funding RPCs;
+- it exposes exact effects and an approval hash but no PSBT, private material,
+  signing method, or broadcast method, and it releases the selected input on
+  any failed validation or explicit cancellation;
+- 8/8 focused activation-candidate cases and TypeScript pass;
+- the expanded complete release gate passes 133/133 tests, all 24 scripted
+  trajectories, and 50/50 focused agent cases;
+- neither local Bitcoin node has a loaded or stored wallet, so live simulation
+  and the separately reviewed wallet execution half remain blocked on a funded
+  wallet rather than being silently mocked.

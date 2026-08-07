@@ -319,6 +319,11 @@ not part of this user journey.
   MetaMask multichain client. Public sessions persist through the existing D1
   workflow record. The older `TlWebPhantomIntent` remains compatibility-only.
 - Security constraint: the wallet server's current `sign-tx` and `sign-psbt` routes accept WIF material. The financial survival harness must not call these from an agent process. Signing belongs behind a separate policy broker/HSM/guardian boundary.
+- Candidate-10 activation simulation seam:
+  `src/broker/tradelayerActivationCandidateBroker.ts` constructs and validates
+  an exact testnet4 tx0/tx11 PSBT candidate through wallet RPC without exposing
+  the PSBT or offering signing/broadcast. It is the replacement for the
+  prohibited upstream activation helper that exports a private key.
 
 ## DLC, Ark, And Relayer Hooks
 
@@ -368,6 +373,10 @@ not part of this user journey.
 - Missing: Akash account/key broker, certificate, provider bid selection, and deployment lease settlement
 - Missing: settlement observers that reconcile TradeLayer fills and provider invoices into spendable treasury
 - Missing: a funded, synchronized Bitcoin Core testnet4 wallet for exercising the live PSBT broker in this workspace
+- Missing: a wallet-owned, interrupted-session-safe execution provider for an
+  approved `bitagent_tradelayer_activation_candidate_v1`; candidate simulation
+  and verified cancellation exist, but signing, `testmempoolaccept`, broadcast,
+  and positive reconciliation are deliberately not exposed by that broker.
 
 ## Sprint Stubs
 
