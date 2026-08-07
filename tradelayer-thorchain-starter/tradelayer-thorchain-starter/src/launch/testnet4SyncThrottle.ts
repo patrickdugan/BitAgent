@@ -74,7 +74,10 @@ export function decideTestnet4SyncControl(
   if (snapshot.pruneHeight > 0 && retainedBlockMargin <= policy.highWatermark) {
     return { action: "fail", reason: "unsafe_prune_lag_corridor", lag };
   }
-  if (snapshot.bitcoinHeight >= policy.stopHeight) {
+  if (snapshot.bitcoinHeight > policy.stopHeight) {
+    return { action: "fail", reason: "bounded_target_overshot", lag };
+  }
+  if (snapshot.bitcoinHeight === policy.stopHeight) {
     if (lag === 0) return { action: "complete", reason: "bounded_target_caught_up", lag };
     return { action: "disable_network", reason: "bounded_target_waiting_for_listener", lag };
   }

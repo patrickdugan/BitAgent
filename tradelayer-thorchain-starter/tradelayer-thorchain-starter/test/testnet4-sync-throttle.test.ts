@@ -70,6 +70,25 @@ test("completes only when the bounded target is caught up exactly", () => {
   assert.equal(result.action, "complete");
 });
 
+test("fails closed when peer delivery overshoots the bounded target", () => {
+  assert.deepEqual(
+    decideTestnet4SyncControl({
+      ...base,
+      bitcoinHeight: policy.stopHeight + 1,
+      trackHeight: policy.stopHeight
+    }, policy),
+    { action: "fail", reason: "bounded_target_overshot", lag: 1 }
+  );
+  assert.deepEqual(
+    decideTestnet4SyncControl({
+      ...base,
+      bitcoinHeight: policy.stopHeight + 1,
+      trackHeight: policy.stopHeight + 1
+    }, policy),
+    { action: "fail", reason: "bounded_target_overshot", lag: 0 }
+  );
+});
+
 test("rejects an unsafe prune-node high-watermark", () => {
   assert.throws(
     () => decideTestnet4SyncControl(base, { ...policy, highWatermark: 2_001 }),
