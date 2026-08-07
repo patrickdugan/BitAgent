@@ -1912,3 +1912,11 @@
   111,332 onward, later recovery may use the wallet-free exact-height relay for
   the final bounded suffix. Candidate12 remains unpromoted and the expired
   candidate11 approval remains untouched.
+- The four-block overshoot is also a sanitized `bounded_target_overshot`
+  failure trace. Corpus v4 remains byte-sealed for the registered adapter
+  preflight; the next hill-climb lane is `bonsai-role-corpus-v5` with 127
+  candidate-only examples and 25 recovery-operator rows. Its examples hash is
+  `0322d612c49fff790d4ae17132e0b48044a7dbeec16ba8649f20f87b41cf6901`
+  and manifest hash is
+  `b636cc58d560077b25bd768758f02452f06c083cce58594f5b1adf40540e37b6`.
+  Focused corpus tests pass 4/4 and the new row grants no execution authority.

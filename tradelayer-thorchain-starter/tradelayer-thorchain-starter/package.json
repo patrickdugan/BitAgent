@@ -49,7 +49,7 @@
     "bench:covenant": "tsx scripts/benchmark-strategy-covenant.ts",
     "test:covenant": "tsx --test test/strategy-covenant.test.ts test/tradelayer-shadow-feeder.test.ts",
     "eval:covenant": "tsx eval/run-covenant-evaluations.ts",
-    "export:bonsai-data": "tsx scripts/export-bonsai-role-data.ts --include-financial-survival --output-dir=training/artifacts/bonsai-role-corpus-v4",
+    "export:bonsai-data": "tsx scripts/export-bonsai-role-data.ts --include-financial-survival --output-dir=training/artifacts/bonsai-role-corpus-v5",
     "test:bonsai-contracts": "tsx --test test/bonsai-tool-contracts.test.ts",
     "broker:testnet": "tsx scripts/testnet-signer-broker.ts",
     "observe:pnl": "tsx scripts/observe-tradelayer-pnl.ts",

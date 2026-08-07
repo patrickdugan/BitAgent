@@ -1352,5 +1352,10 @@ Candidate12 unattended-recovery update:
   found Bitcoin/listener exact at 111,504, listener error null, peer networking
   false, zero connections, and about 1.04 GiB free. The observed lag briefly
   reached 203, so 200 is an operating trigger and not a hard safety ceiling;
+- the overshoot recovery is represented in a 127-row corpus v5 hill-climb lane
+  while registered corpus v4 remains byte-sealed. The v5 lane adds one
+  propose-only recovery row and still contains no secrets, raw transcripts, or
+  approval, signing, broadcast, execution, fabrication, or parameter-mutation
+  authority;
 - replay completion, a second independently replayed listener, candidate12
   release selection, and challenge-bound live preflight remain required.
