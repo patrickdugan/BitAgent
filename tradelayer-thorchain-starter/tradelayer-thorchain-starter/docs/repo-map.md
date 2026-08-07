@@ -330,6 +330,12 @@ not part of this user journey.
   calls, post-sign revalidation, mempool admission, broadcast ambiguity, and
   positive reconciliation; it is not an agent tool and returns no PSBT or raw
   signed transaction.
+- Durable operator seam:
+  `src/broker/tradelayerActivationCandidateStore.ts` atomically persists the
+  private envelope with integrity-checked lifecycle state, while
+  `src/broker/tradelayerActivationOperator.ts` and
+  `scripts/tradelayer-activation-operator.ts` expose only exact public effects,
+  an explicit approval/cancel decision, and positive-only reconciliation.
 
 ## DLC, Ark, And Relayer Hooks
 
@@ -379,9 +385,10 @@ not part of this user journey.
 - Missing: Akash account/key broker, certificate, provider bid selection, and deployment lease settlement
 - Missing: settlement observers that reconcile TradeLayer fills and provider invoices into spendable treasury
 - Missing: a funded, synchronized Bitcoin Core testnet4 wallet for exercising the live PSBT broker in this workspace
-- Missing: a non-developer/operator UI and durable private-envelope store that
-  connect `bitagent_tradelayer_activation_candidate_v1` to the implemented
-  host-private execution provider without exposing its PSBT to the agent.
+- Provisional: the durable private-envelope store and supervised operator CLI
+  now connect `bitagent_tradelayer_activation_candidate_v1` to the host-private
+  executor without exposing its PSBT. A browser wallet approval view remains
+  future UX work; it is not required for the supervised testnet activation.
 
 ## Sprint Stubs
 

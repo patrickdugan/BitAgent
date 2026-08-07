@@ -1247,6 +1247,9 @@ Activation approval and execution provider:
   and the execution provider is not exposed to the language model;
 - the expanded complete release gate passes 140/140 tests, all 24 scripted
   trajectories, and 50/50 focused agent cases;
+- a durable host-private store and supervised operator CLI now display the
+  exact effects, require the exact approval hash, resume after interruption,
+  classify input-lock recovery, and keep PSBT bytes off the public surface;
+- 7/7 focused operator recovery cases pass in addition to the 15 broker cases;
 - runtime readiness remains false until full node synchronization, a loaded
-  funded wallet, an operator-visible approval surface, and live positive
-  reconciliation evidence exist.
+  funded wallet, and live positive activation/reconciliation evidence exist.

@@ -1587,3 +1587,27 @@
 - This code remains operator/wallet-hosted and is not registered as an agent
   tool. No live wallet exists on the syncing nodes, so none of these RPCs were
   invoked against live funds.
+
+## Durable tx11 activation approval and recovery - 2026-08-07
+
+- Added an atomic, integrity-checked host-private candidate store. It persists
+  the raw unsigned PSBT only inside the wallet-host file and returns a separate
+  public approval view containing the exact input, tx11 payload, change, fee,
+  unsigned txid/PSBT hash, and approval hash.
+- Added explicit durable states for pending approval, cancellation, submission,
+  write-ahead execution, ambiguous submission, positive mempool/confirmation
+  observation, definite released-input failure, and manual recovery. Corrupt records and invalid
+  transitions fail closed; an interrupted process can resume by approval hash.
+- Execution errors now state whether the exact input lock was retained,
+  released, or cannot safely be classified. Definite failures are recorded only
+  after release; ambiguous broadcast retains the input and permits only positive
+  reconciliation. Absence never authorizes retry.
+- Added `operator:tradelayer-activation` with separate prepare, status, cancel,
+  approve-execute, and reconcile actions. Preparation and submission each have
+  an environment interlock, and execution requires the operator to repeat the
+  exact displayed approval hash. Public CLI output rejects private PSBT fields.
+- Seven focused operator cases cover restart recovery, write-ahead interruption,
+  exact approved execution,
+  rejected signatures, ambiguous submission, corrupt storage, and persistence
+  failure cleanup. No live wallet RPC was invoked; synchronization and wallet
+  funding remain external runtime gates.

@@ -70,7 +70,8 @@ export class TradeLayerActivationExecutionError extends Error {
       | "mempool_rejected"
       | "submission_unknown",
     message: string,
-    public readonly broadcastMayHaveOccurred = false
+    public readonly broadcastMayHaveOccurred = false,
+    public readonly inputLockDisposition: "retained" | "released" | "unknown" = "unknown"
   ) {
     super(message);
     Object.setPrototypeOf(this, TradeLayerActivationExecutionError.prototype);
@@ -132,7 +133,9 @@ async function requireSynchronizedTestnet4(rpc: BitcoinCoreBrokerRpc): Promise<v
   ) {
     throw new TradeLayerActivationExecutionError(
       "execution_validation_failed",
-      "Activation execution requires a fully synchronized Bitcoin testnet4 node"
+      "Activation execution requires a fully synchronized Bitcoin testnet4 node",
+      false,
+      "retained"
     );
   }
 }
@@ -266,7 +269,9 @@ export class TradeLayerActivationExecutionBroker {
     if (input.approvalHash !== candidate.approvalHash) {
       throw new TradeLayerActivationExecutionError(
         "execution_validation_failed",
-        "Activation approval hash differs from the exact wallet candidate"
+        "Activation approval hash differs from the exact wallet candidate",
+        false,
+        "retained"
       );
     }
     await requireSynchronizedTestnet4(this.rpc);
@@ -275,10 +280,19 @@ export class TradeLayerActivationExecutionBroker {
       await verifyDecodedPsbt(this.rpc, decoded, candidate);
     } catch (error) {
       await releaseInputLocks(this.rpc, outpoints);
-      if (isTradeLayerActivationExecutionError(error)) throw error;
+      if (isTradeLayerActivationExecutionError(error)) {
+        throw new TradeLayerActivationExecutionError(
+          error.code,
+          error.message,
+          false,
+          "released"
+        );
+      }
       throw new TradeLayerActivationExecutionError(
         "execution_validation_failed",
-        "Activation PSBT could not be revalidated before signing"
+        "Activation PSBT could not be revalidated before signing",
+        false,
+        "released"
       );
     }
 
@@ -303,7 +317,9 @@ export class TradeLayerActivationExecutionBroker {
       await releaseInputLocks(this.rpc, outpoints);
       throw new TradeLayerActivationExecutionError(
         "signature_rejected",
-        "The wallet did not sign the exact approved activation candidate"
+        "The wallet did not sign the exact approved activation candidate",
+        false,
+        "released"
       );
     }
 
@@ -314,10 +330,19 @@ export class TradeLayerActivationExecutionBroker {
       );
     } catch (error) {
       await releaseInputLocks(this.rpc, outpoints);
-      if (isTradeLayerActivationExecutionError(error)) throw error;
+      if (isTradeLayerActivationExecutionError(error)) {
+        throw new TradeLayerActivationExecutionError(
+          error.code,
+          error.message,
+          false,
+          "released"
+        );
+      }
       throw new TradeLayerActivationExecutionError(
         "execution_validation_failed",
-        "Signed activation transaction could not be decoded and revalidated"
+        "Signed activation transaction could not be decoded and revalidated",
+        false,
+        "released"
       );
     }
 
@@ -333,7 +358,9 @@ export class TradeLayerActivationExecutionBroker {
       await releaseInputLocks(this.rpc, outpoints);
       throw new TradeLayerActivationExecutionError(
         "mempool_rejected",
-        "Bitcoin Core mempool policy could not accept the approved activation"
+        "Bitcoin Core mempool policy could not accept the approved activation",
+        false,
+        "released"
       );
     }
     const result = acceptance[0];
@@ -345,7 +372,9 @@ export class TradeLayerActivationExecutionBroker {
       await releaseInputLocks(this.rpc, outpoints);
       throw new TradeLayerActivationExecutionError(
         "mempool_rejected",
-        "Bitcoin Core rejected or changed the exact approved activation"
+        "Bitcoin Core rejected or changed the exact approved activation",
+        false,
+        "released"
       );
     }
 
@@ -356,14 +385,16 @@ export class TradeLayerActivationExecutionBroker {
       throw new TradeLayerActivationExecutionError(
         "submission_unknown",
         "Activation submission outcome is unknown; retain the input and reconcile positively",
-        true
+        true,
+        "retained"
       );
     }
     if (txid !== candidate.unsignedTxid) {
       throw new TradeLayerActivationExecutionError(
         "submission_unknown",
         "Bitcoin Core returned a different activation txid; retain the input and reconcile",
-        true
+        true,
+        "retained"
       );
     }
     return receipt<TradeLayerActivationSubmissionReceipt>({
@@ -396,7 +427,8 @@ export class TradeLayerActivationExecutionBroker {
       throw new TradeLayerActivationExecutionError(
         "submission_unknown",
         "Activation is not positively observed; retain the input and do not authorize retry",
-        true
+        true,
+        "retained"
       );
     }
     const confirmations = Number(observed.confirmations || 0);
@@ -408,7 +440,8 @@ export class TradeLayerActivationExecutionBroker {
       throw new TradeLayerActivationExecutionError(
         "submission_unknown",
         "Activation observation is invalid; retain the input and do not authorize retry",
-        true
+        true,
+        "retained"
       );
     }
     return receipt<TradeLayerActivationReconciliationReceipt>({

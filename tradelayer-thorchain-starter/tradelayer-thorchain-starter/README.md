@@ -52,6 +52,10 @@ See [docs/operator-guide.md](docs/operator-guide.md),
 [docs/launch-kernel-architecture.md](docs/launch-kernel-architecture.md), and
 [docs/launch-readiness.md](docs/launch-readiness.md).
 
+The candidate10 tx11 activation has a separate supervised, host-private
+testnet4 operator flow. See
+[docs/tradelayer-activation-operator.md](docs/tradelayer-activation-operator.md).
+
 Owner-only hosted demo:
 [bitagent-launch-kernel.duganist875063.chatgpt.site](https://bitagent-launch-kernel.duganist875063.chatgpt.site).
 

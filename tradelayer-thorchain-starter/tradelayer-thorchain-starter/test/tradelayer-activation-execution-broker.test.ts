@@ -156,9 +156,10 @@ for (const fixture of [
         approvalHash: candidate.publicCandidate.approvalHash,
         now: NOW
       }),
-      (error: unknown) => isTradeLayerActivationExecutionError(error)
-        && error.code === fixture[2]
-        && error.broadcastMayHaveOccurred === false
+        (error: unknown) => isTradeLayerActivationExecutionError(error)
+          && error.code === fixture[2]
+          && error.broadcastMayHaveOccurred === false
+          && error.inputLockDisposition === "released"
     );
     assert.equal(rpc.methods.includes("sendrawtransaction"), false);
     assert.equal(rpc.lockedCount, 0);
@@ -175,9 +176,10 @@ test("ambiguous submission retains the input and requires positive reconciliatio
       approvalHash: candidate.publicCandidate.approvalHash,
       now: NOW
     }),
-    (error: unknown) => isTradeLayerActivationExecutionError(error)
-      && error.code === "submission_unknown"
-      && error.broadcastMayHaveOccurred === true
+      (error: unknown) => isTradeLayerActivationExecutionError(error)
+        && error.code === "submission_unknown"
+        && error.broadcastMayHaveOccurred === true
+        && error.inputLockDisposition === "retained"
   );
   assert.equal(rpc.lockedCount, 1);
   await assert.rejects(
