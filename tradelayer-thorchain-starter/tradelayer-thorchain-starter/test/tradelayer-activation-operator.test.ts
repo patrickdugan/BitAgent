@@ -124,13 +124,16 @@ test("durably resumes a host-private candidate through a PSBT-free approval view
   try {
     const prepared = await setup.operator.prepare(request, NOW);
     assert.equal(prepared.status, "pending_approval");
+    assert.equal(prepared.approval.expiresAt, request.expiresAt);
+    assert.equal(prepared.approval.expired, false);
+    assert.equal(prepared.approval.decisionStatus, "pending");
     assert.equal(prepared.exactEffects.dataOutput.payloadUtf8, request.activation.payloadUtf8);
     assert.equal(prepared.exactEffects.feeSats, "1000");
     assert.equal(JSON.stringify(prepared).includes("rawPsbt"), false);
     assert.equal((await fs.readFile(setup.storePath, "utf8")).includes("rawPsbt"), true);
 
     const resumed = await new FileTradeLayerActivationCandidateStore(setup.storePath, POLICY)
-      .getPublic(prepared.exactEffects.approvalHash);
+      .getPublic(prepared.exactEffects.approvalHash, NOW);
     assert.deepEqual(resumed, prepared);
     assert.equal(JSON.stringify(resumed).includes("private-activation-psbt"), false);
     await setup.operator.cancel(prepared.exactEffects.approvalHash, NOW);
@@ -158,13 +161,40 @@ test("exact approval executes once and persists a PSBT-free submission receipt",
   }
 });
 
+test("expired approval is public, cannot sign, and remains explicitly cancellable", async () => {
+  const setup = await fixture();
+  try {
+    const prepared = await setup.operator.prepare(request, NOW);
+    const approvalHash = prepared.exactEffects.approvalHash;
+    const expiredAt = new Date("2026-08-07T13:15:01.000Z");
+    const expired = await setup.operator.status(approvalHash, expiredAt);
+    assert.equal(expired.status, "pending_approval");
+    assert.equal(expired.approval.expired, true);
+    assert.equal(expired.approval.decisionStatus, "expired");
+    assert.match(expired.recoveryInstructions.join(" "), /do not approve/i);
+    assert.match(expired.recoveryInstructions.join(" "), /fresh simulation/i);
+    await assert.rejects(
+      () => setup.operator.approveAndExecute(approvalHash, expiredAt),
+      /approval expired/i
+    );
+    assert.equal(setup.rpc.methods.includes("walletprocesspsbt"), false);
+    assert.equal(setup.rpc.lockedCount, 1);
+    const cancelled = await setup.operator.cancel(approvalHash, expiredAt);
+    assert.equal(cancelled.status, "cancelled");
+    assert.equal(cancelled.approval.decisionStatus, "cancelled");
+    assert.equal(setup.rpc.lockedCount, 0);
+  } finally {
+    await fs.rm(setup.directory, { recursive: true, force: true });
+  }
+});
+
 test("rejected signature records released-input recovery without retrying", async () => {
   const setup = await fixture("signature_rejected");
   try {
     const prepared = await setup.operator.prepare(request, NOW);
     const approvalHash = prepared.exactEffects.approvalHash;
     await assert.rejects(() => setup.operator.approveAndExecute(approvalHash, NOW), /did not sign/);
-    const status = await setup.operator.status(approvalHash);
+    const status = await setup.operator.status(approvalHash, NOW);
     assert.equal(status.status, "failed_released");
     assert.equal(status.failure?.inputLockDisposition, "released");
     assert.equal(status.failure?.broadcastMayHaveOccurred, false);
@@ -182,14 +212,14 @@ test("ambiguous submission persists no-retry state until positive reconciliation
     const prepared = await setup.operator.prepare(request, NOW);
     const approvalHash = prepared.exactEffects.approvalHash;
     await assert.rejects(() => setup.operator.approveAndExecute(approvalHash, NOW), /outcome is unknown/);
-    const ambiguous = await setup.operator.status(approvalHash);
+    const ambiguous = await setup.operator.status(approvalHash, NOW);
     assert.equal(ambiguous.status, "submission_unknown");
     assert.equal(ambiguous.recoveryInstructions[0], "Do not retry.");
     assert.equal(ambiguous.walletActions.signingPerformed, true);
     assert.equal(ambiguous.walletActions.broadcastStatus, "unknown");
     assert.equal(setup.rpc.lockedCount, 1);
     await assert.rejects(() => setup.operator.reconcile(approvalHash, NOW), /not positively observed/);
-    assert.equal((await setup.operator.status(approvalHash)).status, "submission_unknown");
+    assert.equal((await setup.operator.status(approvalHash, NOW)).status, "submission_unknown");
 
     setup.rpc.observed = true;
     const reconciled = await setup.operator.reconcile(approvalHash, NOW);
@@ -206,7 +236,7 @@ test("write-ahead execution state survives interruption and permits only positiv
     const prepared = await setup.operator.prepare(request, NOW);
     const approvalHash = prepared.exactEffects.approvalHash;
     await setup.store.markExecutionRequested(approvalHash, NOW);
-    const resumed = await new FileTradeLayerActivationCandidateStore(setup.storePath, POLICY).getPublic(approvalHash);
+    const resumed = await new FileTradeLayerActivationCandidateStore(setup.storePath, POLICY).getPublic(approvalHash, NOW);
     assert.equal(resumed.status, "execution_requested");
     assert.equal(resumed.walletActions.signingPerformed, null);
     assert.equal(resumed.walletActions.broadcastStatus, "unknown");
@@ -214,7 +244,7 @@ test("write-ahead execution state survives interruption and permits only positiv
     await assert.rejects(() => setup.operator.approveAndExecute(approvalHash, NOW), /Only a pending/);
     await assert.rejects(() => setup.operator.cancel(approvalHash, NOW), /Only a pending/);
     await assert.rejects(() => setup.operator.reconcile(approvalHash, NOW), /not positively observed/);
-    assert.equal((await setup.operator.status(approvalHash)).status, "execution_requested");
+    assert.equal((await setup.operator.status(approvalHash, NOW)).status, "execution_requested");
   } finally {
     await fs.rm(setup.directory, { recursive: true, force: true });
   }

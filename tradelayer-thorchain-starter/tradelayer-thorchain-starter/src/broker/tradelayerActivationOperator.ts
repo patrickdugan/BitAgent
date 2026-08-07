@@ -44,12 +44,12 @@ export class TradeLayerActivationOperator {
     }
   }
 
-  async status(approvalHash: string): Promise<TradeLayerActivationApprovalView> {
-    return this.store.getPublic(approvalHash);
+  async status(approvalHash: string, now = new Date()): Promise<TradeLayerActivationApprovalView> {
+    return this.store.getPublic(approvalHash, now);
   }
 
   async cancel(approvalHash: string, now = new Date()): Promise<TradeLayerActivationApprovalView> {
-    if ((await this.store.getPublic(approvalHash)).status !== "pending_approval") {
+    if ((await this.store.getPublic(approvalHash, now)).status !== "pending_approval") {
       throw new IntegrationBoundaryError("signer_broker_error", "Only a pending activation candidate can be cancelled");
     }
     const candidate = await this.store.loadPrivate(approvalHash);
@@ -64,8 +64,15 @@ export class TradeLayerActivationOperator {
     approvalHash: string,
     now = new Date()
   ): Promise<TradeLayerActivationApprovalView> {
-    if ((await this.store.getPublic(approvalHash)).status !== "pending_approval") {
+    const approval = await this.store.getPublic(approvalHash, now);
+    if (approval.status !== "pending_approval") {
       throw new IntegrationBoundaryError("signer_broker_error", "Only a pending activation candidate can be approved");
+    }
+    if (approval.approval.expired) {
+      throw new IntegrationBoundaryError(
+        "signer_broker_error",
+        "Activation approval expired; cancel it and prepare a fresh simulation before signing"
+      );
     }
     const candidate = await this.store.loadPrivate(approvalHash);
     if (candidate.publicCandidate.approvalHash !== approvalHash) {
@@ -103,7 +110,7 @@ export class TradeLayerActivationOperator {
   }
 
   async reconcile(approvalHash: string, now = new Date()): Promise<TradeLayerActivationApprovalView> {
-    const status = (await this.store.getPublic(approvalHash)).status;
+    const status = (await this.store.getPublic(approvalHash, now)).status;
     if (status !== "execution_requested" && status !== "submission_unknown" && status !== "submitted") {
       throw new IntegrationBoundaryError("signer_broker_error", "Only a submitted activation can be reconciled");
     }

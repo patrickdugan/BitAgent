@@ -1302,3 +1302,15 @@ Candidate11 activation simulation update:
 - signing and broadcast are still false. Launch remains blocked on the user's
   explicit approval or cancellation, followed by confirmation and independent
   listener proof.
+
+Expired-approval recovery update:
+
+- the candidate11 request is now expired and may not be approved;
+- the public operator status reports the exact expiry and
+  `decisionStatus=expired`, while keeping PSBT bytes private;
+- an expired approval is rejected before any signing RPC and cannot silently
+  roll forward into execution;
+- the only safe next transition is explicit cancellation of the exact stale
+  hash, followed by a new simulation and a new exact approval hash;
+- read-only status inspection has been verified against the persisted live
+  record, with signing and broadcast both still false.

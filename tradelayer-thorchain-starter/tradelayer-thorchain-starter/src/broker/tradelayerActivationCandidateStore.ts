@@ -72,7 +72,9 @@ export type TradeLayerActivationApprovalView = {
   approval: {
     required: true;
     exactApprovalHash: string;
-    decisionStatus: "pending" | "cancelled" | "approved";
+    expiresAt: string;
+    expired: boolean;
+    decisionStatus: "pending" | "expired" | "cancelled" | "approved";
   };
   walletActions: {
     signingPerformed: boolean | null;
@@ -121,11 +123,13 @@ function validateResult(
   }
 }
 
-function approvalView(record: PrivateActivationRecord): TradeLayerActivationApprovalView {
+function approvalView(record: PrivateActivationRecord, now = new Date()): TradeLayerActivationApprovalView {
   const candidate = record.candidate.publicCandidate;
   const executionSucceeded = record.status === "submitted" || record.status === "mempool" || record.status === "confirmed";
   const submissionUnknown = record.status === "submission_unknown";
   const executionUnresolved = submissionUnknown || record.status === "execution_requested";
+  const expired = record.status === "pending_approval"
+    && Date.parse(candidate.request.expiresAt) <= now.getTime();
   return {
     schema: "bitagent_tradelayer_activation_approval_view_v1",
     authority: "wallet_user",
@@ -143,7 +147,15 @@ function approvalView(record: PrivateActivationRecord): TradeLayerActivationAppr
     approval: {
       required: true,
       exactApprovalHash: candidate.approvalHash,
-      decisionStatus: record.status === "pending_approval" ? "pending" : record.status === "cancelled" ? "cancelled" : "approved"
+      expiresAt: candidate.request.expiresAt,
+      expired,
+      decisionStatus: expired
+        ? "expired"
+        : record.status === "pending_approval"
+          ? "pending"
+          : record.status === "cancelled"
+            ? "cancelled"
+            : "approved"
     },
     walletActions: {
       signingPerformed: executionSucceeded || submissionUnknown ? true : executionUnresolved || record.status === "manual_recovery" ? null : false,
@@ -152,8 +164,14 @@ function approvalView(record: PrivateActivationRecord): TradeLayerActivationAppr
     },
     recoveryInstructions: record.status === "submission_unknown" || record.status === "execution_requested"
       ? ["Do not retry.", "Use positive chain reconciliation for the exact unsigned txid."]
-      : record.status === "pending_approval"
-        ? ["Approve the exact hash or cancel to release the reserved input."]
+      : record.status === "pending_approval" && expired
+        ? [
+            "This approval request expired before execution. Do not approve it.",
+            "Cancel the exact hash to release the reserved input.",
+            "Prepare and review a fresh simulation before approving any replacement."
+          ]
+        : record.status === "pending_approval"
+          ? ["Approve the exact hash or cancel to release the reserved input."]
         : record.status === "manual_recovery"
           ? ["Stop execution and inspect the wallet input lock before any further action."]
           : [],
@@ -277,7 +295,7 @@ export class FileTradeLayerActivationCandidateStore {
         if (existing.candidate.envelopeHash !== candidate.envelopeHash) {
           throw new IntegrationBoundaryError("signer_broker_error", "Activation approval hash collides with different private material");
         }
-        return approvalView(existing);
+      return approvalView(existing, now);
       }
       const record = {
         schema: "bitagent_tradelayer_activation_private_record_v1" as const,
@@ -291,7 +309,7 @@ export class FileTradeLayerActivationCandidateStore {
       record.recordHash = canonicalHash(recordMaterial(record));
       document.records[approvalHash] = record;
       await this.writeDocument(document);
-      return approvalView(record);
+      return approvalView(record, now);
     });
   }
 
@@ -303,11 +321,11 @@ export class FileTradeLayerActivationCandidateStore {
     });
   }
 
-  async getPublic(approvalHash: string): Promise<TradeLayerActivationApprovalView> {
+  async getPublic(approvalHash: string, now = new Date()): Promise<TradeLayerActivationApprovalView> {
     return this.serialize(async () => {
       const record = (await this.readDocument()).records[approvalHash];
       if (!record) throw new IntegrationBoundaryError("signer_broker_error", "Activation candidate was not found");
-      return approvalView(record);
+      return approvalView(record, now);
     });
   }
 

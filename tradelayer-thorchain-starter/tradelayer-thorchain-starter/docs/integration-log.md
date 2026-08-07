@@ -1773,3 +1773,21 @@
   registration expects the pre-provenance v7 config hash. The current config
   is intentionally different, so no checkpoint or benchmark claim was
   changed and no GPU memory was allocated.
+
+## Candidate11 expired-approval recovery - 2026-08-07
+
+- The persisted activation request expired without approval, signing, or
+  broadcast while its exact input lock remained intentionally retained.
+- The public approval view now exposes the request expiry, an `expired` flag,
+  and `decisionStatus=expired` rather than presenting the stale hash as an
+  approvable pending request.
+- Expired approval fails before loading private candidate material or calling
+  any signing RPC. Recovery instructions explicitly require cancellation of
+  the exact hash, release of the reserved input, and a fresh simulation before
+  any replacement approval.
+- Cancellation remains wallet-user controlled and valid for the expired
+  pending record; status inspection never cancels, signs, broadcasts, or
+  mutates durable state.
+- Eight focused operator cases and TypeScript pass. A read-only live status
+  check against candidate11 returned `expired=true`, `signingPerformed=false`,
+  `broadcastStatus=not_performed`, and no PSBT bytes.
