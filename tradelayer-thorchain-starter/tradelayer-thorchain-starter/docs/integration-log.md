@@ -1490,3 +1490,36 @@
   Both receipts prove paused peer networking, parser pause, stable-byte copy,
   and verified return to realtime. There were no wallet effects, approvals,
   signatures, or broadcasts.
+
+## Candidate-10 parallel deployment and exact testnet4 parity - 2026-08-07
+
+- The exact candidate-10 source commit and consensus hash were deployed from
+  the two sealed snapshots into new, non-overlapping state and log roots. New
+  listeners run on ports 3131/3132 with recorded PIDs 14464/4164; candidate-9
+  listeners on 3121/3122 remain available as rollback evidence. The deployment
+  receipt remains `candidate_pair_started_unverified` and cannot authorize
+  funded execution.
+- A bounded candidate-10 B recovery advanced from 105,001 to 107,604 with a
+  100-block high watermark and ended with listener parity, networking off, and
+  zero listener errors. A tighter A recovery reached 107,606/107,606. Neither
+  controller run requested wallet approval, signing, or transaction broadcast.
+- Added `align:testnet4-tip`, a bounded operator-only raw-block relay for the
+  final paused-node suffix. It requires independent loopback RPCs, matching
+  active-chain ancestry, zero peers, disabled networking, and at most 128
+  blocks. Four focused tests cover authority absence, valid bounded planning,
+  idempotent retry, fork/network rejection, and size bounds.
+- B independently validated A's public blocks 107,605 and 107,606 through
+  `submitblock`. Both Bitcoin Cores and all four TradeLayer listeners now agree
+  at height 107,606 and best block
+  `000000000a860ed7a982aab0baf6bb8fba49ba7aff7806e143dbea664ec59880`,
+  with peer networking disabled. An idempotent rerun produced a zero-block
+  receipt without changing either node.
+- The shared RTX 3050 reheated to 83 C during this model-free work, so the 64 C
+  Bonsai start gate closed again. No model was loaded and no benchmark score is
+  claimed.
+- The fresh candidate-10 listener preflight passes independent endpoints,
+  observation freshness, and the exact release commit. It correctly fails
+  paused/IBD synchronization and every missing real chain-derived tx11 and
+  reserve-registry gate. The expanded model-free release gate passes 125/125
+  tests, all 24 scripted trajectories, and 50/50 focused agent cases; funded
+  execution remains disabled.

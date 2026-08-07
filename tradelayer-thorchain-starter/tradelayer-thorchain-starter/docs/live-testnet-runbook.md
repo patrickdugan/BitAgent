@@ -351,6 +351,20 @@ excludes those exact addresses from the immediate addrman retry, and records
 because throughput is low. The stall interval must be 30-600 seconds; use the
 120-second default outside a focused recovery drill.
 
+If two paused, independent testnet4 nodes finish a bounded recovery only a few
+blocks apart, do not repeatedly enable peers to chase an exact tip. Use
+`npm run align:testnet4-tip` with an exact
+`BITAGENT_TESTNET4_TIP_ALIGNMENT_JSON` object. The operator tool requires two
+unique loopback RPC endpoints and cookie files, both peer networks disabled
+with zero connections, the target tip on the source node's active chain, and a
+suffix of at most the configured `maxBlocks` (hard limit 128). It obtains each
+public raw block from the source and calls `submitblock` on the target; the
+target Bitcoin Core independently validates the suffix. Success requires exact
+height and best-block-hash parity while both networks remain paused. The
+receipt records block hashes but never RPC cookies, wallet data, signatures, or
+transaction authority. Repeating the command on an already aligned pair is a
+verified no-op.
+
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence
 proof; operators must still ensure the endpoints do not proxy the same process
