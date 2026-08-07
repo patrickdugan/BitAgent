@@ -22,6 +22,22 @@ Set `BITCOIN_BIN`, `BTCTEST_DATADIR`, `BTCTEST_RPC_PORT`, `BTCTEST_WALLET`, and
 `TL_ACTIVATION_POLICY_FINGERPRINT` for that wallet host. No private key, WIF,
 mnemonic, or seed phrase is accepted.
 
+After rerunning `npm run test:launch:release`, build the public request from the
+fresh, exact release-source receipt. This command has no wallet or network
+effect; it only validates the pinned manifest/source binding and writes a public
+request:
+
+```powershell
+npm run prepare:tradelayer-activation-request -- `
+  --sender-address=<owned-testnet4-address> `
+  --max-fee-sats=2000
+```
+
+The source receipt must be no more than 15 minutes old by default. The generated
+`sourceVerificationHash` binds the release ID, status, deployment commit, code
+hash, and clean verified source checkout. A mismatched or stale receipt fails
+closed before any wallet RPC is available.
+
 ## 1. Prepare and inspect
 
 Preparation reserves exactly one confirmed wallet input and atomically stores

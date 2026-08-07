@@ -1,0 +1,110 @@
+import { createTradeLayerActivationBrokerRequest } from "../broker/tradelayerActivationCandidateBroker.js";
+import { canonicalHash } from "../survival/policy.js";
+import {
+  validateTx11ReleaseManifest,
+  type Tx11ReleaseManifest
+} from "./tradelayerRelease.js";
+
+export type Tx11LaunchSourceReceipt = {
+  schema: "bitagent.tradelayer.tx11-launch-source.v1";
+  verifiedAt: string;
+  authority: "read_only_observer";
+  effect: "none";
+  releaseId: string;
+  releaseStatus: string;
+  selectedSource: {
+    path: string;
+    commit: string;
+    codeHash: string;
+    trackedClean: boolean;
+    sourceVerified: boolean;
+  };
+  deploymentVerified: boolean;
+  executable: boolean;
+};
+
+function isHex(value: unknown, length: number): value is string {
+  return typeof value === "string" && new RegExp(`^[a-f0-9]{${length}}$`).test(value);
+}
+
+export function validateTx11LaunchSourceReceipt(input: {
+  receipt: unknown;
+  manifest: Tx11ReleaseManifest;
+  now?: Date;
+  maxAgeMs?: number;
+}): Tx11LaunchSourceReceipt {
+  const manifest = validateTx11ReleaseManifest(input.manifest);
+  const receipt = input.receipt as Partial<Tx11LaunchSourceReceipt>;
+  if (!receipt || receipt.schema !== "bitagent.tradelayer.tx11-launch-source.v1"
+    || receipt.authority !== "read_only_observer" || receipt.effect !== "none") {
+    throw new Error("TradeLayer tx11 launch source receipt schema or authority is invalid");
+  }
+  const selected = receipt.selectedSource;
+  if (!selected?.path?.trim() || !isHex(selected.commit, 40) || !isHex(selected.codeHash, 64)) {
+    throw new Error("TradeLayer tx11 selected source identity is invalid");
+  }
+  if (receipt.releaseId !== manifest.releaseId || receipt.releaseStatus !== manifest.status
+    || selected.commit !== manifest.deploymentCommit || selected.codeHash !== manifest.codeHash) {
+    throw new Error("TradeLayer tx11 launch source does not match the pinned release manifest");
+  }
+  if (!selected.trackedClean || !selected.sourceVerified) {
+    throw new Error("TradeLayer tx11 launch source is not clean and source-verified");
+  }
+  if (receipt.deploymentVerified !== false || receipt.executable !== false) {
+    throw new Error("Candidate-only tx11 source receipt has an invalid execution claim");
+  }
+  const verifiedAt = Date.parse(receipt.verifiedAt || "");
+  const nowMs = (input.now || new Date()).getTime();
+  const maxAgeMs = input.maxAgeMs ?? 15 * 60 * 1000;
+  if (!Number.isFinite(verifiedAt) || maxAgeMs <= 0 || verifiedAt > nowMs + 30_000 || nowMs - verifiedAt > maxAgeMs) {
+    throw new Error("TradeLayer tx11 launch source receipt is stale or has an invalid verification time");
+  }
+  return receipt as Tx11LaunchSourceReceipt;
+}
+
+export function tx11SourceVerificationHash(
+  receipt: Tx11LaunchSourceReceipt,
+  manifest: Tx11ReleaseManifest
+): string {
+  return canonicalHash({
+    schema: "bitagent.tradelayer.tx11-source-verification-binding.v1",
+    releaseId: manifest.releaseId,
+    releaseStatus: manifest.status,
+    deploymentCommit: manifest.deploymentCommit,
+    codeHash: manifest.codeHash,
+    selectedSource: receipt.selectedSource
+  });
+}
+
+export function createReleaseBoundActivationRequest(input: {
+  receipt: unknown;
+  manifest: Tx11ReleaseManifest;
+  requestId: string;
+  wallet: string;
+  senderAddress: string;
+  policyFingerprint: string;
+  maxFeeSats: string;
+  expiresAt: string;
+  now?: Date;
+  maxSourceAgeMs?: number;
+}) {
+  const manifest = validateTx11ReleaseManifest(input.manifest);
+  const receipt = validateTx11LaunchSourceReceipt({
+    receipt: input.receipt,
+    manifest,
+    now: input.now,
+    maxAgeMs: input.maxSourceAgeMs
+  });
+  return createTradeLayerActivationBrokerRequest({
+    requestId: input.requestId,
+    wallet: input.wallet,
+    senderAddress: input.senderAddress,
+    releaseId: manifest.releaseId,
+    deploymentCommit: manifest.deploymentCommit,
+    codeHash: manifest.codeHash,
+    sourceVerificationHash: tx11SourceVerificationHash(receipt, manifest),
+    policyFingerprint: input.policyFingerprint,
+    maxFeeSats: input.maxFeeSats,
+    expiresAt: input.expiresAt
+  });
+}
