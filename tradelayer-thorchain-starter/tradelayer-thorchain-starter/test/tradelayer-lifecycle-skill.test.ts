@@ -39,7 +39,7 @@ test("lifecycle v2 fails closed when reserve intake provenance or deployment is 
     [
       "local-seed",
       (receipt) => { receipt.reserveIntake.preflight.gates.tx11ChainDerived = false; },
-      /pass all nine exact candidate-9 gates/
+      /pass all nine exact reserve gates/
     ],
     [
       "undeployed-testnet",

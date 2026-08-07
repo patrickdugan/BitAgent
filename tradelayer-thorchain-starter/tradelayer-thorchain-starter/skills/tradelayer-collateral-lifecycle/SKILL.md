@@ -270,8 +270,8 @@ Before declaring completion, require:
 
 - deposit confirmation and canonical UTXORef;
 - matching collateral funding root;
-- separately approved and verified reserve intake with all nine candidate-9
-  gates and exact deployed release provenance;
+- separately approved and verified reserve intake with all nine exact reserve
+  preflight gates and deployed release provenance;
 - approved codebase and valid signal signature;
 - exact simulation and separate wallet approval;
 - independently verified order/position state;

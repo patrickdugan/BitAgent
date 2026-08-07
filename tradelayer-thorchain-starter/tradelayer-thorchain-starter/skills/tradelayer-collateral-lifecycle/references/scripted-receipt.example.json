@@ -46,10 +46,10 @@
       }
     },
     "release": {
-      "releaseId": "tx11-utxoref-dynamic-contract-candidate-9",
+      "releaseId": "tx11-utxoref-dynamic-contract-candidate-10",
       "status": "candidate_not_deployed",
-      "codeHash": "8ab527ac64cd21464e7911396572e971f4b8795fa59f3f472dfb3abb6c0ffed1",
-      "deploymentCommit": "f502236e3e2b8c601c2e8576bb0bcf23b2680892"
+      "codeHash": "c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29",
+      "deploymentCommit": "fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd"
     },
     "approval": {
       "id": "reserve-approval-001",

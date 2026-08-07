@@ -61,7 +61,7 @@ Validate the receipt with the bundled script. The checker enforces:
 - confirmed deposit and matching funding roots;
 - one separately approved reserve-intake transaction whose vout 0 is the
   recorded reserve outpoint;
-- a plan-hash-bound preflight with exactly nine passing candidate-9 gates;
+- a plan-hash-bound preflight with exactly nine passing reserve gates;
 - exact tx11 release ID, code hash, and deployment commit, with `deployed`
   required outside simulated mode;
 - verified signal provenance;

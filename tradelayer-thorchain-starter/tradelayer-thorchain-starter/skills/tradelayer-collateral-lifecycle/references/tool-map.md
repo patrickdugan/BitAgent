@@ -41,11 +41,31 @@ remains unavailable; the current executor is hard-limited to testnet4 and must
 never pass WIF, mnemonic, raw PSBT, grant, signature, or signed transaction
 material through BitAgent.
 
-The current tx11 release is candidate 9 at deployment commit
-`f502236e3e2b8c601c2e8576bb0bcf23b2680892`. Local database activation seeds
-and legacy activation rows are explicitly non-chain-derived. The release is
-still `candidate_not_deployed`, so a complete testnet lifecycle receipt must
-fail closed before reserve execution.
+Read the current tx11 release from `config/tradelayer-tx11-release.json` and
+verify it with `npm run test:launch:release`; do not hardcode an older release
+or weaken the source gate. The current candidate10 commit is
+`fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd`, with ordered consensus hash
+`c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`.
+Local database activation seeds and legacy activation rows are explicitly
+non-chain-derived. Candidate10 remains `candidate_not_deployed`, so a complete
+testnet lifecycle receipt must fail closed before reserve execution.
+
+The candidate10 activation path is wallet-hosted and not model-callable:
+
+- `src/broker/tradelayerActivationCandidateBroker.ts`: exact unsigned
+  candidate and public effects;
+- `src/broker/tradelayerActivationExecutionBroker.ts`: pre/post-sign
+  revalidation, mempool admission, and broadcast;
+- `src/broker/tradelayerActivationCandidateStore.ts`: atomic host-private PSBT
+  storage and integrity checks;
+- `src/broker/tradelayerActivationOperator.ts`: write-ahead approval and
+  positive-only reconciliation;
+- `scripts/tradelayer-activation-operator.ts`: supervised exact-hash CLI.
+
+Never use an upstream activation helper that calls `dumpprivkey`. Preparation
+and submission remain separately interlocked, require an explicit operator
+approval hash, and may run only after full synchronized testnet4 proof and a
+separately authorized funded wallet exist.
 
 Wallet sources of truth:
 

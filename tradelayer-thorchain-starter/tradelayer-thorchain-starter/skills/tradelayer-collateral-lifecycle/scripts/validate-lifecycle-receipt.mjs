@@ -177,7 +177,7 @@ function validate(receipt) {
     const gateKeys = Object.keys(gates).sort();
     if (JSON.stringify(gateKeys) !== JSON.stringify([...REQUIRED_RESERVE_GATES].sort())
       || REQUIRED_RESERVE_GATES.some((gate) => gates[gate] !== true)) {
-      fail("reserveIntake.preflight must pass all nine exact candidate-9 gates");
+      fail("reserveIntake.preflight must pass all nine exact reserve gates");
     }
 
     const release = object(receipt.reserveIntake.release, "reserveIntake.release");
