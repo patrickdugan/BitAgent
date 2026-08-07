@@ -319,6 +319,14 @@ The controller fails closed if a listener reports an error, a persisted
 checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
 `trackHeight + 1`. A bounded success leaves peer networking disabled so the
 operator can inspect both listeners before selecting the next target.
+
+For a long supervised run, set `BITAGENT_SYNC_QUIET=1` and launch the
+controller directly. This suppresses per-poll stdout while preserving the
+atomic status receipt and terminal message. Do not pipe the controller through
+another process: an interrupt delivered only to that wrapper can prevent the
+controller from running its peer-pause cleanup. After any abnormal supervisor
+exit, independently call `getnetworkinfo` and require `networkactive=false`
+with zero connections before restarting.
 On the current 2 GiB-pruned recovery nodes, a 750-block corridor allowed an
 automatic prune jump to overtake a listener. The replacement pair completed a
 real prune transition with a 100-block high watermark. Treat 100 as the

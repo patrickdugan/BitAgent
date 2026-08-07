@@ -194,6 +194,11 @@ async function writeStatus(outputPath: string, value: unknown): Promise<void> {
 
 async function main() {
   const pairs = parsePairs(process.env.BITAGENT_TESTNET4_SYNC_PAIRS_JSON);
+  const quietValue = process.env.BITAGENT_SYNC_QUIET;
+  if (quietValue !== undefined && quietValue !== "0" && quietValue !== "1") {
+    throw new Error("BITAGENT_SYNC_QUIET must be 0 or 1");
+  }
+  const quiet = quietValue === "1";
   const policy = validateTestnet4SyncThrottlePolicy({
     lowWatermark: boundedInteger(process.env.BITAGENT_SYNC_LOW_WATERMARK, 25, "BITAGENT_SYNC_LOW_WATERMARK"),
     highWatermark: boundedInteger(process.env.BITAGENT_SYNC_HIGH_WATERMARK, 250, "BITAGENT_SYNC_HIGH_WATERMARK"),
@@ -267,7 +272,7 @@ async function main() {
           peerKickAttempts,
           peerDisconnectAttempts
         };
-        console.log(JSON.stringify(event));
+        if (!quiet) console.log(JSON.stringify(event));
         return { pair, decision, event };
       }));
       lastEvents = states.map((state) => state.event);
