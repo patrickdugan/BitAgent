@@ -1747,3 +1747,29 @@
   non-executable because peer networking was paused for evidence capture and
   the required candidate11 tx11 hash is not yet chain-activated. No wallet,
   approval, signature, or broadcast action occurred.
+
+## Candidate11 funded activation simulation - 2026-08-07
+
+- The separate `D:\BitcoinTestnet` wallet node reports testnet4 tip 147,370,
+  IBD false, three peers, and a loaded `utxoref-testnet` descriptor wallet with
+  317,176 trusted sats. Public inspection found seven confirmed safe spendable
+  UTXOs; no secret-key RPC was called.
+- Bitcoin Core rejected a redundant CLI chain selector because this datadir
+  already selects its chain in configuration. `BitcoinCliBrokerRpc` now omits
+  `-chain=testnet4` only when an explicit datadir is supplied; effectful
+  brokers still require live `getblockchaininfo.chain=testnet4` and exact
+  block/header synchronization before touching wallet state. Twenty-three
+  focused broker/live cases and TypeScript pass.
+- The release-bound request pins candidate11 code hash
+  `8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`,
+  exact tx11-only 56-byte payload, 2,000-sat fee cap, and deterministic policy
+  fingerprint. Candidate-only simulation reserved input
+  `4623e25a03cee2ab0ad5169c70675280d1bd37db859c34d81a17a4b4c94b61e1:1`
+  (302,443 sats), produced 302,085 sats change and a 358-sat fee, and is
+  pending exact approval hash
+  `d4349f54db77cf354897c3e1a2ff72a70e7f3a503b2d7618e46e51f16a3da1a3`.
+  Signing and broadcast remain false; cancellation will release the input.
+- A cooled 54 C Bonsai v5 attempt stopped before model load because the frozen
+  registration expects the pre-provenance v7 config hash. The current config
+  is intentionally different, so no checkpoint or benchmark claim was
+  changed and no GPU memory was allocated.

@@ -27,7 +27,11 @@ export function buildBitcoinCliBrokerArgs(
     throw new Error("BTCTEST_RPC_PORT must be a decimal TCP port");
   }
   const encodedParams = params.map((param) => (typeof param === "string" ? param : JSON.stringify(param)));
-  const args = ["-chain=testnet4"];
+  // A configured datadir may already select testnet4 in bitcoin.conf. Passing
+  // a second chain selector makes Bitcoin Core reject the CLI invocation.
+  // Effectful brokers independently validate getblockchaininfo.chain before
+  // constructing or reserving anything.
+  const args = config.datadir ? [] : ["-chain=testnet4"];
   if (config.datadir) args.push(`-datadir=${config.datadir}`);
   if (config.rpcConnect) args.push(`-rpcconnect=${config.rpcConnect}`);
   if (config.rpcPort) args.push(`-rpcport=${config.rpcPort}`);

@@ -45,13 +45,13 @@ test("Bitcoin CLI broker binds an explicitly configured local RPC endpoint", () 
     rpcPort: "48332"
   }, "getblockchaininfo", []);
   assert.deepEqual(args, [
-    "-chain=testnet4",
     "-datadir=D:\\BitcoinTestnet",
     "-rpcconnect=127.0.0.1",
     "-rpcport=48332",
     "-rpcwallet=utxoref-testnet",
     "getblockchaininfo"
   ]);
+  assert.equal(buildBitcoinCliBrokerArgs({ wallet: "wallet" }, "getblockchaininfo", [])[0], "-chain=testnet4");
   assert.throws(
     () => buildBitcoinCliBrokerArgs({ wallet: "wallet", rpcPort: "not-a-port" }, "getblockchaininfo", []),
     /decimal TCP port/

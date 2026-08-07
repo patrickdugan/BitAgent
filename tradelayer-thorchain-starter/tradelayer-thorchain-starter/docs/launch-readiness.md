@@ -1290,3 +1290,15 @@ Candidate11 full-tip deployment update:
 - launch remains blocked exactly where intended: candidate11 tx11 is not yet
   chain-activated, the evidence-time nodes were paused, and no funded wallet
   approval, signing, or broadcast has occurred.
+
+Candidate11 activation simulation update:
+
+- the funded wallet node is fully synchronized on testnet4 and the public
+  candidate is persisted with one exact 302,443-sat input reserved;
+- exact effects are a tx11-only OP_RETURN, 302,085 sats returned to the owned
+  P2TR address, and a 358-sat fee under the 2,000-sat cap;
+- approval hash is
+  `d4349f54db77cf354897c3e1a2ff72a70e7f3a503b2d7618e46e51f16a3da1a3`;
+- signing and broadcast are still false. Launch remains blocked on the user's
+  explicit approval or cancellation, followed by confirmation and independent
+  listener proof.
