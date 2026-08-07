@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decideTestnet4SyncControl, formatBitcoinPeerEndpoint } from "../src/launch/testnet4SyncThrottle.js";
+import {
+  decideTestnet4SyncControl,
+  formatBitcoinPeerEndpoint,
+  isUnsyncedTestnet4RecoveryPeer,
+  shouldInspectStalledTestnet4Peer
+} from "../src/launch/testnet4SyncThrottle.js";
 
 const policy = { lowWatermark: 25, highWatermark: 250, stopHeight: 60_000 };
 const base = {
@@ -76,4 +81,44 @@ test("rejects unsupported or injection-shaped addrman entries", () => {
   assert.equal(formatBitcoinPeerEndpoint({ address: "peer.example", port: 48_333, network: "ipv4" }), null);
   assert.equal(formatBitcoinPeerEndpoint({ address: "127.0.0.1;stop", port: 48_333, network: "ipv4" }), null);
   assert.equal(formatBitcoinPeerEndpoint({ address: "203.0.113.7", port: 0, network: "ipv4" }), null);
+});
+
+test("classifies a connected peer with no synchronized headers or blocks as stale", () => {
+  assert.equal(isUnsyncedTestnet4RecoveryPeer({
+    id: 41,
+    addr: "203.0.113.7:48333",
+    synced_headers: -1,
+    synced_blocks: -1
+  }, base), true);
+});
+
+test("preserves a peer synchronized beyond the local recovery checkpoint", () => {
+  assert.equal(isUnsyncedTestnet4RecoveryPeer({
+    id: 42,
+    addr: "198.51.100.7:48333",
+    synced_headers: base.headerHeight,
+    synced_blocks: base.bitcoinHeight + 40
+  }, base), false);
+});
+
+test("inspects a connected peer only after a caught-up recovery node stalls below the target", () => {
+  const decision = decideTestnet4SyncControl({ ...base, trackHeight: 57_990 }, policy);
+  const input = {
+    snapshot: { ...base, trackHeight: 57_990 },
+    decision,
+    policy,
+    nowMs: 130_000,
+    lastProgressAtMs: 10_000,
+    peerStallMs: 120_000
+  };
+  assert.equal(shouldInspectStalledTestnet4Peer(input), true);
+  assert.equal(shouldInspectStalledTestnet4Peer({ ...input, nowMs: 129_999 }), false);
+  assert.equal(shouldInspectStalledTestnet4Peer({
+    ...input,
+    decision: { action: "hold", reason: "within_lag_corridor", lag: 100 }
+  }), false);
+  assert.equal(shouldInspectStalledTestnet4Peer({
+    ...input,
+    snapshot: { ...input.snapshot, bitcoinHeight: policy.stopHeight }
+  }), false);
 });

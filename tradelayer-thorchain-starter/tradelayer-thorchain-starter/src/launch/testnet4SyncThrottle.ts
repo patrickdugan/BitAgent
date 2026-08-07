@@ -16,6 +16,13 @@ export type BitcoinAddrmanEntry = {
   network: string;
 };
 
+export type BitcoinRecoveryPeer = {
+  id: number;
+  addr: string;
+  synced_headers: number;
+  synced_blocks: number;
+};
+
 export type Testnet4SyncThrottlePolicy = {
   lowWatermark: number;
   highWatermark: number;
@@ -85,4 +92,32 @@ export function formatBitcoinPeerEndpoint(raw: BitcoinAddrmanEntry): string | nu
     return "[" + address + "]:" + port;
   }
   return null;
+}
+
+export function isUnsyncedTestnet4RecoveryPeer(
+  rawPeer: BitcoinRecoveryPeer,
+  snapshot: Pick<Testnet4SyncSnapshot, "bitcoinHeight" | "headerHeight">
+): boolean {
+  const id = Number(rawPeer.id);
+  const syncedHeaders = Number(rawPeer.synced_headers);
+  const syncedBlocks = Number(rawPeer.synced_blocks);
+  if (!Number.isSafeInteger(id) || id < 0) return true;
+  if (!Number.isSafeInteger(syncedHeaders) || !Number.isSafeInteger(syncedBlocks)) return true;
+  return syncedHeaders < snapshot.headerHeight || syncedBlocks < snapshot.bitcoinHeight;
+}
+
+export function shouldInspectStalledTestnet4Peer(input: {
+  snapshot: Pick<Testnet4SyncSnapshot, "bitcoinHeight" | "networkActive" | "connections">;
+  decision: Testnet4SyncThrottleDecision;
+  policy: Testnet4SyncThrottlePolicy;
+  nowMs: number;
+  lastProgressAtMs: number;
+  peerStallMs: number;
+}): boolean {
+  const policy = validateTestnet4SyncThrottlePolicy(input.policy);
+  return input.snapshot.networkActive
+    && input.snapshot.connections > 0
+    && input.snapshot.bitcoinHeight < policy.stopHeight
+    && input.decision.lag <= policy.lowWatermark
+    && input.nowMs - input.lastProgressAtMs >= input.peerStallMs;
 }

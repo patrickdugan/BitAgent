@@ -1057,3 +1057,11 @@ remained realtime/error-free and the terminal receipt recorded successful
 pause RPCs. Resumed 74,200 and 75,000 targets then completed at A 75,033 and B
 75,054, both with exact listener parity and networking paused. This remains
 IBD recovery rather than launch synchronization.
+
+Further bounded recovery completed at 80,000 and 81,000. Current exact paused
+tips are A 81,193 and B 81,023. A connected peer with no synchronized headers
+or blocks was isolated twice; exact-peer rotation restored progress. The
+controller now performs that rotation automatically only after a bounded
+low-lag stall and preserves synchronized peers. The complete release preflight
+passes 114/114 checks after the new policy tests. Full IBD completion and all
+chain-derived tx11 gates remain outstanding.

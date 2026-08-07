@@ -297,6 +297,7 @@ $env:BITAGENT_SYNC_LOW_WATERMARK="25"
 $env:BITAGENT_SYNC_HIGH_WATERMARK="100"
 $env:BITAGENT_SYNC_STOP_HEIGHT="65000"
 $env:BITAGENT_SYNC_REQUEST_TIMEOUT_MS="45000"
+$env:BITAGENT_SYNC_PEER_STALL_MS="120000"
 node .\node_modules\tsx\dist\cli.mjs scripts\throttle-testnet4-sync.ts
 ```
 
@@ -326,6 +327,15 @@ Current receipts include `status=running|completed|failed`. Terminal receipts
 also record `endedAt`, the final observations, and a per-backend
 `networkPauseResults` outcome. Still perform the independent Bitcoin RPC check;
 the terminal receipt proves the attempted RPC result, not future process state.
+
+When a connected recovery peer delivers no Bitcoin height progress for
+`BITAGENT_SYNC_PEER_STALL_MS`, the controller inspects `getpeerinfo` only while
+the listener lag is below the low watermark. It disconnects only peers whose
+reported synchronized header or block height is behind the local checkpoint,
+excludes those exact addresses from the immediate addrman retry, and records
+`peerDisconnectAttempts`. It never disconnects a synchronized peer merely
+because throughput is low. The stall interval must be 30-600 seconds; use the
+120-second default outside a focused recovery drill.
 
 This proves two distinct live endpoints with distinct operator-declared
 instances. It is not a TEE, remote-code-attestation, or Byzantine-independence

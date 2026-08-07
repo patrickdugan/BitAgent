@@ -1335,3 +1335,17 @@
   below the listeners at 74,339 and 74,366. A fresh live preflight preserved
   the same truthful gate shape: independence, freshness, and exact release
   commit pass; full synchronization and chain-derived tx11 registry gates fail.
+- Subsequent bounded targets completed at 80,000 (A 80,378, B 80,062) and
+  81,000 (A 81,193, B 81,023), always with exact listener parity and paused
+  networking. Two stalls were traced to the same connected peer reporting
+  `synced_headers=-1`, `synced_blocks=-1`, and `last_block=0`; rotating only
+  that exact peer restored progress immediately.
+- The controller now detects a below-target, low-lag Bitcoin height stall,
+  inspects connected peer synchronization after a bounded interval,
+  disconnects only unsynchronized peers, and excludes their exact address from
+  the immediate addrman retry. The normal 81,000 live run completed without an
+  unnecessary disconnection. Fifteen focused policy tests cover the trigger,
+  safe-peer preservation, malformed/unsynchronized peers, pruning, recovery,
+  and terminal behavior.
+- The refreshed full release preflight passes 114/114 checks, 24 trajectories,
+  and 50/50 agent cases with every score equal to 1 and zero failure traces.
