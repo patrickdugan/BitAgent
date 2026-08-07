@@ -14,7 +14,14 @@ import { validateTx11ReleaseManifest, verifyLocalTx11Release } from "../src/laun
 
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
-const manifestPath = path.join(root, "config", "tradelayer-tx11-release.json");
+const configRoot = path.join(root, "config");
+const configuredManifest = process.env.BITAGENT_TRADELAYER_RELEASE_MANIFEST;
+const manifestPath = path.resolve(configuredManifest || path.join(configRoot, "tradelayer-tx11-release.json"));
+const manifestRelative = path.relative(configRoot, manifestPath);
+if (manifestRelative === "" || manifestRelative.startsWith("..") || path.isAbsolute(manifestRelative)
+  || path.extname(manifestPath).toLowerCase() !== ".json") {
+  throw new Error("TradeLayer release manifest must be a JSON child of the project config directory");
+}
 const outputPath = path.resolve(process.env.BITAGENT_TRADELAYER_LISTENER_DEPLOYMENT_RECEIPT
   || path.join(".runtime", "testnet-agent", "listener-deployments", "latest.json"));
 

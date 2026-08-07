@@ -216,6 +216,11 @@ identity/backend fields, and source/hash drift. It never reads a wallet,
 requests approval, signs, or broadcasts. A `candidate_pair_started_unverified`
 receipt is deployment evidence only; rerun the challenge-bound listener
 preflight against the new ports before changing any release status.
+The deployer uses `config/tradelayer-tx11-release.json` by default. For an
+unselected parallel candidate, set `BITAGENT_TRADELAYER_RELEASE_MANIFEST` to an
+explicit JSON child of this project's `config` directory. This changes only
+the candidate bundle verified by that deployment; it does not change the
+selected release manifest or promote the candidate.
 
 After each HTTP process is reachable, the deployer sends an empty JSON body to
 `POST /tl_initmain` and requires `tl_getSyncStatus` to report

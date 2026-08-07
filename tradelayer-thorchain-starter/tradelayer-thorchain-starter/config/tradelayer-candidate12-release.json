@@ -1,0 +1,53 @@
+{
+  "schema": "bitagent.tradelayer.tx11-release.v1",
+  "releaseId": "tx11-utxoref-reorg-failclosed-candidate-12",
+  "status": "candidate_not_deployed",
+  "codeHash": "57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb",
+  "deploymentCommit": "8544512bda290f040a112b94f0a4bc6b556101d7",
+  "tradelayerCommits": [
+    "b3423bf7f72a4e8bfad3fbc61f757505553b9d4c",
+    "8544512bda290f040a112b94f0a4bc6b556101d7"
+  ],
+  "consensusSourceFiles": [
+    "activation.js",
+    "activationProvenance.js",
+    "amm.js",
+    "channels.js",
+    "clearing.js",
+    "clearlist.js",
+    "consensus.js",
+    "contractRegistry.js",
+    "insurance.js",
+    "logic.js",
+    "main.js",
+    "marginMap.js",
+    "options.js",
+    "oracle.js",
+    "orderbook.js",
+    "persistence.js",
+    "procedural.js",
+    "property.js",
+    "reOrg.js",
+    "rpcRecoveryPolicy.js",
+    "tally.js",
+    "txDecoder.js",
+    "txIndex.js",
+    "types.js",
+    "validity.js",
+    "vaults.js",
+    "vesting.js",
+    "volumeIndex.js"
+  ],
+  "promotionRequirements": [
+    "complete a clean active-fork replay at a reviewed exact height",
+    "seal two quiescent listener snapshots and deploy them to independent paused Bitcoin backends",
+    "pass challenge-bound two-listener preflight for this exact commit and code hash",
+    "prove tx11 activation is chain-derived from an indexed Bitcoin transaction rather than a local database seed",
+    "prove the canonical tx0 wire payload round-trips its base36 field to this exact 64-hex candidate code hash",
+    "publish the exact procedural template on every listener",
+    "rerun the read-only reserve preflight with this code hash supplied as the operator allowlist",
+    "prove signed transaction policy with wallet approval and testmempoolaccept before broadcast",
+    "prove chain-derived reserve accounting and tx12 release independently",
+    "perform explicit operator release-selection review; parallel deployment alone must not promote candidate12"
+  ]
+}
