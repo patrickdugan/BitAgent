@@ -8,7 +8,7 @@ import {
   shouldInspectStalledTestnet4Peer
 } from "../src/launch/testnet4SyncThrottle.js";
 
-const policy = { lowWatermark: 25, highWatermark: 250, stopHeight: 60_000 };
+const policy = { lowWatermark: 25, highWatermark: 250, stopHeight: 60_000, minFreeBytes: 750 * 1024 * 1024 };
 const base = {
   bitcoinHeight: 58_000,
   headerHeight: 147_000,
@@ -18,7 +18,8 @@ const base = {
   connections: 1,
   trackHeight: 57_900,
   listenerPhase: "realtime",
-  listenerError: null
+  listenerError: null,
+  freeBytes: 2_000_000_000
 };
 
 test("holds inside the lag corridor", () => {
@@ -48,6 +49,11 @@ test("fails before the configured lag corridor can cross the retained prune wind
 
 test("fails closed on a listener error", () => {
   assert.equal(decideTestnet4SyncControl({ ...base, listenerPhase: "error", listenerError: "pruned" }, policy).action, "fail");
+});
+
+test("fails closed before the filesystem reserve drops below its reviewed floor", () => {
+  const result = decideTestnet4SyncControl({ ...base, freeBytes: policy.minFreeBytes - 1 }, policy);
+  assert.deepEqual(result, { action: "fail", reason: "disk_reserve_below_floor", lag: 100 });
 });
 
 test("fails closed while a listener is recovering from transient RPC loss", () => {

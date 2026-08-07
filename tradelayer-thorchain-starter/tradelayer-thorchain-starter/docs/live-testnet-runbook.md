@@ -346,6 +346,7 @@ $env:BITAGENT_TESTNET4_SYNC_PEER_SOURCES_JSON='[{"name":"a","rpcUrl":"http://127
 $env:BITAGENT_SYNC_LOW_WATERMARK="25"
 $env:BITAGENT_SYNC_HIGH_WATERMARK="100"
 $env:BITAGENT_SYNC_STOP_HEIGHT="65000"
+$env:BITAGENT_SYNC_MIN_FREE_BYTES="786432000"
 $env:BITAGENT_SYNC_REQUEST_TIMEOUT_MS="45000"
 $env:BITAGENT_SYNC_PEER_STALL_MS="120000"
 node .\node_modules\tsx\dist\cli.mjs scripts\throttle-testnet4-sync.ts
@@ -353,7 +354,9 @@ node .\node_modules\tsx\dist\cli.mjs scripts\throttle-testnet4-sync.ts
 
 The controller fails closed if a listener reports an error, a persisted
 checkpoint is ahead of its Bitcoin backend, or `pruneheight` advances beyond
-`trackHeight + 1`. It also fails if peer delivery overshoots the configured
+`trackHeight + 1`. It also reads free space on the filesystem containing each
+target RPC cookie and fails peer-off below the configured byte floor (750 MiB
+by default). It also fails if peer delivery overshoots the configured
 stop height; `bitcoinHeight >= stopHeight` is not accepted as exact parity. A
 bounded success leaves peer networking disabled so the operator can inspect
 both listeners before selecting the next target.

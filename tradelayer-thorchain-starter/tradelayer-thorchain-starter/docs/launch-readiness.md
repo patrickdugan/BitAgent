@@ -1338,6 +1338,9 @@ Candidate12 unattended-recovery update:
   an independent loopback Bitcoin node, with target addrman fallback and no
   wallet, signing, broadcast, hardcoded-peer, or endpoint-disclosure surface;
 - an exact-parity live smoke receipt proves the new peer-source configuration
-  path terminates peer-off, and the release-aware gate passes 169/169;
+  path terminates peer-off;
+- a live automatic prune advanced the retained horizon to 95,254 while the
+  listener remained healthy, and the controller now fails peer-off below its
+  default 750 MiB filesystem reserve. The release-aware gate passes 170/170;
 - replay completion, a second independently replayed listener, candidate12
   release selection, and challenge-bound live preflight remain required.

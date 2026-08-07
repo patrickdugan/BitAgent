@@ -157,10 +157,11 @@ async function listenerStatus(pair: Pair): Promise<{ phase: string; error?: stri
 }
 
 async function snapshot(pair: Pair): Promise<Testnet4SyncSnapshot> {
-  const [chain, network, listener] = await Promise.all([
+  const [chain, network, listener, fileSystem] = await Promise.all([
     bitcoinRpc<{ chain: string; blocks: number; headers: number; pruned: boolean; pruneheight?: number; initialblockdownload: boolean }>(pair, "getblockchaininfo"),
     bitcoinRpc<{ networkactive: boolean; connections: number }>(pair, "getnetworkinfo"),
-    listenerStatus(pair)
+    listenerStatus(pair),
+    fs.statfs(path.dirname(pair.cookieFile))
   ]);
   if (chain.chain !== "testnet4") throw new Error(`pair ${pair.name} Bitcoin backend is not testnet4`);
   return {
@@ -172,7 +173,8 @@ async function snapshot(pair: Pair): Promise<Testnet4SyncSnapshot> {
     connections: Number(network.connections || 0),
     trackHeight: listener.trackHeight,
     listenerPhase: listener.phase,
-    listenerError: listener.error
+    listenerError: listener.error,
+    freeBytes: Number(fileSystem.bavail) * Number(fileSystem.bsize)
   };
 }
 
@@ -267,7 +269,8 @@ async function main() {
   const policy = validateTestnet4SyncThrottlePolicy({
     lowWatermark: boundedInteger(process.env.BITAGENT_SYNC_LOW_WATERMARK, 25, "BITAGENT_SYNC_LOW_WATERMARK"),
     highWatermark: boundedInteger(process.env.BITAGENT_SYNC_HIGH_WATERMARK, 250, "BITAGENT_SYNC_HIGH_WATERMARK"),
-    stopHeight: boundedInteger(process.env.BITAGENT_SYNC_STOP_HEIGHT, 0, "BITAGENT_SYNC_STOP_HEIGHT")
+    stopHeight: boundedInteger(process.env.BITAGENT_SYNC_STOP_HEIGHT, 0, "BITAGENT_SYNC_STOP_HEIGHT"),
+    minFreeBytes: boundedInteger(process.env.BITAGENT_SYNC_MIN_FREE_BYTES, 750 * 1024 * 1024, "BITAGENT_SYNC_MIN_FREE_BYTES")
   });
   if (policy.stopHeight < 1) throw new Error("BITAGENT_SYNC_STOP_HEIGHT is required and must be positive");
   const pollMs = boundedInteger(process.env.BITAGENT_SYNC_POLL_MS, 1_000, "BITAGENT_SYNC_POLL_MS");

@@ -10,6 +10,7 @@ export type Testnet4SyncSnapshot = {
   trackHeight: number;
   listenerPhase: string;
   listenerError?: string | null;
+  freeBytes: number;
 };
 
 export type BitcoinAddrmanEntry = {
@@ -38,6 +39,7 @@ export type Testnet4SyncThrottlePolicy = {
   lowWatermark: number;
   highWatermark: number;
   stopHeight: number;
+  minFreeBytes: number;
 };
 
 export type Testnet4SyncThrottleDecision = {
@@ -55,9 +57,10 @@ export function validateTestnet4SyncThrottlePolicy(input: Testnet4SyncThrottlePo
   const lowWatermark = height(input.lowWatermark, "lowWatermark");
   const highWatermark = height(input.highWatermark, "highWatermark");
   const stopHeight = height(input.stopHeight, "stopHeight");
+  const minFreeBytes = height(input.minFreeBytes, "minFreeBytes");
   if (lowWatermark >= highWatermark) throw new Error("lowWatermark must be less than highWatermark");
   if (highWatermark > 2_000) throw new Error("highWatermark must not exceed 2000 blocks on a pruned recovery node");
-  return { lowWatermark, highWatermark, stopHeight };
+  return { lowWatermark, highWatermark, stopHeight, minFreeBytes };
 }
 
 export function decideTestnet4SyncControl(
@@ -70,12 +73,16 @@ export function decideTestnet4SyncControl(
     bitcoinHeight: height(rawSnapshot.bitcoinHeight, "bitcoinHeight"),
     headerHeight: height(rawSnapshot.headerHeight, "headerHeight"),
     pruneHeight: height(rawSnapshot.pruneHeight, "pruneHeight"),
-    trackHeight: height(rawSnapshot.trackHeight, "trackHeight")
+    trackHeight: height(rawSnapshot.trackHeight, "trackHeight"),
+    freeBytes: height(rawSnapshot.freeBytes, "freeBytes")
   };
   const lag = snapshot.bitcoinHeight - snapshot.trackHeight;
 
   if (snapshot.listenerPhase !== "realtime" || snapshot.listenerError) {
     return { action: "fail", reason: "listener_error", lag };
+  }
+  if (snapshot.freeBytes < policy.minFreeBytes) {
+    return { action: "fail", reason: "disk_reserve_below_floor", lag };
   }
   if (lag < 0) return { action: "fail", reason: "listener_checkpoint_ahead_of_bitcoin", lag };
   if (snapshot.pruneHeight > snapshot.trackHeight + 1) {

@@ -1868,3 +1868,13 @@
   source had already pruned the target's historical height. This was a truthful
   source-data limitation, not a consensus or listener failure; the raw-block
   relay remains reserved for a suffix retained by the synchronized source.
+- Four inactive, task-owned node A-D debug logs were hash-verified and moved to
+  `.runtime/archived-testnet4-logs` to preserve recovery evidence while adding
+  about 51 MiB of D: headroom. No chainstate, wallet data, listener state, or
+  active-node log moved.
+- The 5/25-block controller crossed a real automatic prune transition without
+  losing the listener: prune height advanced from 86,496 to 95,254 and free
+  space recovered to about 1.48 GiB. The controller now measures the filesystem
+  containing each target cookie and fails peer-off below a configurable 750 MiB
+  default floor. Focused throttle tests pass 19/19 and the release-aware gate
+  passes 170/170.
