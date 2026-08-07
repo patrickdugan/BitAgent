@@ -28,7 +28,7 @@ effect; it only validates the pinned manifest/source binding and writes a public
 request:
 
 ```powershell
-npm run prepare:tradelayer-activation-request -- `
+.\node_modules\.bin\tsx.cmd scripts\create-tradelayer-activation-request.ts `
   --sender-address=<owned-testnet4-address> `
   --max-fee-sats=2000
 ```
@@ -38,6 +38,12 @@ The source receipt must be no more than 15 minutes old by default. The generated
 hash, and clean verified source checkout. A mismatched or stale receipt fails
 closed before any wallet RPC is available.
 
+The same command derives the public `policyFingerprint` from the exact release,
+testnet4 network, wallet name, normalized sender, fee cap, one-input rule,
+required output order, external-wallet signing authority, and model-execution
+denial. Set `TL_ACTIVATION_POLICY_FINGERPRINT` to that printed value before the
+wallet-hosted prepare step. A different supplied fingerprint is rejected.
+
 ## 1. Prepare and inspect
 
 Preparation reserves exactly one confirmed wallet input and atomically stores
@@ -45,7 +51,7 @@ the private PSBT envelope. It prints only the public approval view.
 
 ```powershell
 $env:TL_TESTNET_ACTIVATION_PREPARE = "true"
-npm run operator:tradelayer-activation -- `
+.\node_modules\.bin\tsx.cmd scripts\tradelayer-activation-operator.ts `
   --action=prepare `
   --input=.runtime/testnet-agent/tradelayer-activation/request.json
 ```
@@ -64,7 +70,7 @@ mode. A corrupt store fails closed and is never overwritten by recovery logic.
 After a refresh or process restart, display the same public view:
 
 ```powershell
-npm run operator:tradelayer-activation -- `
+.\node_modules\.bin\tsx.cmd scripts\tradelayer-activation-operator.ts `
   --action=status `
   --approval-hash=<exact-approval-hash>
 ```
@@ -72,7 +78,7 @@ npm run operator:tradelayer-activation -- `
 To reject the candidate and prove the input lock was released:
 
 ```powershell
-npm run operator:tradelayer-activation -- `
+.\node_modules\.bin\tsx.cmd scripts\tradelayer-activation-operator.ts `
   --action=cancel `
   --cancel=<exact-approval-hash>
 ```
@@ -84,7 +90,7 @@ the exact approval hash:
 
 ```powershell
 $env:TL_TESTNET_ACTIVATION_SUBMIT = "true"
-npm run operator:tradelayer-activation -- `
+.\node_modules\.bin\tsx.cmd scripts\tradelayer-activation-operator.ts `
   --action=approve-execute `
   --approve=<exact-approval-hash>
 ```
@@ -101,7 +107,7 @@ input remains reserved, and retry is prohibited. Only positive observation of
 the exact txid can advance it:
 
 ```powershell
-npm run operator:tradelayer-activation -- `
+.\node_modules\.bin\tsx.cmd scripts\tradelayer-activation-operator.ts `
   --action=reconcile `
   --approval-hash=<exact-approval-hash>
 ```

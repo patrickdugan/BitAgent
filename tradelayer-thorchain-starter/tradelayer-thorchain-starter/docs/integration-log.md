@@ -1657,9 +1657,9 @@
 - This step writes only a public broker request. Input selection, fee
   simulation, lock reservation, approval, signing, broadcast, and verification
   remain separate downstream boundaries.
-- Four focused cases cover the valid binding, malformed testnet4 sender,
-  mismatched source commit, and stale evidence. The complete release-aware gate
-  now passes 152/152 tests;
+- Five focused cases cover the valid binding, malformed testnet4 sender,
+  mismatched policy, mismatched source commit, and stale evidence. The complete
+  release-aware gate now passes 155/155 tests;
   release status, deployment verification, executability, and funded execution
   remain false.
 - Validated ignored operator plans now name two unique quiescent snapshots, a
@@ -1679,4 +1679,13 @@
   exhausted failures still propagate to the controller's peer-pause cleanup.
 - Deterministic tests prove transient recovery seals the exact new receipt and
   exhausted contention preserves the prior receipt while removing temporary
-  state. The complete release gate passes 154/154 tests.
+  state. The status-specific cases remain included in the complete release
+  gate.
+- The public activation policy fingerprint is now deterministically derived
+  from the exact release/code, network, wallet, normalized sender, fee cap,
+  one-input/output-order rules, external-wallet authority, and model-execution
+  denial. A manually supplied mismatch fails before wallet RPC.
+- A read-only CLI smoke test generated the exact public request for the known
+  wallet address with no wallet access. Because npm 10.9.4 did not forward CLI
+  flags in this Windows environment, the operator runbook now uses the direct
+  local `tsx.cmd` path for every argument-bearing activation command.

@@ -77,13 +77,43 @@ export function tx11SourceVerificationHash(
   });
 }
 
+export function tx11ActivationPolicyFingerprint(input: {
+  manifest: Tx11ReleaseManifest;
+  wallet: string;
+  senderAddress: string;
+  maxFeeSats: string;
+}): string {
+  const manifest = validateTx11ReleaseManifest(input.manifest);
+  const wallet = input.wallet.trim();
+  if (!wallet) throw new Error("TradeLayer activation wallet name is required");
+  if (!/^[1-9][0-9]*$/.test(input.maxFeeSats)) {
+    throw new Error("TradeLayer activation fee cap must be a positive integer string");
+  }
+  const senderAddress = validateBitcoinAddress(input.senderAddress, "bitcoin-testnet4").address;
+  return canonicalHash({
+    schema: "bitagent.tradelayer.tx11-activation-policy.v1",
+    network: "testnet4",
+    wallet,
+    senderAddress,
+    releaseId: manifest.releaseId,
+    releaseStatus: manifest.status,
+    deploymentCommit: manifest.deploymentCommit,
+    codeHash: manifest.codeHash,
+    maxFeeSats: input.maxFeeSats,
+    requiredOutputOrder: ["tx11_op_return_vout0", "same_address_positive_change_vout1"],
+    requiredInputCount: 1,
+    signingAuthority: "external_bitcoin_core_wallet",
+    modelExecutionAllowed: false
+  });
+}
+
 export function createReleaseBoundActivationRequest(input: {
   receipt: unknown;
   manifest: Tx11ReleaseManifest;
   requestId: string;
   wallet: string;
   senderAddress: string;
-  policyFingerprint: string;
+  policyFingerprint?: string;
   maxFeeSats: string;
   expiresAt: string;
   now?: Date;
@@ -97,6 +127,15 @@ export function createReleaseBoundActivationRequest(input: {
     maxAgeMs: input.maxSourceAgeMs
   });
   const senderAddress = validateBitcoinAddress(input.senderAddress, "bitcoin-testnet4").address;
+  const policyFingerprint = tx11ActivationPolicyFingerprint({
+    manifest,
+    wallet: input.wallet,
+    senderAddress,
+    maxFeeSats: input.maxFeeSats
+  });
+  if (input.policyFingerprint !== undefined && input.policyFingerprint !== policyFingerprint) {
+    throw new Error("TradeLayer activation policy fingerprint differs from the deterministic release policy");
+  }
   return createTradeLayerActivationBrokerRequest({
     requestId: input.requestId,
     wallet: input.wallet,
@@ -105,7 +144,7 @@ export function createReleaseBoundActivationRequest(input: {
     deploymentCommit: manifest.deploymentCommit,
     codeHash: manifest.codeHash,
     sourceVerificationHash: tx11SourceVerificationHash(receipt, manifest),
-    policyFingerprint: input.policyFingerprint,
+    policyFingerprint,
     maxFeeSats: input.maxFeeSats,
     expiresAt: input.expiresAt
   });

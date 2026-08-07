@@ -3,6 +3,7 @@ import test from "node:test";
 import manifestJson from "../config/tradelayer-tx11-release.json" with { type: "json" };
 import {
   createReleaseBoundActivationRequest,
+  tx11ActivationPolicyFingerprint,
   tx11SourceVerificationHash,
   validateTx11LaunchSourceReceipt
 } from "../src/launch/tradelayerActivationRequest.js";
@@ -38,7 +39,6 @@ test("builds a candidate-only activation request from fresh exact release eviden
     requestId: "candidate10-live-1",
     wallet: "utxoref-testnet",
     senderAddress,
-    policyFingerprint: "71".repeat(32),
     maxFeeSats: "2000",
     expiresAt: "2026-08-07T14:25:00.000Z",
     now: NOW
@@ -48,6 +48,12 @@ test("builds a candidate-only activation request from fresh exact release eviden
   assert.equal(request.releaseStatus, "candidate_not_deployed");
   assert.equal(request.activation.codeHash, manifest.codeHash);
   assert.equal(request.sourceVerificationHash, tx11SourceVerificationHash(validated, manifest));
+  assert.equal(request.policyFingerprint, tx11ActivationPolicyFingerprint({
+    manifest,
+    wallet: "utxoref-testnet",
+    senderAddress,
+    maxFeeSats: "2000"
+  }));
   assert.match(request.requestHash, /^[a-f0-9]{64}$/);
 });
 
@@ -58,11 +64,24 @@ test("rejects a malformed sender before producing a public activation request", 
     requestId: "candidate10-live-malformed",
     wallet: "utxoref-testnet",
     senderAddress: "tb1-not-a-valid-address",
-    policyFingerprint: "71".repeat(32),
     maxFeeSats: "2000",
     expiresAt: "2026-08-07T14:25:00.000Z",
     now: NOW
   }), /Invalid Bitcoin testnet4 address/);
+});
+
+test("rejects a manually supplied policy fingerprint that differs from the deterministic policy", () => {
+  assert.throws(() => createReleaseBoundActivationRequest({
+    receipt,
+    manifest,
+    requestId: "candidate10-live-wrong-policy",
+    wallet: "utxoref-testnet",
+    senderAddress,
+    policyFingerprint: "71".repeat(32),
+    maxFeeSats: "2000",
+    expiresAt: "2026-08-07T14:25:00.000Z",
+    now: NOW
+  }), /differs from the deterministic release policy/);
 });
 
 test("rejects a source receipt whose commit does not match the release", () => {

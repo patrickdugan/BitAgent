@@ -32,11 +32,10 @@ async function main(): Promise<void> {
   const maxSourceAgeSeconds = positiveInteger(arg("max-source-age-seconds") || "900", "--max-source-age-seconds", 3600);
   const maxFeeSats = required(arg("max-fee-sats"), "--max-fee-sats=<integer sats> is required");
   positiveInteger(maxFeeSats, "--max-fee-sats");
-  const policyFingerprint = required(
-    arg("policy-fingerprint") || process.env.TL_ACTIVATION_POLICY_FINGERPRINT,
-    "--policy-fingerprint=<64-hex> or TL_ACTIVATION_POLICY_FINGERPRINT is required"
-  );
-  if (!/^[a-f0-9]{64}$/.test(policyFingerprint)) throw new Error("Policy fingerprint must be lowercase 64-hex");
+  const policyFingerprint = arg("policy-fingerprint") || process.env.TL_ACTIVATION_POLICY_FINGERPRINT;
+  if (policyFingerprint !== undefined && !/^[a-f0-9]{64}$/.test(policyFingerprint)) {
+    throw new Error("Policy fingerprint must be lowercase 64-hex");
+  }
 
   const manifest = validateTx11ReleaseManifest(JSON.parse(await fs.readFile(manifestPath, "utf8")));
   const receipt = JSON.parse(await fs.readFile(receiptPath, "utf8"));
@@ -58,6 +57,7 @@ async function main(): Promise<void> {
     authority: "read_only_request_builder",
     effect: "writes_public_request_only",
     request,
+    operatorPolicyEnvironment: `TL_ACTIVATION_POLICY_FINGERPRINT=${request.policyFingerprint}`,
     output: path.relative(root, outputPath)
   }, null, 2));
 }
