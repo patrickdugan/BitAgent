@@ -1,6 +1,6 @@
 # BitAgent Launch Readiness
 
-Report updated: 2026-08-06
+Report updated: 2026-08-07
 
 Deployment:
 `https://bitagent-launch-kernel.duganist875063.chatgpt.site`, owner-only,
@@ -16,8 +16,10 @@ fail-closed, so no known issue in this build can broadcast or lose real funds.
 The authenticated BitAgent client, wallet-owned public sessions, exact
 withdrawal and reserve candidates, durable one-time approvals, reserve
 preflight, and independent reserve-verification boundary are implemented.
-Reserve signing/broadcast, deployed tx11 consensus support, synchronized live
-verification providers, and the funded tx5 path remain release blockers.
+Default-disabled wallet-host execution and durable approval recovery are now
+implemented, but deployed tx11 consensus support, two synchronized live
+verification providers, a separately funded testnet4 wallet, and the funded
+tx5 path remain release blockers.
 
 ## Passed checks
 
@@ -25,7 +27,7 @@ verification providers, and the funded tx5 path remain release blockers.
 | --- | --- |
 | End-to-end trajectories | 24/24 passed |
 | Focused agent cases | 50/50 passed |
-| Local launch test process | 91/91 tests passed |
+| Release-aware local launch gate | 147/147 tests passed |
 | Hosted Worker/D1 tests | 2/2 passed |
 | Intent, tool, argument, approval, truth, completion, recovery, and secret-safety scores | 1.00 each |
 | Root TypeScript check | Passed |
@@ -62,23 +64,26 @@ Machine-readable evidence:
 
 ## Remaining release blockers
 
-1. **Reserve execution and deployed tx11 support.** Public wallet sessions,
-   exact reserve candidates, durable approval grants, rejection cleanup, and
-   preflight gating are implemented. Reserve signing/broadcast remains
-   deliberately disabled, and the exact candidate-8 tx11 source is not
-   deployed or active on synchronized TradeLayer listeners. Hosted demo
-   workflow IDs remain unowned demo identifiers, not production authorization.
+1. **Deployed tx11 support and live execution evidence.** Public wallet
+   sessions, exact candidates, durable approval grants, write-ahead recovery,
+   host-private execution, and preflight gating are implemented. Candidate10
+   remains `candidate_not_deployed` and is not active on two synchronized
+   TradeLayer listeners. All preparation/submission interlocks therefore stay
+   disabled. Hosted demo workflow IDs remain unowned demo identifiers, not
+   production authorization.
 2. **Live Bitcoin intake.** The launch UI uses a deterministic confirmed UTXO
    event. A production chain source must prove address ownership, outpoint,
    value, network, block height, confirmation count, and reorg handling.
 3. **Live strategy quote/configuration.** The quote, property IDs, order
    minimums, and fee policy are scripted. They must come from live,
    operator-approved TradeLayer configuration.
-4. **Safe wallet execution.** The local wallet's testnet4 withdrawal path is
-   exact-candidate and release-gated, but reserve and live tx5 execution are
-   not complete. Legacy WIF/internal-signing paths remain prohibited; any new
-   executor must consume only the wallet-held approval grant and revalidate the
-   exact simulation before signing.
+4. **Safe wallet execution validation.** The testnet4 withdrawal, reserve, and
+   candidate10 activation paths are exact-candidate, release-gated, and
+   default-disabled. The activation operator revalidates before and after
+   signing, performs mempool admission, and permits only positive reconciliation
+   after an ambiguous submission. A funded wallet and live rejection,
+   interruption, and confirmation drills are still required. Legacy WIF and
+   internal key-export paths remain prohibited.
 5. **Independent verification.** Deterministic reserve, TradeLayer order, and
    Bitcoin withdrawal verifier boundaries exist, but production still needs
    stable synchronized providers for transaction, order/position, fill,
