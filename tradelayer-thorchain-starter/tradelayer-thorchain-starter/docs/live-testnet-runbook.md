@@ -373,6 +373,11 @@ This check is read-only. It binds the ordered consensus-source list, recomputed
 source hash, and current full TradeLayer commit to the manifest, but it always
 reports the undeployed candidate as non-executable.
 
+Candidate listeners launched from a clean worktree resolve dependencies only
+from that selected worktree or the primary TradeLayer checkout's installed
+`node_modules`. The launcher does not inherit arbitrary `NODE_PATH` entries and
+does not download packages during deployment.
+
 While `npm run launch` is running, the wallet may read the sanitized operator
 view at `GET /api/operator/reserve-intake`. The response contains only public
 candidate effects and hashes, preflight gates, and release metadata. It

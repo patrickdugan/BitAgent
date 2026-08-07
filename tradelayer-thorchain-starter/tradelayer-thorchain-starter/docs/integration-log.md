@@ -1464,3 +1464,7 @@
   1 and zero generated failure traces. Release status remains
   `candidate_not_deployed`; deployment, executability, funded execution,
   approval, signing, and broadcast remain false.
+- The sanitized listener launcher now uses the same bounded dependency lookup
+  for a selected clean worktree. Its 3/3 deployment-config tests, TypeScript
+  compile, and the full 121-test release preflight pass; no listener was
+  started or stopped by this change.

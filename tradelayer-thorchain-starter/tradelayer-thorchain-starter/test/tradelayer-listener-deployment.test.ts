@@ -12,7 +12,7 @@ function config(runtimeRoot: string) {
   const listener = (name: string, suffix: string, port: number, rpcPort: number) => ({
     name,
     nodeId: `node-${suffix}`,
-    instanceId: `candidate9-${suffix}-20260806`,
+    instanceId: `candidate10-${suffix}-20260806`,
     port,
     rpcPort,
     rpcCookieFile: path.join(runtimeRoot, `bitcoin-${suffix}`, "testnet4", ".cookie"),
@@ -23,7 +23,7 @@ function config(runtimeRoot: string) {
   return {
     schema: "bitagent_tradelayer_listener_deployment_config_v1",
     runtimeRoot,
-    sourceRepo: path.join(runtimeRoot, "tradelayer-candidate9"),
+    sourceRepo: path.join(runtimeRoot, "tradelayer-candidate10"),
     startupTimeoutMs: 30_000,
     listeners: [listener("a", "a", 3111, 49372), listener("b", "b", 3112, 49382)]
   };

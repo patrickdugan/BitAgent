@@ -9,6 +9,7 @@ import {
   validateTradeLayerListenerDeploymentConfig,
   type TradeLayerListenerDeploymentTarget
 } from "../src/launch/tradelayerListenerDeployment.js";
+import { externalRepos } from "../src/config.js";
 import { validateTx11ReleaseManifest, verifyLocalTx11Release } from "../src/launch/tradelayerRelease.js";
 
 const execFileAsync = promisify(execFile);
@@ -42,12 +43,20 @@ async function exists(target: string): Promise<boolean> {
   }
 }
 
-function publicEnvironment(target: TradeLayerListenerDeploymentTarget, releaseCommit: string): NodeJS.ProcessEnv {
+function publicEnvironment(
+  target: TradeLayerListenerDeploymentTarget,
+  releaseCommit: string,
+  sourceRepo: string
+): NodeJS.ProcessEnv {
   const inherited = Object.fromEntries([
     "SystemRoot", "WINDIR", "TEMP", "TMP", "PATH", "Path", "ComSpec", "PATHEXT"
   ].flatMap((key) => process.env[key] ? [[key, process.env[key]!]] : []));
   return {
     ...inherited,
+    NODE_PATH: [
+      path.join(sourceRepo, "node_modules"),
+      path.join(externalRepos.tradelayer, "node_modules")
+    ].join(path.delimiter),
     CHAIN: "BTCTEST",
     AUTODETECT: "0",
     RPC_HOST: "127.0.0.1",
@@ -167,7 +176,7 @@ async function main() {
       try {
         child = spawn(process.execPath, ["src/walletListener.js"], {
           cwd: config.sourceRepo,
-          env: publicEnvironment(item.target, manifest.deploymentCommit),
+          env: publicEnvironment(item.target, manifest.deploymentCommit, config.sourceRepo),
           detached: true,
           windowsHide: true,
           stdio: ["ignore", stdout, stderr]
