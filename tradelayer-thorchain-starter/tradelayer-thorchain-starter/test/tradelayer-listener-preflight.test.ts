@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
+import { hashObject } from "../src/launch/canonical.js";
 import { buildReserveIntakePlan } from "../src/launch/reserveIntake.js";
+import type { TradeLayerBitcoinActivationProof } from "../src/launch/tradelayerBitcoinActivation.js";
 import {
   buildTradeLayerListenerPreflightEvidence,
   observeTradeLayerListener,
@@ -123,10 +125,52 @@ async function verifiedPair() {
   ]);
 }
 
-function evidence(observations: TradeLayerListenerObservation[], now = new Date(NOW.getTime() + 1_000)) {
+function activationProof(
+  observation: TradeLayerListenerObservation,
+  index: number,
+  overrides: Partial<Omit<TradeLayerBitcoinActivationProof, "proofHash">> = {}
+): TradeLayerBitcoinActivationProof {
+  const source = observation.tx11.activationSource;
+  if (source.kind !== "bitcoin_transaction") throw new Error("fixture requires Bitcoin activation provenance");
+  const core: Omit<TradeLayerBitcoinActivationProof, "proofHash"> = {
+    schema: "bitagent_tradelayer_bitcoin_activation_proof_v1",
+    authority: "read_only_bitcoin_observer",
+    effect: "none",
+    listenerObservationHash: observation.observationHash,
+    listenerNodeId: observation.listener.nodeId,
+    sourceRpcEndpoint: `http://127.0.0.1:${49372 + index}`,
+    chain: "testnet4",
+    capturedAt: NOW.toISOString(),
+    observedBestBlockHash: observation.bitcoinBackend.bestBlockHash,
+    observedBestBlockHeight: observation.bitcoinBackend.blocks,
+    txid: source.txid,
+    blockHash: `${(80 + index).toString(16).padStart(2, "0")}`.repeat(32),
+    blockHeight: source.blockHeight,
+    confirmations: 99,
+    inActiveChain: true,
+    payloadHash: "90".repeat(32),
+    activatedTxTypes: [11],
+    codeHash: CODE_HASH,
+    ...overrides
+  };
+  return { ...core, proofHash: hashObject(core) };
+}
+
+function activationProofs(observations: TradeLayerListenerObservation[]) {
+  return observations.flatMap((item, index) => item.tx11.activationSource.kind === "bitcoin_transaction"
+    ? [activationProof(item, index)]
+    : []);
+}
+
+function evidence(
+  observations: TradeLayerListenerObservation[],
+  now = new Date(NOW.getTime() + 1_000),
+  proofs = activationProofs(observations)
+) {
   return buildTradeLayerListenerPreflightEvidence({
     plan,
     observations,
+    bitcoinActivationProofs: proofs,
     now,
     maxAgeMs: 5_000,
     maxSyncLagBlocks: 2,
@@ -137,6 +181,8 @@ function evidence(observations: TradeLayerListenerObservation[], now = new Date(
 
 test("two fresh independent live listeners verify the tx11 registry without transaction authority", async () => {
   const result = evidence(await verifiedPair());
+  assert.equal(result.schema, "bitagent_tradelayer_listener_preflight_v2");
+  assert.equal(result.bitcoinActivationProofs.length, 2);
   assert.equal(result.status, "verified");
   assert.ok(Object.values(result.gates).every(Boolean));
   assert.equal(result.contractMode, "dynamic_create");
@@ -240,6 +286,22 @@ test("local-db or missing tx11 provenance cannot satisfy the chain-derived gate"
     assert.equal(result.gates.tx11Active, true);
     assert.equal(result.gates.tx11ChainDerived, false);
   }
+});
+
+test("missing, stale, tampered, or non-independent Bitcoin activation proofs fail closed", async () => {
+  const observations = await verifiedPair();
+  const proofs = activationProofs(observations);
+  assert.equal(evidence(observations, undefined, proofs.slice(0, 1)).gates.tx11ChainDerived, false);
+
+  const stale = activationProof(observations[0]!, 0, { capturedAt: new Date(NOW.getTime() - 10_000).toISOString() });
+  assert.equal(evidence(observations, undefined, [stale, proofs[1]!]).gates.tx11ChainDerived, false);
+
+  const tampered = structuredClone(proofs[0]!);
+  tampered.codeHash = "ef".repeat(32);
+  assert.equal(evidence(observations, undefined, [tampered, proofs[1]!]).gates.tx11ChainDerived, false);
+
+  const duplicateRpc = activationProof(observations[1]!, 1, { sourceRpcEndpoint: proofs[0]!.sourceRpcEndpoint });
+  assert.equal(evidence(observations, undefined, [proofs[0]!, duplicateRpc]).gates.tx11ChainDerived, false);
 });
 
 test("challenge mismatch is rejected before evidence exists", async () => {

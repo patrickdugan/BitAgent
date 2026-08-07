@@ -7,6 +7,10 @@ import {
   normalizeTradeLayerActivationSource,
   type TradeLayerActivationSource
 } from "./tradelayerActivationProvenance.js";
+import {
+  verifyTradeLayerBitcoinActivationProof,
+  type TradeLayerBitcoinActivationProof
+} from "./tradelayerBitcoinActivation.js";
 
 const SECRET_FIELD = /(private.?key|seed.?phrase|mnemonic|\bwif\b|api.?secret|secret.?key|password|authorization)/i;
 type PublicRecord = Record<string, unknown>;
@@ -55,7 +59,7 @@ export type TradeLayerListenerObservation = {
 };
 
 export type TradeLayerListenerPreflightEvidence = {
-  schema: "bitagent_tradelayer_listener_preflight_v1";
+  schema: "bitagent_tradelayer_listener_preflight_v2";
   evidenceHash: string;
   authority: "read_only_observer";
   effect: "none";
@@ -68,6 +72,7 @@ export type TradeLayerListenerPreflightEvidence = {
   acceptedTx11CodeHashes: string[];
   acceptedReleaseCommits: string[];
   observations: TradeLayerListenerObservation[];
+  bitcoinActivationProofs: TradeLayerBitcoinActivationProof[];
   gates: {
     independentLiveListeners: boolean;
     freshObservations: boolean;
@@ -304,6 +309,7 @@ function evidenceCore(evidence: TradeLayerListenerPreflightEvidence) {
 export function buildTradeLayerListenerPreflightEvidence(input: {
   plan: ReserveIntakePlan;
   observations: TradeLayerListenerObservation[];
+  bitcoinActivationProofs: TradeLayerBitcoinActivationProof[];
   now: Date;
   maxAgeMs?: number;
   maxSyncLagBlocks?: number;
@@ -328,6 +334,19 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
     && item.authority === "read_only_observer" && item.effect === "none"
     && hashObject(observationCore(item)) === item.observationHash
   );
+  const proofByObservation = new Map(
+    input.bitcoinActivationProofs.map((proof) => [proof.listenerObservationHash, proof] as const)
+  );
+  const bitcoinProofsValid = input.bitcoinActivationProofs.length === input.observations.length
+    && proofByObservation.size === input.observations.length
+    && new Set(input.bitcoinActivationProofs.map((proof) => proof.sourceRpcEndpoint)).size === input.observations.length
+    && input.bitcoinActivationProofs.every((proof) => {
+      const capturedAt = Date.parse(proof.capturedAt);
+      return verifyTradeLayerBitcoinActivationProof(proof)
+        && Number.isFinite(capturedAt)
+        && capturedAt <= input.now.getTime()
+        && input.now.getTime() - capturedAt <= maxAgeMs;
+    });
   const sets = [
     new Set(input.observations.map((item) => item.sourceEndpoint)),
     new Set(input.observations.map((item) => item.listener.nodeId)),
@@ -358,9 +377,21 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
   const tx11Active = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
     item.tx11.active && item.tx11.activationBlock !== null && item.sync.processedHeight >= item.tx11.activationBlock
   );
-  const tx11ChainDerived = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
-    isChainDerivedTradeLayerActivation(item.tx11.activationSource, item.tx11.activationBlock)
-  );
+  const tx11ChainDerived = observationsValid && bitcoinProofsValid && input.observations.length > 0
+    && input.observations.every((item) => {
+      const proof = proofByObservation.get(item.observationHash);
+      const source = item.tx11.activationSource;
+      return isChainDerivedTradeLayerActivation(source, item.tx11.activationBlock)
+        && source.kind === "bitcoin_transaction"
+        && !!proof
+        && proof.listenerNodeId === item.listener.nodeId
+        && proof.txid === source.txid
+        && proof.blockHeight === source.blockHeight
+        && proof.chain === "testnet4"
+        && proof.activatedTxTypes.includes(11)
+        && proof.codeHash === item.tx11.codeHash
+        && acceptedTx11CodeHashes.includes(proof.codeHash);
+    });
   const tx11CodeHash = observationsValid && acceptedTx11CodeHashes.length > 0
     && input.observations.every((item) => !!item.tx11.codeHash && acceptedTx11CodeHashes.includes(item.tx11.codeHash));
   const intendedTlBtcProperty = observationsValid && input.observations.length > 0 && input.observations.every((item) =>
@@ -398,7 +429,7 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
   };
   const reasons = Object.entries(gates).filter(([, ok]) => !ok).map(([gate]) => `Failed gate: ${gate}`);
   const core = {
-    schema: "bitagent_tradelayer_listener_preflight_v1" as const,
+    schema: "bitagent_tradelayer_listener_preflight_v2" as const,
     authority: "read_only_observer" as const,
     effect: "none" as const,
     planHash: input.plan.planHash,
@@ -410,6 +441,7 @@ export function buildTradeLayerListenerPreflightEvidence(input: {
     acceptedTx11CodeHashes,
     acceptedReleaseCommits,
     observations: input.observations,
+    bitcoinActivationProofs: input.bitcoinActivationProofs,
     gates,
     registryParityHash: exactRegistryParity ? [...registryHashes][0]! : null,
     contractMode,
@@ -424,6 +456,7 @@ export function verifyTradeLayerListenerPreflightEvidence(evidence: TradeLayerLi
     const rebuilt = buildTradeLayerListenerPreflightEvidence({
       plan,
       observations: evidence.observations,
+      bitcoinActivationProofs: evidence.bitcoinActivationProofs,
       now: new Date(evidence.assessedAt),
       maxAgeMs: evidence.maxAgeMs,
       maxSyncLagBlocks: evidence.maxSyncLagBlocks,

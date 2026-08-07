@@ -84,13 +84,14 @@ test("live listener evidence is normalized into the wallet preflight gate contra
   const { dir, paths } = await fixture();
   try {
     await fs.writeFile(paths.preflightPath, JSON.stringify({
-      schema: "bitagent_tradelayer_listener_preflight_v1",
+      schema: "bitagent_tradelayer_listener_preflight_v2",
       status: "verified",
       planHash: "d".repeat(64),
       assessedAt: "2026-08-06T00:00:00.000Z",
       maxAgeMs: 60000,
       minimumIndependentNodes: 2,
       observations: [{}, {}],
+      bitcoinActivationProofs: [{}, {}],
       gates: {
         independentLiveListeners: true,
         freshObservations: true,
@@ -107,9 +108,39 @@ test("live listener evidence is normalized into the wallet preflight gate contra
     }));
     const evidence = await readReserveOperatorEvidence(paths, () => new Date("2026-08-06T01:00:00.000Z"));
     assert.equal(evidence.preflight?.schema, "bitagent_tradelayer_reserve_preflight_v1");
-    assert.equal(evidence.preflight?.sourceSchema, "bitagent_tradelayer_listener_preflight_v1");
+    assert.equal(evidence.preflight?.sourceSchema, "bitagent_tradelayer_listener_preflight_v2");
     assert.equal((evidence.preflight?.gates as Record<string, unknown>).tx11ChainDerived, true);
     assert.equal(evidence.preflight?.observedNodeCount, 2);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("legacy listener evidence cannot claim independently proven chain activation", async () => {
+  const { dir, paths } = await fixture();
+  try {
+    await fs.writeFile(paths.preflightPath, JSON.stringify({
+      schema: "bitagent_tradelayer_listener_preflight_v1",
+      status: "verified",
+      planHash: "d".repeat(64),
+      assessedAt: "2026-08-06T00:00:00.000Z",
+      maxAgeMs: 60000,
+      minimumIndependentNodes: 2,
+      observations: [{}, {}],
+      gates: {
+        independentLiveListeners: true,
+        freshObservations: true,
+        tx11Active: true,
+        tx11ChainDerived: true,
+        tx11CodeHash: true
+      },
+      reasons: [],
+      evidenceHash: "e".repeat(64)
+    }));
+    const evidence = await readReserveOperatorEvidence(paths);
+    assert.equal(evidence.preflight?.status, "failed");
+    assert.equal((evidence.preflight?.gates as Record<string, unknown>).tx11ChainDerived, false);
+    assert.deepEqual(evidence.preflight?.reasons, ["Legacy listener evidence lacks independent Bitcoin Core activation proof"]);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

@@ -1414,3 +1414,29 @@
   64 C.
 - No wallet approval, PSBT, signature, activation transaction, trade, or
   broadcast was requested or produced.
+
+## Independent Bitcoin tx11 activation proof - 2026-08-06
+
+- Added a read-only Bitcoin Core activation observer. For each challenge-bound
+  listener observation it independently binds the RPC chain/tip to the
+  listener's non-IBD testnet4 backend, resolves the exact activation block,
+  confirms the block is active, fetches the exact transaction with a
+  block-hash argument, and strictly decodes the canonical TradeLayer tx0
+  OP_RETURN.
+- Listener preflight evidence is now v2 and requires one fresh, hash-valid
+  proof per observation, unique Bitcoin RPC endpoints, exact observation/node/
+  txid/block bindings, tx11 in the decoded activation list, and the allowlisted
+  normalized code hash. Legacy v1 evidence is exposed as failed and cannot
+  claim `tx11ChainDerived` through the operator surface.
+- The observer accepts the protocol's base36 wire representation but commits a
+  normalized 64-hex code hash in evidence. This exposed a candidate-9 release
+  defect: `encodeActivateTradeLayer` converts hex to base36 while
+  `decodeActivateTradeLayer` returns the base36 field unchanged. That upstream
+  decoder must be corrected and released before real activation.
+- Focused safety tests pass 22/22 and TypeScript compiles cleanly. The complete
+  release preflight passes 121/121 launch tests, all 24 scripted trajectories,
+  and 50/50 focused cases with every score at 1 and zero generated failure
+  traces.
+- The release remains `candidate_not_deployed`, `deploymentVerified=false`,
+  `executable=false`, and `fundedExecutionAllowed=false`. No wallet approval,
+  signing, transaction construction, or broadcast occurred.

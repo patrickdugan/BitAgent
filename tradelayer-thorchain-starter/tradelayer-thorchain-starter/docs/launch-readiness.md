@@ -1093,3 +1093,39 @@ trajectories, and 50 focused cases while keeping deployment, executability, and
 funded execution false. Bonsai remains unrun because a user-owned game process
 raised the shared RTX 3050 above the 64 C start gate; BitAgent did not terminate
 that process or load model weights.
+
+## Independent Bitcoin activation proof gate (2026-08-06)
+
+Decision: **accept the read-only proof implementation and keep funded
+execution disabled until a corrected TradeLayer release is deployed and live
+evidence passes.**
+
+Passed:
+
+- listener preflight v2 requires one fresh, hash-bound Bitcoin Core proof per
+  listener and unique listener/RPC endpoint pairs;
+- the observer independently resolves the reported activation height to an
+  active block after binding the RPC chain/tip to the listener's non-IBD
+  testnet4 backend, fetches the exact transaction with that block hash,
+  strictly decodes a canonical TradeLayer tx0 OP_RETURN, normalizes its base36
+  code hash to 64-hex, and requires tx11 plus the allowlisted release hash;
+- missing, stale, tampered, mismatched, inactive-chain, duplicate-RPC, and
+  legacy v1 evidence fail `tx11ChainDerived` closed;
+- RPC credentials remain host-private and no proof operation has signing or
+  broadcast authority;
+- TypeScript compiles cleanly; the complete release preflight passes 121/121
+  launch tests, 24/24 trajectories, and 50/50 focused agent cases with all
+  eight score dimensions at 1 and zero generated failure traces.
+
+Remaining:
+
+- candidate 9 is still `candidate_not_deployed`; deployment and funded
+  execution remain false;
+- candidate 9's tx0 encoder converts the 64-hex code hash to base36, but its
+  decoder currently returns that base36 field without converting it back to
+  64-hex. A corrected, separately reviewed release is required before a real
+  activation can satisfy the listener allowlist;
+- pair B remains behind pair A's preserved 107,577 checkpoint, and neither
+  preserved listener has a real corrected-release activation transaction;
+- no approval, signing, activation transaction, broadcast, tlBTC credit,
+  trade, PnL settlement, or withdrawal occurred.

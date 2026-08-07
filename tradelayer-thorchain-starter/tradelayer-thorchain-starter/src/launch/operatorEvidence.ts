@@ -117,13 +117,17 @@ function candidateView(source: JsonRecord): JsonRecord | null {
 }
 
 function preflightView(source: JsonRecord): JsonRecord | null {
-  const listenerSource = source.schema === "bitagent_tradelayer_listener_preflight_v1";
+  const listenerV2 = source.schema === "bitagent_tradelayer_listener_preflight_v2";
+  const legacyListener = source.schema === "bitagent_tradelayer_listener_preflight_v1";
+  const listenerSource = listenerV2 || legacyListener;
   if (!listenerSource && source.schema !== "bitagent_tradelayer_reserve_preflight_v1") return null;
   const gates = record(source.gates);
+  const reasons = textList(source.reasons);
+  if (legacyListener) reasons.push("Legacy listener evidence lacks independent Bitcoin Core activation proof");
   return {
     schema: "bitagent_tradelayer_reserve_preflight_v1",
     sourceSchema: text(source.schema),
-    status: text(source.status),
+    status: legacyListener ? "failed" : text(source.status),
     planHash: text(source.planHash),
     assessedAt: text(source.assessedAt),
     maxAgeMs: number(source.maxAgeMs),
@@ -137,7 +141,7 @@ function preflightView(source: JsonRecord): JsonRecord | null {
         : bool(gates.independentNodeCount),
       freshSnapshots: listenerSource ? bool(gates.freshObservations) : bool(gates.freshSnapshots),
       tx11Active: bool(gates.tx11Active),
-      tx11ChainDerived: bool(gates.tx11ChainDerived),
+      tx11ChainDerived: legacyListener ? false : bool(gates.tx11ChainDerived),
       tx11CodeHash: bool(gates.tx11CodeHash),
       intendedTlBtcProperty: bool(gates.intendedTlBtcProperty),
       templateParity: bool(gates.templateParity),
@@ -145,7 +149,7 @@ function preflightView(source: JsonRecord): JsonRecord | null {
       reserveRedeemAddress: bool(gates.reserveRedeemAddress)
     },
     contractMode: text(source.contractMode),
-    reasons: textList(source.reasons),
+    reasons,
     evidenceHash: text(source.evidenceHash)
   };
 }

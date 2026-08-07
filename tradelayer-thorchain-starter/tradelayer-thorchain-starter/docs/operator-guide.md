@@ -115,17 +115,25 @@ live synchronization and registry evidence to the prepared reserve plan:
 
 ```powershell
 $env:TRADELAYER_PREFLIGHT_ENDPOINTS="http://127.0.0.1:3101;http://127.0.0.1:3102"
+$env:TRADELAYER_PREFLIGHT_BITCOIN_RPCS_JSON = @(
+  @{ listenerEndpoint="http://127.0.0.1:3101"; rpcUrl="http://127.0.0.1:49372"; cookieFile="D:\bitcoin-a\testnet4\.cookie" }
+  @{ listenerEndpoint="http://127.0.0.1:3102"; rpcUrl="http://127.0.0.1:49382"; cookieFile="D:\bitcoin-b\testnet4\.cookie" }
+) | ConvertTo-Json -Compress
 npm run observe:listener-preflight
 ```
 
 Each listener must expose the read-only, challenge-bound launch attestation and
 be configured with unique `TL_LISTENER_NODE_ID` and
 `TL_LISTENER_INSTANCE_ID` values plus the exact full `TL_RELEASE_COMMIT`.
-Passing this check does not request approval, sign, or broadcast.
+Each listener must also have one unique, locally authenticated Bitcoin Core
+read source. The observer independently decodes the exact activation
+transaction and active block before `tx11ChainDerived` can pass. RPC cookies
+remain host-private. Passing this check does not request approval, sign, or
+broadcast.
 
 Expected results:
 
-- 96/96 launch tests and 24/24 end-to-end trajectories pass.
+- 121/121 launch tests and 24/24 end-to-end trajectories pass.
 - 50/50 focused agent cases pass.
 - Every evaluation score is `1`.
 - `eval/artifacts/failure-traces.jsonl` is empty on a clean run.

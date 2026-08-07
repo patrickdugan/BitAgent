@@ -254,15 +254,24 @@ lookup remains supported.
 
 ```powershell
 $env:TRADELAYER_PREFLIGHT_ENDPOINTS="http://127.0.0.1:3101;http://127.0.0.1:3102"
+$env:TRADELAYER_PREFLIGHT_BITCOIN_RPCS_JSON = @(
+  @{ listenerEndpoint="http://127.0.0.1:3101"; rpcUrl="http://127.0.0.1:49372"; cookieFile="D:\bitcoin-a\testnet4\.cookie" }
+  @{ listenerEndpoint="http://127.0.0.1:3102"; rpcUrl="http://127.0.0.1:49382"; cookieFile="D:\bitcoin-b\testnet4\.cookie" }
+) | ConvertTo-Json -Compress
 npm run observe:listener-preflight
 ```
 
-The command calls only `POST /tl_getLaunchAttestation`. A launchable result
-requires `status=verified` and every gate true: unique endpoints, node IDs,
-instance IDs, and challenges; fresh realtime synchronization; bounded block
-lag; an allowlisted release commit and tx11 code hash; and exact property,
-template, contract, and reserve-address parity. The receipt is hash-bound and
-declares `read_only_observer` / `effect=none`.
+The command calls `POST /tl_getLaunchAttestation`, then independently calls
+`getblockchaininfo`, `getblockhash`, `getblockheader`, and block-scoped
+`getrawtransaction` on the Bitcoin Core backend bound to each listener. RPC
+cookies are read locally for each call and never enter the receipt. A launchable result requires
+`status=verified` and every gate true: unique listener and Bitcoin RPC
+endpoints; node IDs, instance IDs, and challenges; fresh realtime
+synchronization; bounded block lag; an allowlisted release commit and tx11
+code hash; one canonical tx0 OP_RETURN that activates tx11 at the listener's
+exact txid/block; and exact property, template, contract, and reserve-address
+parity. The v2 receipt is hash-bound and declares `read_only_observer` /
+`effect=none`. Legacy v1 listener evidence cannot satisfy `tx11ChainDerived`.
 
 `synchronizedTestnet4` also requires the Bitcoin backend itself to report
 `chain=testnet4`, `initialblockdownload=false`, equal block and header heights,
