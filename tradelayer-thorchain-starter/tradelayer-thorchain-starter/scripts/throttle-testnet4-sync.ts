@@ -6,6 +6,7 @@ import {
   decideTestnet4SyncControl,
   formatBitcoinPeerEndpoint,
   isUnsyncedTestnet4RecoveryPeer,
+  recoveryPeerIdsToDisconnect,
   selectTestnet4RecoveryPeer,
   shouldInspectStalledTestnet4Peer,
   validateTestnet4SyncThrottlePolicy,
@@ -239,6 +240,13 @@ async function rotateUnsyncedPeers(
   return disconnected;
 }
 
+async function trimExcessRecoveryPeers(pair: Pair): Promise<number> {
+  const peers = await bitcoinRpc<BitcoinRecoveryPeer[]>(pair, "getpeerinfo");
+  const ids = recoveryPeerIdsToDisconnect(peers, 1);
+  for (const id of ids) await bitcoinRpc(pair, "disconnectnode", ["", id]);
+  return ids.length;
+}
+
 async function setNetwork(pair: Pair, active: boolean): Promise<void> {
   await bitcoinRpc(pair, "setnetworkactive", [active]);
 }
@@ -308,8 +316,12 @@ async function main() {
         let sourcePeerKickAttempts = 0;
         let sourcePeerFallbacks = 0;
         let peerDisconnectAttempts = 0;
+        let peerTrimAttempts = 0;
         const excluded = excludedPeerAddresses.get(pair.name) || new Set<string>();
         excludedPeerAddresses.set(pair.name, excluded);
+        if (observed.networkActive && observed.connections > 1) {
+          peerTrimAttempts = await trimExcessRecoveryPeers(pair);
+        }
         if (decision.action === "enable_network" && !observed.networkActive) {
           await setNetwork(pair, true);
           ({ peerKickAttempts, sourcePeerKickAttempts, sourcePeerFallbacks } = await kickRecoveryPeer(
@@ -348,7 +360,8 @@ async function main() {
           peerKickAttempts,
           sourcePeerKickAttempts,
           sourcePeerFallbacks,
-          peerDisconnectAttempts
+          peerDisconnectAttempts,
+          peerTrimAttempts
         };
         if (!quiet) console.log(JSON.stringify(event));
         return { pair, decision, event };

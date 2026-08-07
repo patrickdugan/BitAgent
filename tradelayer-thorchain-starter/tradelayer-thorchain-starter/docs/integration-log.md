@@ -1878,3 +1878,12 @@
   containing each target cookie and fails peer-off below a configurable 750 MiB
   default floor. Focused throttle tests pass 19/19 and the release-aware gate
   passes 170/170.
+- Under concurrent local evaluation load, a 15-second listener status request
+  timed out at Bitcoin height 101,153. The controller failed closed, recorded
+  its terminal error, and independently paused Bitcoin networking with zero
+  connections; the listener then reached exact parity with `error=null`.
+- One receipt observed three transient peer connections before the timeout.
+  The controller now deterministically keeps the best synchronized outbound
+  peer and disconnects every extra peer ID, recording only an aggregate trim
+  count. Focused throttle tests pass 20/20 and the release-aware gate passes
+  171/171.

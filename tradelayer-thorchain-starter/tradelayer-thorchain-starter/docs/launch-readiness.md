@@ -1341,6 +1341,9 @@ Candidate12 unattended-recovery update:
   path terminates peer-off;
 - a live automatic prune advanced the retained horizon to 95,254 while the
   listener remained healthy, and the controller now fails peer-off below its
-  default 750 MiB filesystem reserve. The release-aware gate passes 170/170;
+  default 750 MiB filesystem reserve;
+- a real listener-request timeout failed closed at exact recoverable state, and
+  the controller now trims transient peer cardinality to one synchronized
+  outbound peer. The release-aware gate passes 171/171;
 - replay completion, a second independently replayed listener, candidate12
   release selection, and challenge-bound live preflight remain required.

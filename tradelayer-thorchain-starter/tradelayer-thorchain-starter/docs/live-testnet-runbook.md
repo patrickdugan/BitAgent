@@ -384,6 +384,9 @@ suitable peer, the controller falls back to the target Bitcoin Core address
 manager; no public peer is hardcoded. Source URLs must be credential-free
 loopback HTTP endpoints and source names must match selected pair names. The
 status receipt records only source/addrman attempt counts and the source mode.
+If Bitcoin Core briefly reports more than one connection, the controller keeps
+the best synchronized outbound peer and disconnects the remaining peer IDs;
+only the aggregate `peerTrimAttempts` count is persisted.
 Its latest atomic status receipt is
 `.runtime/testnet-agent/sync-throttle-status.json`. For interruption recovery,
 do not rely on Ctrl+C through `npm run`: an npm parent can exit before the child

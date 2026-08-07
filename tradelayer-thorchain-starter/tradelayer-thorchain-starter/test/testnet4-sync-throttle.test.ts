@@ -4,6 +4,7 @@ import {
   decideTestnet4SyncControl,
   formatBitcoinPeerEndpoint,
   isUnsyncedTestnet4RecoveryPeer,
+  recoveryPeerIdsToDisconnect,
   selectTestnet4RecoveryPeer,
   shouldInspectStalledTestnet4Peer
 } from "../src/launch/testnet4SyncThrottle.js";
@@ -132,6 +133,16 @@ test("selects one sanitized synchronized peer from a reviewed testnet4 source", 
   assert.equal(selectTestnet4RecoveryPeer(source, peers, new Set(["198.51.100.21:48333"])), null);
   assert.equal(selectTestnet4RecoveryPeer({ ...source, initialblockdownload: true }, peers), null);
   assert.equal(selectTestnet4RecoveryPeer({ ...source, chain: "main" }, peers), null);
+});
+
+test("keeps one best synchronized outbound recovery peer and trims the rest", () => {
+  const peers = [
+    { id: 8, addr: "198.51.100.8:48333", synced_headers: 120, synced_blocks: 119, inbound: true, network: "ipv4" },
+    { id: 4, addr: "198.51.100.4:48333", synced_headers: 118, synced_blocks: 118, inbound: false, network: "ipv4" },
+    { id: 6, addr: "198.51.100.6:48333", synced_headers: 120, synced_blocks: 120, inbound: false, network: "ipv4" }
+  ];
+  assert.deepEqual(recoveryPeerIdsToDisconnect(peers), [4, 8]);
+  assert.throws(() => recoveryPeerIdsToDisconnect(peers, 0), /positive safe integer/);
 });
 
 test("classifies a connected peer with no synchronized headers or blocks as stale", () => {

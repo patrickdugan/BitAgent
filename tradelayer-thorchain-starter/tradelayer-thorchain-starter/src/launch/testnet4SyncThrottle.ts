@@ -141,6 +141,25 @@ export function selectTestnet4RecoveryPeer(
   return null;
 }
 
+export function recoveryPeerIdsToDisconnect(
+  peers: BitcoinRecoveryPeer[],
+  maximumPeers = 1
+): number[] {
+  if (!Number.isSafeInteger(maximumPeers) || maximumPeers < 1) {
+    throw new Error("maximumPeers must be a positive safe integer");
+  }
+  const valid = peers.filter((peer) => Number.isSafeInteger(peer.id) && peer.id >= 0);
+  const ranked = [...valid].sort((left, right) => {
+    const leftOutbound = left.inbound === false ? 1 : 0;
+    const rightOutbound = right.inbound === false ? 1 : 0;
+    return rightOutbound - leftOutbound
+      || Number(right.synced_headers || -1) - Number(left.synced_headers || -1)
+      || Number(right.synced_blocks || -1) - Number(left.synced_blocks || -1)
+      || left.id - right.id;
+  });
+  return ranked.slice(maximumPeers).map((peer) => peer.id).sort((a, b) => a - b);
+}
+
 export function isUnsyncedTestnet4RecoveryPeer(
   rawPeer: BitcoinRecoveryPeer,
   snapshot: Pick<Testnet4SyncSnapshot, "bitcoinHeight" | "headerHeight">
