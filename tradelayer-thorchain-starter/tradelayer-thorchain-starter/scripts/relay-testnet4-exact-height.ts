@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { classifyTestnet4BlockSubmission } from "../src/launch/testnet4TipAlignment.js";
 import {
+  hasExactHeightRelayDiskReserve,
   planTestnet4ExactHeightRelay,
   validateTestnet4ExactHeightRelayConfig,
   type ExactHeightRelayObservation,
@@ -52,6 +53,11 @@ async function observe(config: Testnet4ExactHeightRelayConfig, side: Side): Prom
   };
 }
 
+async function targetFreeBytes(config: Testnet4ExactHeightRelayConfig): Promise<number> {
+  const stats = await fs.statfs(config.targetCookieFile);
+  return Number(stats.bavail) * Number(stats.bsize);
+}
+
 async function main() {
   const config = validateTestnet4ExactHeightRelayConfig(JSON.parse(
     process.env.BITAGENT_TESTNET4_EXACT_HEIGHT_RELAY_JSON || "null"
@@ -72,10 +78,21 @@ async function main() {
   });
   const blockSubmissions: Array<{ height: number; blockHash: string; result: "accepted" | "known_valid_candidate" }> = [];
   for (let height = plan.fromHeight; height <= plan.toHeight; height += 1) {
+    const freeBytesBefore = await targetFreeBytes(config);
+    if (!hasExactHeightRelayDiskReserve({ freeBytes: freeBytesBefore, minFreeBytes: config.minFreeBytes })) {
+      throw new Error("target_disk_reserve_below_floor");
+    }
     const blockHash = await rpc<string>(config, "source", "getblockhash", [height]);
     const rawBlock = await rpc<string>(config, "source", "getblock", [blockHash, 0]);
     if (!/^[0-9a-f]+$/.test(rawBlock) || rawBlock.length % 2 !== 0) {
       throw new Error(`source returned invalid raw block at ${height}`);
+    }
+    if (!hasExactHeightRelayDiskReserve({
+      freeBytes: freeBytesBefore,
+      minFreeBytes: config.minFreeBytes,
+      pendingBlockBytes: rawBlock.length / 2
+    })) {
+      throw new Error("target_disk_reserve_insufficient_for_next_block");
     }
     const result = await rpc<null | string>(config, "target", "submitblock", [rawBlock]);
     const observed = result === "inconclusive" || result === "duplicate"
@@ -91,6 +108,10 @@ async function main() {
     if (targetTip.blocks !== height || targetTip.bestblockhash !== blockHash
       || targetTip.networkactive || targetTip.connections !== 0) {
       throw new Error(`target failed exact validation at ${height}`);
+    }
+    const freeBytesAfter = await targetFreeBytes(config);
+    if (!hasExactHeightRelayDiskReserve({ freeBytes: freeBytesAfter, minFreeBytes: config.minFreeBytes })) {
+      throw new Error("target_disk_reserve_below_floor");
     }
     blockSubmissions.push({ height, blockHash, result: classification });
   }
@@ -118,6 +139,8 @@ async function main() {
     blockSubmissions,
     sourceAfter,
     targetAfter,
+    minFreeBytes: config.minFreeBytes,
+    targetFreeBytesAfter: await targetFreeBytes(config),
     walletEffects: false,
     approvalRequested: false,
     signingPerformed: false,

@@ -430,6 +430,7 @@ $env:BITAGENT_TESTNET4_EXACT_HEIGHT_RELAY_JSON = @{
   targetCookieFile="D:\bitagent-testnet4\node-g-full-candidate12\testnet4\.cookie"
   targetHeight=147389
   maxBlocks=1024
+  minFreeBytes=786432000
 } | ConvertTo-Json -Compress
 npm run relay:testnet4:exact-height
 ```
@@ -439,7 +440,10 @@ contain the target height. The target must be peer-off, on the source active
 chain, not past the target, and within the configured suffix bound. Every raw
 block is validated by target Bitcoin Core, followed by an exact height/hash
 check. The source's hash at the reviewed height must remain unchanged through
-the run. The receipt contains no raw blocks, RPC cookies, wallet calls,
+the run. Before every submission, the relay checks the target-cookie
+filesystem reserve and also reserves twice the decoded size of the next block;
+it fails closed below the same 750 MiB default used by the P2P controller. The
+receipt contains no raw blocks, RPC cookies, wallet calls,
 signatures, transaction broadcast, or financial authority. After relay,
 restart only the listener catch-up path and require exact error-free parity
 before snapshotting.

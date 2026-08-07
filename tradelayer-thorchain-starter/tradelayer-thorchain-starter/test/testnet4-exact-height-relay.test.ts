@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
 import {
+  hasExactHeightRelayDiskReserve,
   planTestnet4ExactHeightRelay,
   validateTestnet4ExactHeightRelayConfig
 } from "../src/launch/testnet4ExactHeightRelay.js";
@@ -29,9 +30,27 @@ test("exact-height relay config binds independent loopback nodes without wallet 
     maxBlocks: 1024
   });
   assert.equal(value.targetHeight, 147389);
+  assert.equal(value.minFreeBytes, 750 * 1024 * 1024);
   assert.equal("wallet" in value, false);
   assert.equal("signing" in value, false);
   assert.equal("broadcast" in value, false);
+});
+
+test("exact-height relay reserves room for the next validated block", () => {
+  assert.equal(hasExactHeightRelayDiskReserve({
+    freeBytes: 800,
+    minFreeBytes: 700,
+    pendingBlockBytes: 50
+  }), true);
+  assert.equal(hasExactHeightRelayDiskReserve({
+    freeBytes: 799,
+    minFreeBytes: 700,
+    pendingBlockBytes: 50
+  }), false);
+  assert.equal(hasExactHeightRelayDiskReserve({
+    freeBytes: 699,
+    minFreeBytes: 700
+  }), false);
 });
 
 test("plans only the exact bounded suffix from an active synchronized source", () => {

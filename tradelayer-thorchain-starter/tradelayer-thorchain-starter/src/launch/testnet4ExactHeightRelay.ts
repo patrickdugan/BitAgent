@@ -10,6 +10,7 @@ export type Testnet4ExactHeightRelayConfig = {
   targetCookieFile: string;
   targetHeight: number;
   maxBlocks: number;
+  minFreeBytes: number;
 };
 
 export type ExactHeightRelayObservation = {
@@ -23,7 +24,7 @@ export type ExactHeightRelayObservation = {
 
 const KEYS = new Set([
   "schema", "runtimeRoot", "sourceRpcUrl", "sourceCookieFile", "targetRpcUrl", "targetCookieFile",
-  "targetHeight", "maxBlocks"
+  "targetHeight", "maxBlocks", "minFreeBytes"
 ]);
 
 function loopbackUrl(value: unknown, label: string): string {
@@ -77,6 +78,9 @@ export function validateTestnet4ExactHeightRelayConfig(value: unknown): Testnet4
   const targetCookieFile = childPath(input.targetCookieFile, runtimeRoot, "targetCookieFile");
   const targetHeight = boundedHeight(input.targetHeight, "targetHeight");
   const maxBlocks = boundedHeight(input.maxBlocks, "maxBlocks");
+  const minFreeBytes = input.minFreeBytes === undefined
+    ? 750 * 1024 * 1024
+    : boundedHeight(input.minFreeBytes, "minFreeBytes");
   if (maxBlocks > 2_000) {
     throw new LaunchKernelError("validation_error", "maxBlocks must not exceed 2000");
   }
@@ -91,8 +95,21 @@ export function validateTestnet4ExactHeightRelayConfig(value: unknown): Testnet4
     targetRpcUrl,
     targetCookieFile,
     targetHeight,
-    maxBlocks
+    maxBlocks,
+    minFreeBytes
   };
+}
+
+export function hasExactHeightRelayDiskReserve(input: {
+  freeBytes: number;
+  minFreeBytes: number;
+  pendingBlockBytes?: number;
+}): boolean {
+  const pendingBlockBytes = input.pendingBlockBytes || 0;
+  return Number.isSafeInteger(input.freeBytes)
+    && Number.isSafeInteger(input.minFreeBytes)
+    && Number.isSafeInteger(pendingBlockBytes)
+    && input.freeBytes >= input.minFreeBytes + (pendingBlockBytes * 2);
 }
 
 export function planTestnet4ExactHeightRelay(input: {
