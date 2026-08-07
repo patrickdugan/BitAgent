@@ -224,6 +224,39 @@ initialization request may continue inside the listener, but startup does not
 succeed unless the subsequent bounded status check proves initialization. No
 wallet address, PSBT, approval, signature, or transaction body is sent.
 
+If every existing listener state is on the wrong fork, build one clean state
+from genesis with `npm run replay:tradelayer-listener`. The replay command is
+candidate-only and accepts exactly one tracked-clean source, one fresh state
+root, and one loopback Bitcoin backend. The backend must be testnet4,
+unpruned, fully synchronized, and already paused with zero peers. The command
+checks that invariant every minute, records its owned PID atomically, and
+stops the listener on a typed error or timeout. It never calls a wallet,
+requests approval, signs, or broadcasts.
+
+```powershell
+$env:BITAGENT_TRADELAYER_LISTENER_REPLAY_JSON = @{
+  schema="bitagent_tradelayer_listener_replay_config_v1"
+  runtimeRoot="D:\bitagent-testnet4"
+  sourceRepo="D:\bitagent-testnet4\tradelayer-candidate"
+  sourceCommit="<full-40-character-candidate-commit>"
+  rpcPort=49392
+  rpcCookieFile="D:\bitagent-testnet4\node-full\testnet4\.cookie"
+  listenerPort=3163
+  nodeId="listener-full-replay"
+  instanceId="candidate-full-replay-YYYYMMDD"
+  nedbRoot="D:\bitagent-testnet4\candidate-full-replay-state"
+  logDir="D:\bitagent-testnet4\candidate-full-replay-logs"
+  startupTimeoutMs=30000
+  replayTimeoutMs=7200000
+} | ConvertTo-Json -Compress
+npm run replay:tradelayer-listener
+```
+
+Success is only `replay_complete_unpromoted` at exact Bitcoin/listener parity.
+The listener remains running solely so the operator can create stable snapshots.
+Promotion still requires two isolated listener/backend deployments, live
+challenge-bound preflight, and release-manifest review.
+
 To replace a listener whose backend pruned ahead of its checkpoint, first
 bring one healthy listener to an exact paused backend height above the failed
 backend's `pruneheight`. Seal two non-overlapping immutable copies with
