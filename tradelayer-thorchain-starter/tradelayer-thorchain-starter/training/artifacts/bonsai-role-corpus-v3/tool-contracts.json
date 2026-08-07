@@ -1,0 +1,908 @@
+{
+  "schema": "hermes.bitagent_tool_contract_bundle.v1",
+  "authority": {
+    "modelOutputIsCandidateOnly": true,
+    "approvalSigningBroadcastExecutionHostOwned": true
+  },
+  "contracts": {
+    "bitagent.action.execute": {
+      "name": "bitagent.action.execute",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [],
+      "effect": "execution",
+      "modelCallable": false
+    },
+    "bitagent.action.verify": {
+      "name": "bitagent.action.verify",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.deposit.observe": {
+      "name": "bitagent.deposit.observe",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "txid",
+          "vout",
+          "amountSats",
+          "blockHeight",
+          "currentHeight"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "txid": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          },
+          "vout": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "amountSats": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "blockHeight": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "currentHeight": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [],
+      "effect": "host_state_change",
+      "modelCallable": false
+    },
+    "bitagent.deposit.prepare": {
+      "name": "bitagent.deposit.prepare",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [
+        "intent_planner"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.signal.execute": {
+      "name": "bitagent.signal.execute",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [],
+      "effect": "execution",
+      "modelCallable": false
+    },
+    "bitagent.signal.get": {
+      "name": "bitagent.signal.get",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [
+        "utxo_tradelayer_specialist",
+        "risk_approval_guard",
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.signal.ingest": {
+      "name": "bitagent.signal.ingest",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "signal"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "signal": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema",
+              "signalId",
+              "codebase",
+              "producerKeyId",
+              "strategyId",
+              "strategyVersion",
+              "market",
+              "side",
+              "amountSats",
+              "limitPriceUsd",
+              "postOnly",
+              "generatedAt",
+              "expiresAt",
+              "inputSnapshotHash",
+              "payloadHash",
+              "signature"
+            ],
+            "properties": {
+              "schema": {
+                "type": "string",
+                "const": "bitagent_tradelayer_signal_v1"
+              },
+              "signalId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "codebase": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "codebaseId",
+                  "kind",
+                  "digest"
+                ],
+                "properties": {
+                  "codebaseId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "git_commit",
+                      "sha256_source_tree"
+                    ]
+                  },
+                  "digest": {
+                    "type": "string",
+                    "pattern": "^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$"
+                  }
+                }
+              },
+              "producerKeyId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "strategyId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "strategyVersion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "market": {
+                "type": "string",
+                "const": "TLBTC/TLUSD"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy_tlbtc",
+                  "sell_tlbtc"
+                ]
+              },
+              "amountSats": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              "limitPriceUsd": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*(?:\\.[0-9]{1,2})?$"
+              },
+              "postOnly": {
+                "type": "boolean",
+                "const": true
+              },
+              "generatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "inputSnapshotHash": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{64}$"
+              },
+              "payloadHash": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{64}$"
+              },
+              "signature": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              }
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [],
+      "effect": "host_state_change",
+      "modelCallable": false
+    },
+    "bitagent.signal.request_approval": {
+      "name": "bitagent.signal.request_approval",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [],
+      "effect": "approval_boundary",
+      "modelCallable": false
+    },
+    "bitagent.signal.resolve_approval": {
+      "name": "bitagent.signal.resolve_approval",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "decision"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject",
+              "cancel"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [],
+      "effect": "approval_boundary",
+      "modelCallable": false
+    },
+    "bitagent.signal.simulate": {
+      "name": "bitagent.signal.simulate",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [
+        "utxo_tradelayer_specialist"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.signal.start": {
+      "name": "bitagent.signal.start",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [],
+      "effect": "host_state_change",
+      "modelCallable": false
+    },
+    "bitagent.signal.verify": {
+      "name": "bitagent.signal.verify",
+      "lane": "committed_signal",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/signals/tools.ts",
+        "sha256": "53acdffe834debbcea10e2b30c3edb42ff5ea7f6a341e5d362b0b4605eab6901"
+      },
+      "allowedRoles": [
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.strategy.simulate": {
+      "name": "bitagent.strategy.simulate",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "amountSats"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "amountSats": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [
+        "intent_planner",
+        "utxo_tradelayer_specialist"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.survival.assess": {
+      "name": "bitagent.survival.assess",
+      "lane": "financial_survival",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "policyId",
+          "policyHash",
+          "snapshotReceiptHash"
+        ],
+        "properties": {
+          "policyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "policyHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "snapshotReceiptHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "source": {
+        "path": "src/survival/tools.ts",
+        "sha256": "b4022052c47a2133e8d390cbf97de706f5a7f701485b09ffeede8de6f4ddcb8e"
+      },
+      "allowedRoles": [
+        "risk_approval_guard",
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.survival.evaluate": {
+      "name": "bitagent.survival.evaluate",
+      "lane": "financial_survival",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "policyId",
+          "policyHash",
+          "snapshotReceiptHash",
+          "intent"
+        ],
+        "properties": {
+          "policyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "policyHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "snapshotReceiptHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "intent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "idempotencyKey",
+              "purpose",
+              "budget",
+              "rail",
+              "asset",
+              "amountAtoms",
+              "policyValueSats",
+              "destination",
+              "maxFeeSats",
+              "expiresAt",
+              "policyId"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "idempotencyKey": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "purpose": {
+                "type": "string",
+                "enum": [
+                  "compute",
+                  "network",
+                  "storage",
+                  "security",
+                  "recovery",
+                  "strategy"
+                ]
+              },
+              "budget": {
+                "type": "string",
+                "enum": [
+                  "operations",
+                  "strategy",
+                  "reserve"
+                ]
+              },
+              "rail": {
+                "type": "string",
+                "enum": [
+                  "bitcoin_onchain",
+                  "lightning",
+                  "thorchain",
+                  "tradelayer",
+                  "fedimint",
+                  "ark",
+                  "dlc",
+                  "filecoin",
+                  "akash",
+                  "compute_market"
+                ]
+              },
+              "asset": {
+                "type": "string",
+                "enum": [
+                  "BTC",
+                  "LTC",
+                  "ETH",
+                  "USDC",
+                  "FIL",
+                  "AKT",
+                  "ACT"
+                ]
+              },
+              "amountAtoms": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "policyValueSats": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              "destination": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "maxFeeSats": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "maxSlippageBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "policyId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "quoteHash": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "sourceReceipts": {
+                "type": "array",
+                "maxItems": 16,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            }
+          }
+        }
+      },
+      "source": {
+        "path": "src/survival/tools.ts",
+        "sha256": "b4022052c47a2133e8d390cbf97de706f5a7f701485b09ffeede8de6f4ddcb8e"
+      },
+      "allowedRoles": [
+        "risk_approval_guard",
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.survival.journal.verify": {
+      "name": "bitagent.survival.journal.verify",
+      "lane": "financial_survival",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "journalUri",
+          "expectedHeadHash"
+        ],
+        "properties": {
+          "journalUri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "expectedHeadHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "source": {
+        "path": "src/survival/tools.ts",
+        "sha256": "b4022052c47a2133e8d390cbf97de706f5a7f701485b09ffeede8de6f4ddcb8e"
+      },
+      "allowedRoles": [
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.wallet.connect": {
+      "name": "bitagent.wallet.connect",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "mode"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "create",
+              "connect"
+            ]
+          },
+          "publicAddress": {
+            "type": "string"
+          },
+          "walletSessionId": {
+            "type": "string"
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [
+        "intent_planner"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.wallet.request_approval": {
+      "name": "bitagent.wallet.request_approval",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [],
+      "effect": "approval_boundary",
+      "modelCallable": false
+    },
+    "bitagent.wallet.resolve_approval": {
+      "name": "bitagent.wallet.resolve_approval",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "decision"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject",
+              "cancel"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [],
+      "effect": "approval_boundary",
+      "modelCallable": false
+    },
+    "bitagent.withdraw.simulate": {
+      "name": "bitagent.withdraw.simulate",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId",
+          "destinationAddress",
+          "amountSats"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "destinationAddress": {
+            "type": "string",
+            "minLength": 14,
+            "maxLength": 90
+          },
+          "amountSats": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [
+        "intent_planner",
+        "utxo_tradelayer_specialist"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    },
+    "bitagent.workflow.get": {
+      "name": "bitagent.workflow.get",
+      "lane": "launch",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflowId"
+        ],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "source": {
+        "path": "src/launch/tools.ts",
+        "sha256": "d634d8885869615752ba80184d82f4ead576335afdfd4913cfe8cb93afb2e41f"
+      },
+      "allowedRoles": [
+        "intent_planner",
+        "utxo_tradelayer_specialist",
+        "risk_approval_guard",
+        "recovery_operator"
+      ],
+      "effect": "none",
+      "modelCallable": true
+    }
+  },
+  "bundleSha256": "65729606fd98ef6d38f8e8965d290b7a46e62f9d945f8c54c0a353f59db12765"
+}

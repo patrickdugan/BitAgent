@@ -12,6 +12,9 @@ const artifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2
 const examplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "examples.jsonl");
 const manifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "manifest.json");
 const legacyArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v1", "tool-contracts.json");
+const candidate12ExamplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v3", "examples.jsonl");
+const candidate12ManifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v3", "manifest.json");
+const failureTraceFixture = path.join(root, "eval", "fixtures", "failure-traces.seed.jsonl");
 
 test("Bonsai tool contract bundle mirrors production schemas and denies effectful model calls", async () => {
   const bundle = JSON.parse(await fs.readFile(artifact, "utf8"));
@@ -83,4 +86,35 @@ test("reserve execution failures produce candidate-only specialist and recovery 
       .verifyBeforeReplacement,
     true
   );
+});
+
+test("candidate12 recovery data evolves in v3 without mutating the sealed v2 corpus", async () => {
+  const manifest = JSON.parse(await fs.readFile(candidate12ManifestArtifact, "utf8"));
+  const rows = (await fs.readFile(candidate12ExamplesArtifact, "utf8"))
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  const failureTraceIds = (await fs.readFile(failureTraceFixture, "utf8"))
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => String(JSON.parse(line).id));
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const actualCountsByRole = rows.reduce((counts, row) => {
+    counts[row.role] = (counts[row.role] || 0) + 1;
+    return counts;
+  }, {} as Record<string, number>);
+
+  assert.equal(manifest.totalExamples, rows.length);
+  assert.deepEqual(manifest.countsByRole, actualCountsByRole);
+  assert.equal(actualCountsByRole.intent_planner, 50);
+  assert.equal(actualCountsByRole.utxo_tradelayer_specialist, 11);
+  assert.equal(actualCountsByRole.risk_approval_guard, 41);
+  assert.equal(manifest.secretValuesDetected, false);
+  assert.equal(manifest.rawTranscriptsIncluded, false);
+  for (const id of failureTraceIds) {
+    const row = byId.get(`recovery-${id}`);
+    assert.ok(row, id);
+    assert.equal(row.authority.proposeOnly, true, id);
+    assert.equal(JSON.parse(row.messages[2].content).execute, false, id);
+  }
 });

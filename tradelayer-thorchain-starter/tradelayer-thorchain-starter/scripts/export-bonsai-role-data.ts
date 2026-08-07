@@ -217,7 +217,7 @@ async function main() {
   const positionalOutput = process.argv.slice(2).find((argument) => !argument.startsWith("-"));
   const outputValue = outputIndex >= 0 ? process.argv[outputIndex + 1] : outputEquals || positionalOutput;
   const defaultOutput = INCLUDE_FINANCIAL_SURVIVAL
-    ? "training/artifacts/bonsai-role-corpus-v2"
+    ? "training/artifacts/bonsai-role-corpus-v3"
     : "training/artifacts/bonsai-role-corpus-v1";
   const outputDir = path.resolve(root, outputValue || defaultOutput);
   const agentCasesPath = path.join(root, "eval", "agent-cases.ts");

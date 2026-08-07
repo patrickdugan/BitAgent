@@ -1817,3 +1817,27 @@
   `networkactive=false`, `connections=0`. Candidate11 remains the selected
   undeployed release, candidate12 is not promoted, and the expired approval
   candidate remains untouched.
+
+## Candidate12 streamed replay and recovery corpus isolation - 2026-08-07
+
+- The clean candidate12 replay is running from genesis against a dedicated,
+  wallet-disabled Bitcoin Core testnet4 backend. A single bounded controller
+  alternates peer download and listener catch-up with peer networking disabled
+  above the configured lag corridor. It refuses a corridor that is not
+  strictly smaller than the node's retained prune margin.
+- The run has already exercised three fail-closed recoveries: an unpruned-node
+  disk floor, an RPC-cookie rotation after node restart, and a prune margin
+  smaller than the requested lag ceiling. Each recovery paused peer networking,
+  preserved state, and performed no wallet, approval, signing, or broadcast
+  action. Sanitized rows are recorded in the failure-trace seed dataset.
+- The corpus export now targets `bonsai-role-corpus-v3`. It contains 124
+  deterministic candidate-only examples, including 22 recovery-operator rows,
+  while forbidding secret access, approval, signing, broadcast, fabricated
+  state, and silent strategy changes.
+- The existing v2 corpus is byte-for-byte unchanged because Hermes adapter
+  versions v9 through v15 hash-bind it as sealed evidence. Candidate12 data may
+  not mutate that lane; a dedicated test verifies every current failure trace
+  has a propose-only, non-executing v3 recovery example.
+- Replay completion, two-listener deployment, challenge-bound preflight, and
+  explicit release-manifest review remain unresolved. Candidate12 is still
+  unpromoted and the expired candidate11 approval remains untouched.
