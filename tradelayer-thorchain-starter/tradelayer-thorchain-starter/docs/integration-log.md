@@ -1364,3 +1364,23 @@
   candidate-9 release pass; IBD synchronization and all chain-derived tx11
   registry gates fail. The idle RTX 3050 was 71 C, so no Bonsai weights were
   loaded and no model score was claimed.
+- Bounded recovery then completed 95,000 at A 95,032/95,032 and B
+  95,014/95,014, followed by 100,000 at exact A/B tips
+  100,007/100,007. The 100,000 segment exercised real prune transitions to A
+  95,143 and B 95,372 only after their listener tracks were safely ahead.
+  Terminal receipts and independent RPC reads agree on exact listener parity,
+  realtime/no-error status, successful per-backend pause RPCs, disabled
+  networking, and zero peers.
+- The first 105,000 attempt exhausted its exact 20-minute runtime after B had
+  completed 105,001/105,001 and A had retained 102,534/102,534. Its failure
+  receipt names only `sync throttle exceeded BITAGENT_SYNC_MAX_RUNTIME_MS` and
+  records both pause RPCs as successful. A resumed under a separate receipt and
+  completed 105,009/105,009 without hiding or overwriting the timeout trace.
+  Both backends completed additional safe prune transitions near 102,700. The
+  fresh 95,000 and 100,000 preflights preserve the truthful gate shape:
+  independence, freshness, and exact release commit pass; IBD synchronization
+  and every real chain-derived tx11 registry gate fail.
+- No approval, PSBT, signature, activation transaction, or broadcast was
+  requested. After the 105,000 checkpoint the zero-utilization RTX 3050
+  reported 80 C, so the 64 C Bonsai start gate remained closed and no model
+  load, inference score, or training claim was made.

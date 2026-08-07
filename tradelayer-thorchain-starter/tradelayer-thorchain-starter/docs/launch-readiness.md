@@ -1070,3 +1070,14 @@ chain-derived tx11 registry gate. The complete release preflight passes 114/114
 checks after the new policy tests. Full IBD completion and all chain-derived
 tx11 gates remain outstanding; the idle GPU was 71 C, above the 64 C Bonsai
 start gate.
+
+Later bounded recovery completed 95,000 and 100,000, then reached 105,000 after
+one truthful timeout/resume cycle. Current exact paused tips are A 105,009 and
+B 105,001, with realtime/no-error listeners at identical heights, disabled
+networking, and zero peers. The timeout receipt preserves partial A progress
+and completed B state; the separate resume receipt proves completion. Real
+prune horizons advanced safely to A 102,700 and B 102,703 only after the
+listeners were beyond them. Full IBD completion and every chain-derived tx11
+gate remain outstanding, wallet approval remains disabled, and no transaction
+authority was exercised. The zero-utilization GPU was 80 C, so the 64 C
+Bonsai gate correctly prevented a model load.
