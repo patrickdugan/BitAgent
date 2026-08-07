@@ -1791,3 +1791,29 @@
 - Eight focused operator cases and TypeScript pass. A read-only live status
   check against candidate11 returned `expired=true`, `signingPerformed=false`,
   `broadcastStatus=not_performed`, and no PSBT bytes.
+
+## Candidate12 fail-closed reorg recovery - 2026-08-07
+
+- A fresh read-only preflight exposed a real fork mismatch between the sealed
+  candidate11 listener state at height 147,370 and the current active testnet4
+  chain. The existing listener logged a reorg but remained in
+  `phase=realtime`, `error=null` because the no-snapshot path returned numeric
+  zero and the caller treated that value as false.
+- TradeLayer candidate12 commit
+  `8544512bda290f040a112b94f0a4bc6b556101d7` replaces that ambiguous return
+  with `REORG_FULL_REPLAY_REQUIRED` and carries structured recovery metadata
+  into the public sync status. Its ordered consensus source hash is
+  `57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb`.
+- Six focused suites pass 14/14 tests, covering behavioral no-snapshot reorg
+  rejection, realtime error propagation, listener attestation, RPC recovery,
+  offline catch-up, empty-consensus protection, and persistence adjacency.
+- A live, no-wallet probe used an isolated copy of sealed state and a paused
+  testnet4 backend at height 147,388. Candidate12 reported `phase=error`, last
+  local height 147,370, common ancestor 147,362, and the exact canonical block
+  hash at the divergent height. No signing, wallet-processing, private-key, or
+  broadcast RPC appeared in its logs.
+- Only the owned probe PID 7396 was stopped after evidence capture; port 3163
+  was released and the Bitcoin backend independently remained
+  `networkactive=false`, `connections=0`. Candidate11 remains the selected
+  undeployed release, candidate12 is not promoted, and the expired approval
+  candidate remains untouched.

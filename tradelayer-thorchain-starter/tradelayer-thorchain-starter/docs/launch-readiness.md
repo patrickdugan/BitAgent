@@ -1314,3 +1314,17 @@ Expired-approval recovery update:
   hash, followed by a new simulation and a new exact approval hash;
 - read-only status inspection has been verified against the persisted live
   record, with signing and broadcast both still false.
+
+Candidate12 reorg-safety update:
+
+- the candidate11 runtime is on a stale testnet4 fork and is not launchable;
+- candidate12 commit `8544512bda290f040a112b94f0a4bc6b556101d7`
+  fails closed when a fork recovery has no snapshot, and returns typed recovery
+  state instead of retrying indefinitely;
+- an isolated live probe reproduced the fork and returned
+  `REORG_FULL_REPLAY_REQUIRED` with common ancestor 147,362; 14/14 focused
+  tests pass and the probe performed no wallet, signing, or broadcast action;
+- candidate12 is not yet the selected release. It still requires a clean full
+  replay on the current active fork, two-listener parity, release-manifest
+  promotion, and a fresh chain activation before any funded execution can be
+  considered.
