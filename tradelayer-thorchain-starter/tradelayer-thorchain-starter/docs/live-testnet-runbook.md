@@ -231,9 +231,14 @@ backend's `pruneheight`. Seal two non-overlapping immutable copies with
 `BITAGENT_TRADELAYER_SNAPSHOT_JSON` object. The command requires testnet4,
 `phase=realtime`, no listener error, zero peers, `networkactive=false`, exact
 Bitcoin/listener height parity, and a safe prune horizon. It hashes the source
-before and after copying, hashes the copy, refuses an existing target, and
-writes a no-wallet-effect receipt. Deploy the replacement pair only from
-sealed copies; never edit `trackHeight` or skip the missing range.
+and copy, refuses an existing target, and writes a no-wallet-effect receipt.
+Before copying, it uses the loopback-only `POST /tl_pause` control, waits 12
+seconds for the listener's ten-second realtime loop to drain, and requires
+three identical source inventories. It resumes only a pause that it initiated,
+then verifies `phase=realtime` and exact unchanged Bitcoin/listener heights.
+The receipt is sealed only when the stable source and copied inventories are
+identical and resume verification succeeds. Deploy the replacement pair only
+from sealed copies; never edit `trackHeight` or skip the missing range.
 
 Use different node IDs, instance IDs, ports, Bitcoin Core backends, and data
 directories for the second listener. Then run the challenge-bound live check:

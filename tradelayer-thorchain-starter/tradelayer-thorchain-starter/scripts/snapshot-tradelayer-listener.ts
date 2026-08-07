@@ -13,6 +13,14 @@ type Config = {
 };
 
 type RpcBody<T> = { result?: T; error?: { message?: string } | null };
+type ListenerPhase = "realtime" | "paused";
+
+const LISTENER_PHASE_TIMEOUT_MS = 30_000;
+const LISTENER_PHASE_POLL_MS = 500;
+const LISTENER_DRAIN_MS = 12_000;
+const INVENTORY_STABLE_READS = 3;
+const INVENTORY_STABLE_INTERVAL_MS = 1_000;
+const INVENTORY_STABLE_MAX_READS = 12;
 
 const allowedKeys = new Set([
   "schema", "runtimeRoot", "listenerUrl", "rpcUrl", "rpcCookieFile", "sourceDir", "snapshotDir"
@@ -82,7 +90,7 @@ async function bitcoinRpc<T>(config: Config, method: string): Promise<T> {
   return body.result as T;
 }
 
-async function observe(config: Config) {
+async function observe(config: Config, requiredPhase: ListenerPhase) {
   const [chain, network, response] = await Promise.all([
     bitcoinRpc<{ chain: string; blocks: number; pruned: boolean; pruneheight?: number }>(config, "getblockchaininfo"),
     bitcoinRpc<{ networkactive: boolean; connections: number }>(config, "getnetworkinfo"),
@@ -102,10 +110,73 @@ async function observe(config: Config) {
     throw new Error("listener snapshot requires valid testnet4 heights");
   }
   if (network.networkactive || Number(network.connections || 0) !== 0) throw new Error("Bitcoin peer networking must be paused");
-  if (listener.phase !== "realtime" || listener.error) throw new Error("listener must be realtime and error-free");
+  if (listener.phase !== requiredPhase || listener.error) {
+    throw new Error(`listener must be ${requiredPhase} and error-free`);
+  }
   if (trackHeight !== chain.blocks) throw new Error("listener must exactly match the paused Bitcoin height");
   if (pruneHeight > trackHeight + 1) throw new Error("Bitcoin prune horizon overtook the listener");
   return { bitcoinHeight: chain.blocks, pruneHeight, trackHeight, phase: listener.phase, error: null };
+}
+
+async function waitForObservation(config: Config, requiredPhase: ListenerPhase) {
+  const deadline = Date.now() + LISTENER_PHASE_TIMEOUT_MS;
+  let lastError: unknown;
+  while (Date.now() < deadline) {
+    try {
+      return await observe(config, requiredPhase);
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, LISTENER_PHASE_POLL_MS));
+    }
+  }
+  throw new Error(`listener did not reach ${requiredPhase}: ${lastError instanceof Error ? lastError.message : lastError}`);
+}
+
+async function setListenerPause(config: Config, expectedPause: boolean) {
+  const response = await fetch(`${config.listenerUrl}/tl_pause`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+    signal: AbortSignal.timeout(15_000)
+  });
+  const text = await response.text();
+  if (!response.ok || Buffer.byteLength(text, "utf8") > 1_000_000) throw new Error("listener pause request failed");
+  const body = JSON.parse(text) as { available?: unknown; pause?: unknown };
+  if (body.available !== true || body.pause !== expectedPause) {
+    throw new Error(`listener pause request did not produce pause=${expectedPause}`);
+  }
+  return { available: true as const, pause: expectedPause };
+}
+
+async function ensureListenerRealtime(config: Config) {
+  try {
+    return await observe(config, "realtime");
+  } catch (realtimeError) {
+    try {
+      await observe(config, "paused");
+    } catch {
+      throw new Error(`listener state is neither safe realtime nor paused: ${realtimeError instanceof Error ? realtimeError.message : realtimeError}`);
+    }
+    await setListenerPause(config, false);
+    return waitForObservation(config, "realtime");
+  }
+}
+
+async function waitForStableInventory(sourceDir: string) {
+  let previous: Awaited<ReturnType<typeof hashTradeLayerListenerSnapshot>> | undefined;
+  let stableReads = 0;
+  for (let read = 1; read <= INVENTORY_STABLE_MAX_READS; read += 1) {
+    const current = await hashTradeLayerListenerSnapshot(sourceDir);
+    if (previous?.inventoryHash === current.inventoryHash) {
+      stableReads += 1;
+    } else {
+      stableReads = 1;
+    }
+    previous = current;
+    if (stableReads >= INVENTORY_STABLE_READS) return current;
+    await new Promise((resolve) => setTimeout(resolve, INVENTORY_STABLE_INTERVAL_MS));
+  }
+  throw new Error("listener snapshot inventory did not stabilize after parser pause");
 }
 
 async function exists(target: string) {
@@ -124,27 +195,66 @@ async function main() {
   const outputPath = path.resolve(process.env.BITAGENT_TRADELAYER_SNAPSHOT_RECEIPT
     || path.join(".runtime", "testnet-agent", "listener-snapshots", "latest.json"));
   if (await exists(config.snapshotDir)) throw new Error("snapshotDir already exists");
-  const beforeObservation = await observe(config);
-  const before = await hashTradeLayerListenerSnapshot(config.sourceDir);
-  await fs.cp(config.sourceDir, config.snapshotDir, { recursive: true, force: false, errorOnExist: true });
-  const [afterObservation, after, snapshot] = await Promise.all([
-    observe(config),
-    hashTradeLayerListenerSnapshot(config.sourceDir),
-    hashTradeLayerListenerSnapshot(config.snapshotDir)
-  ]);
-  if (JSON.stringify(beforeObservation) !== JSON.stringify(afterObservation)) throw new Error("listener state changed during snapshot copy");
-  if (before.inventoryHash !== after.inventoryHash || before.inventoryHash !== snapshot.inventoryHash) {
-    throw new Error("listener snapshot inventory changed or copy parity failed");
+  const beforeObservation = await observe(config, "realtime");
+  let pauseRequestAttempted = false;
+  let pausedObservation: Awaited<ReturnType<typeof observe>> | undefined;
+  let after: Awaited<ReturnType<typeof hashTradeLayerListenerSnapshot>> | undefined;
+  let snapshot: Awaited<ReturnType<typeof hashTradeLayerListenerSnapshot>> | undefined;
+  let resumeObservation: Awaited<ReturnType<typeof observe>> | undefined;
+  let operationError: unknown;
+  try {
+    pauseRequestAttempted = true;
+    await setListenerPause(config, true);
+    await waitForObservation(config, "paused");
+    await new Promise((resolve) => setTimeout(resolve, LISTENER_DRAIN_MS));
+    pausedObservation = await observe(config, "paused");
+    const stable = await waitForStableInventory(config.sourceDir);
+    await fs.cp(config.sourceDir, config.snapshotDir, { recursive: true, force: false, errorOnExist: true });
+    [after, snapshot] = await Promise.all([
+      hashTradeLayerListenerSnapshot(config.sourceDir),
+      hashTradeLayerListenerSnapshot(config.snapshotDir)
+    ]);
+    if (stable.inventoryHash !== after.inventoryHash || stable.inventoryHash !== snapshot.inventoryHash) {
+      throw new Error("listener snapshot inventory changed or copy parity failed");
+    }
+  } catch (error) {
+    operationError = error;
+  } finally {
+    if (pauseRequestAttempted) {
+      try {
+        resumeObservation = await ensureListenerRealtime(config);
+      } catch (error) {
+        operationError = new Error(
+          `${operationError instanceof Error ? `${operationError.message}; ` : ""}listener resume failed: ${error instanceof Error ? error.message : error}`
+        );
+      }
+    }
+  }
+  if (operationError) throw operationError;
+  if (!pausedObservation || !after || !snapshot || !resumeObservation) {
+    throw new Error("listener snapshot did not produce complete pause, copy, and resume evidence");
+  }
+  if (beforeObservation.bitcoinHeight !== resumeObservation.bitcoinHeight
+    || beforeObservation.trackHeight !== resumeObservation.trackHeight) {
+    throw new Error("listener or Bitcoin height changed across the quiescent snapshot boundary");
   }
   const receipt = {
-    schema: "bitagent_tradelayer_listener_snapshot_receipt_v1",
+    schema: "bitagent_tradelayer_listener_snapshot_receipt_v2",
     status: "sealed",
     authority: "operator_host",
     effect: "quiescent_listener_state_copy_no_wallet_effect",
     createdAt: new Date().toISOString(),
     sourceDir: config.sourceDir,
     snapshotDir: config.snapshotDir,
-    observation: afterObservation,
+    beforeObservation,
+    pausedObservation,
+    resumeObservation,
+    quiescence: {
+      parserPauseRequested: true,
+      drainMs: LISTENER_DRAIN_MS,
+      stableReads: INVENTORY_STABLE_READS,
+      parserResumeVerified: true
+    },
     sourceInventoryHash: after.inventoryHash,
     snapshotInventoryHash: snapshot.inventoryHash,
     files: snapshot.files,

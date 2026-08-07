@@ -1468,3 +1468,25 @@
   for a selected clean worktree. Its 3/3 deployment-config tests, TypeScript
   compile, and the full 121-test release preflight pass; no listener was
   started or stopped by this change.
+
+## Candidate-10 quiescent listener checkpoints - 2026-08-07
+
+- A first realtime copy correctly failed inventory parity when `consensus.db`
+  changed during the copy. No receipt was sealed. The exact failed directory
+  was preserved under the sibling quarantine name
+  `failed-candidate10-predeploy-a-107577-fad7f4b-20260807` rather than deleted.
+- The snapshot command now toggles only the loopback TradeLayer parser pause,
+  waits 12 seconds for the ten-second realtime loop to drain, and requires
+  three identical source inventories before copying. A `finally` recovery path
+  observes the parser state, resumes a pause initiated by the command, and
+  requires realtime phase plus unchanged Bitcoin/listener heights before it
+  can seal a v2 receipt.
+- Candidate-10 predeployment snapshot A sealed at exact Bitcoin/listener height
+  107,577 with 35 files, 11,568,500 bytes, and matching source/copy inventory
+  hash `b81bdc665e9198e6ac80179cba6b78ec09d7555fe172d969c3e8a973ee78ad3d`.
+- Snapshot B sealed independently at exact height 105,001 with 35 files,
+  10,835,373 bytes, and matching source/copy inventory hash
+  `a153a8209e61687fd7a2614d7eb66df81e037fa66decb3927de8b7f7d5e3104c`.
+  Both receipts prove paused peer networking, parser pause, stable-byte copy,
+  and verified return to realtime. There were no wallet effects, approvals,
+  signatures, or broadcasts.
