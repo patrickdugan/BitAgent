@@ -1716,3 +1716,34 @@
   The release-aware gate selects only the clean candidate11 worktree and passes
   155/155 tests. Release status remains `candidate_not_deployed`; no wallet,
   approval, signing, broadcast, or funded action occurred.
+
+## Candidate11 full-tip deployment - 2026-08-07
+
+- A directly supervised 20/100-block fail-closed throttle advanced candidate11
+  from 132,733 to the then-current testnet4 tip 147,370. The terminal receipt
+  proves exact Bitcoin/listener parity, `initialBlockDownload=false`, paused
+  networking, zero peers, `phase=realtime`, and `error=null`; the candidate10
+  failure signatures remain absent from the candidate11 logs.
+- Node A was one block onto a stale fork at height 147,363. The paused-node tip
+  aligner now permits a fork only when both nodes prove an identical bounded
+  common ancestor. It relayed eight exact source-chain blocks without
+  invalidating either branch and required node A to independently select the
+  exact 147,370 source tip. Verified `duplicate` or `inconclusive` block
+  submissions are accepted only after the target returns the exact full block
+  hash and height; invalid or unrecognized results still fail closed.
+- Three quiescent snapshots exposed an append-only NeDB serialization detail:
+  each parser pause/resume appends identical `TrackHeight=147370` records to
+  `consensus.db`, changing physical hashes without changing effective state.
+  The fresh pair uses the second and third sealed snapshots; each source/copy
+  hash matches exactly, and both listeners independently report processed and
+  tracked height 147,370.
+- Candidate11 listeners are deployed on ports 3161/3162 with PIDs 22464/8804,
+  unique node/instance identities, isolated state/log roots, exact source
+  commit `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c`, and code hash
+  `8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`.
+- The model-free release gate passes 157/157 tests, all 24 scripted
+  trajectories, and 50/50 focused cases. Live preflight passes independent
+  listener, freshness, and exact-release-commit gates but correctly remains
+  non-executable because peer networking was paused for evidence capture and
+  the required candidate11 tx11 hash is not yet chain-activated. No wallet,
+  approval, signature, or broadcast action occurred.

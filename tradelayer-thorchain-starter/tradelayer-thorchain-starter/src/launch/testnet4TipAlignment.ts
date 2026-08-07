@@ -19,6 +19,12 @@ export type BitcoinTipAlignmentObservation = {
   connections: number;
 };
 
+export type SubmittedBlockObservation = {
+  hash: string;
+  height: number;
+  confirmations: number;
+};
+
 const KEYS = new Set([
   "schema", "runtimeRoot", "sourceRpcUrl", "sourceCookieFile", "targetRpcUrl", "targetCookieFile", "maxBlocks"
 ]);
@@ -82,6 +88,9 @@ export function planTestnet4TipAlignment(input: {
   source: BitcoinTipAlignmentObservation;
   target: BitcoinTipAlignmentObservation;
   sourceHashAtTargetHeight: string;
+  commonAncestorHeight?: number;
+  sourceHashAtCommonAncestor?: string;
+  targetHashAtCommonAncestor?: string;
   maxBlocks: number;
 }) {
   for (const [name, observed] of [["source", input.source], ["target", input.target]] as const) {
@@ -93,17 +102,51 @@ export function planTestnet4TipAlignment(input: {
       throw new LaunchKernelError("validation_error", `${name} peer networking must be paused`);
     }
   }
-  if (!/^[0-9a-f]{64}$/.test(input.sourceHashAtTargetHeight)
-    || input.sourceHashAtTargetHeight !== input.target.bestblockhash) {
-    throw new LaunchKernelError("validation_error", "target tip is not on the source active chain");
+  const targetTipIsOnSource = /^[0-9a-f]{64}$/.test(input.sourceHashAtTargetHeight)
+    && input.sourceHashAtTargetHeight === input.target.bestblockhash;
+  let commonAncestorHeight = input.target.blocks;
+  if (!targetTipIsOnSource) {
+    const sourceCommonHash = String(input.sourceHashAtCommonAncestor || "");
+    const targetCommonHash = String(input.targetHashAtCommonAncestor || "");
+    commonAncestorHeight = Number(input.commonAncestorHeight);
+    if (!Number.isSafeInteger(commonAncestorHeight) || commonAncestorHeight < 1
+      || commonAncestorHeight >= input.target.blocks || commonAncestorHeight > input.source.blocks
+      || !/^[0-9a-f]{64}$/.test(sourceCommonHash) || sourceCommonHash !== targetCommonHash) {
+      throw new LaunchKernelError("validation_error", "target tip is not on the source active chain");
+    }
   }
-  const blockCount = input.source.blocks - input.target.blocks;
+  const blockCount = input.source.blocks - commonAncestorHeight;
+  const targetReorgDepth = input.target.blocks - commonAncestorHeight;
   if (blockCount < 0) throw new LaunchKernelError("validation_error", "target must not be ahead of source");
-  if (blockCount > input.maxBlocks) throw new LaunchKernelError("validation_error", "tip alignment exceeds maxBlocks");
-  return {
-    fromHeight: input.target.blocks + 1,
+  if (blockCount > input.maxBlocks || targetReorgDepth > input.maxBlocks) {
+    throw new LaunchKernelError("validation_error", "tip alignment exceeds maxBlocks");
+  }
+  const plan = {
+    fromHeight: commonAncestorHeight + 1,
     toHeight: input.source.blocks,
     blockCount,
     expectedTipHash: input.source.bestblockhash
   };
+  return targetTipIsOnSource ? plan : {
+    ...plan,
+    commonAncestorHeight,
+    commonAncestorHash: input.sourceHashAtCommonAncestor,
+    targetReorgDepth
+  };
+}
+
+export function classifyTestnet4BlockSubmission(input: {
+  result: null | string;
+  expectedHash: string;
+  expectedHeight: number;
+  observed?: SubmittedBlockObservation;
+}): "accepted" | "known_valid_candidate" {
+  if (input.result === null) return "accepted";
+  const observed = input.observed;
+  if ((input.result === "inconclusive" || input.result === "duplicate") && observed
+    && observed.hash === input.expectedHash && observed.height === input.expectedHeight
+    && Number.isSafeInteger(observed.confirmations) && observed.confirmations >= -1) {
+    return "known_valid_candidate";
+  }
+  throw new LaunchKernelError("validation_error", `target rejected block ${input.expectedHeight}: ${String(input.result)}`);
 }

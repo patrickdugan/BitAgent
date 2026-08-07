@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
 import {
+  classifyTestnet4BlockSubmission,
   planTestnet4TipAlignment,
   validateTestnet4TipAlignmentConfig
 } from "../src/launch/testnet4TipAlignment.js";
@@ -13,6 +14,38 @@ const observation = (blocks: number, bestblockhash: string) => ({
   bestblockhash,
   networkactive: false,
   connections: 0
+});
+
+test("block relay accepts only null or an exactly observed known block", () => {
+  assert.equal(classifyTestnet4BlockSubmission({
+    result: null,
+    expectedHash: hash("a"),
+    expectedHeight: 12
+  }), "accepted");
+  assert.equal(classifyTestnet4BlockSubmission({
+    result: "inconclusive",
+    expectedHash: hash("a"),
+    expectedHeight: 12,
+    observed: { hash: hash("a"), height: 12, confirmations: -1 }
+  }), "known_valid_candidate");
+  assert.equal(classifyTestnet4BlockSubmission({
+    result: "duplicate",
+    expectedHash: hash("a"),
+    expectedHeight: 12,
+    observed: { hash: hash("a"), height: 12, confirmations: -1 }
+  }), "known_valid_candidate");
+  assert.throws(() => classifyTestnet4BlockSubmission({
+    result: "inconclusive",
+    expectedHash: hash("a"),
+    expectedHeight: 12,
+    observed: { hash: hash("b"), height: 12, confirmations: -1 }
+  }), /rejected block 12/);
+  assert.throws(() => classifyTestnet4BlockSubmission({
+    result: "duplicate-invalid",
+    expectedHash: hash("a"),
+    expectedHeight: 12,
+    observed: { hash: hash("a"), height: 12, confirmations: -1 }
+  }), /duplicate-invalid/);
 });
 
 test("tip alignment config binds two independent loopback Bitcoin nodes without authority", () => {
@@ -59,6 +92,35 @@ test("tip alignment retry is an idempotent no-op when both nodes already match",
     blockCount: 0,
     expectedTipHash: tip
   });
+});
+
+test("tip alignment accepts a bounded fork only with matching common-ancestor evidence", () => {
+  assert.deepEqual(planTestnet4TipAlignment({
+    source: observation(18, hash("a")),
+    target: observation(11, hash("b")),
+    sourceHashAtTargetHeight: hash("c"),
+    commonAncestorHeight: 10,
+    sourceHashAtCommonAncestor: hash("d"),
+    targetHashAtCommonAncestor: hash("d"),
+    maxBlocks: 8
+  }), {
+    fromHeight: 11,
+    toHeight: 18,
+    blockCount: 8,
+    expectedTipHash: hash("a"),
+    commonAncestorHeight: 10,
+    commonAncestorHash: hash("d"),
+    targetReorgDepth: 1
+  });
+  assert.throws(() => planTestnet4TipAlignment({
+    source: observation(18, hash("a")),
+    target: observation(11, hash("b")),
+    sourceHashAtTargetHeight: hash("c"),
+    commonAncestorHeight: 10,
+    sourceHashAtCommonAncestor: hash("d"),
+    targetHashAtCommonAncestor: hash("e"),
+    maxBlocks: 8
+  }), /not on the source active chain/);
 });
 
 test("tip alignment rejects forks, active networking, and an oversized suffix", () => {

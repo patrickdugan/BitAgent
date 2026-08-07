@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
+  classifyTestnet4BlockSubmission,
   planTestnet4TipAlignment,
   validateTestnet4TipAlignmentConfig,
   type BitcoinTipAlignmentObservation,
@@ -58,20 +59,52 @@ async function main() {
     || path.join(".runtime", "testnet-agent", "tip-alignments", "latest.json"));
   const [sourceBefore, targetBefore] = await Promise.all([observe(config, "source"), observe(config, "target")]);
   const sourceHashAtTargetHeight = await rpc<string>(config, "source", "getblockhash", [targetBefore.blocks]);
+  let commonAncestorHeight: number | undefined;
+  let sourceHashAtCommonAncestor: string | undefined;
+  let targetHashAtCommonAncestor: string | undefined;
+  if (sourceHashAtTargetHeight !== targetBefore.bestblockhash) {
+    const startHeight = Math.min(sourceBefore.blocks, targetBefore.blocks);
+    const minimumHeight = Math.max(1, sourceBefore.blocks - config.maxBlocks, targetBefore.blocks - config.maxBlocks);
+    for (let height = startHeight; height >= minimumHeight; height -= 1) {
+      const [sourceHash, targetHash] = await Promise.all([
+        rpc<string>(config, "source", "getblockhash", [height]),
+        rpc<string>(config, "target", "getblockhash", [height])
+      ]);
+      if (sourceHash === targetHash) {
+        commonAncestorHeight = height;
+        sourceHashAtCommonAncestor = sourceHash;
+        targetHashAtCommonAncestor = targetHash;
+        break;
+      }
+    }
+  }
   const plan = planTestnet4TipAlignment({
     source: sourceBefore,
     target: targetBefore,
     sourceHashAtTargetHeight,
+    commonAncestorHeight,
+    sourceHashAtCommonAncestor,
+    targetHashAtCommonAncestor,
     maxBlocks: config.maxBlocks
   });
   const blockHashes: string[] = [];
+  const blockSubmissions: Array<{ height: number; blockHash: string; result: "accepted" | "known_valid_candidate" }> = [];
   for (let height = plan.fromHeight; height <= plan.toHeight; height += 1) {
     const blockHash = await rpc<string>(config, "source", "getblockhash", [height]);
     const rawBlock = await rpc<string>(config, "source", "getblock", [blockHash, 0]);
     if (!/^[0-9a-f]+$/.test(rawBlock) || rawBlock.length % 2 !== 0) throw new Error(`source returned invalid raw block at ${height}`);
     const result = await rpc<null | string>(config, "target", "submitblock", [rawBlock]);
-    if (result !== null) throw new Error(`target rejected block ${height}: ${String(result)}`);
+    const observed = result === "inconclusive" || result === "duplicate"
+      ? await rpc<{ hash: string; height: number; confirmations: number }>(config, "target", "getblock", [blockHash, 1])
+      : undefined;
+    const classification = classifyTestnet4BlockSubmission({
+      result,
+      expectedHash: blockHash,
+      expectedHeight: height,
+      observed
+    });
     blockHashes.push(blockHash);
+    blockSubmissions.push({ height, blockHash, result: classification });
   }
   const [sourceAfter, targetAfter] = await Promise.all([observe(config, "source"), observe(config, "target")]);
   if (JSON.stringify(sourceAfter) !== JSON.stringify(sourceBefore)) throw new Error("source tip or network state changed during alignment");
@@ -91,6 +124,7 @@ async function main() {
     targetBefore,
     plan,
     blockHashes,
+    blockSubmissions,
     blockRelayPerformed: blockHashes.length > 0,
     sourceAfter,
     targetAfter,

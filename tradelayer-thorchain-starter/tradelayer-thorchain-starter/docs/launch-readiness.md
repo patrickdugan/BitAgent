@@ -1274,3 +1274,19 @@ Candidate11 recovery update:
 - the release-aware gate passes 155/155 and selects only the clean candidate11
   worktree, but deployment, executable release, funded execution, and tx11
   chain activation remain false.
+
+Candidate11 full-tip deployment update:
+
+- candidate11 replay completed at exact current testnet4 height 147,370 with
+  IBD false, listener parity, networking paused, zero peers, and no error;
+- a one-block stale fork on node A was reconciled by a bounded common-ancestor
+  proof plus eight raw-block submissions, ending with both independent nodes
+  on best block
+  `00000000001abdf426cd87f33fe802ef694cf9a2e1cf376ee500b2e4fe516cd0`;
+- fresh listeners on ports 3161/3162 independently start at processed/tracked
+  height 147,370 from hash-sealed candidate11 snapshots and exact clean source;
+- the release gate passes 157/157 tests, 24/24 scripted trajectories, and
+  50/50 focused cases;
+- launch remains blocked exactly where intended: candidate11 tx11 is not yet
+  chain-activated, the evidence-time nodes were paused, and no funded wallet
+  approval, signing, or broadcast has occurred.
