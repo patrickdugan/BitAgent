@@ -1,9 +1,9 @@
 {
   "schema": "bitagent.tradelayer.tx11-release.v1",
-  "releaseId": "tx11-utxoref-dynamic-contract-candidate-9",
+  "releaseId": "tx11-utxoref-dynamic-contract-candidate-10",
   "status": "candidate_not_deployed",
-  "codeHash": "8ab527ac64cd21464e7911396572e971f4b8795fa59f3f472dfb3abb6c0ffed1",
-  "deploymentCommit": "f502236e3e2b8c601c2e8576bb0bcf23b2680892",
+  "codeHash": "c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29",
+  "deploymentCommit": "fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd",
   "tradelayerCommits": [
     "db4728444bcbc2b9249654243e8bd1c5843987ed",
     "c860c3c9b5d65bf33b61acac820d89eca82c6833",
@@ -18,7 +18,8 @@
     "f86f32cf66a1b56ac8b09ec52046a524d50af4d9",
     "3728dffc2ee6f20ee38cd1957080e7dd1bdaf03d",
     "dabbaf485dda99b2b0626120942190b5873fd2f3",
-    "f502236e3e2b8c601c2e8576bb0bcf23b2680892"
+    "f502236e3e2b8c601c2e8576bb0bcf23b2680892",
+    "fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd"
   ],
   "consensusSourceFiles": [
     "activation.js",
@@ -53,6 +54,7 @@
   "promotionRequirements": [
     "deploy the exact candidate source bundle to at least two independently identified synchronized listeners",
     "prove tx11 activation is chain-derived from an indexed Bitcoin transaction rather than a local database seed",
+    "prove the canonical tx0 wire payload round-trips its base36 field to this exact 64-hex candidate code hash",
     "activate tx11 with the candidate code hash on every listener",
     "publish the exact procedural template on every listener",
     "start every BTCTEST listener at the testnet4 replay boundary or a reviewed checkpoint height",

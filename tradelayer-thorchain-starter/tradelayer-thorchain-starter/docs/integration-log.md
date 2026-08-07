@@ -1440,3 +1440,27 @@
 - The release remains `candidate_not_deployed`, `deploymentVerified=false`,
   `executable=false`, and `fundedExecutionAllowed=false`. No wallet approval,
   signing, transaction construction, or broadcast occurred.
+
+## Candidate-10 activation decoder and release pin - 2026-08-06
+
+- Created the separate `codex/tx0-codehash-normalization` worktree from
+  candidate 9 and left the previous release source untouched.
+- TradeLayer commit `fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd`
+  decodes the tx0 base36 hash field with bounded BigInt arithmetic, restores
+  leading zero bytes to exact 64-hex, and rejects malformed, ambiguous,
+  duplicate-type, out-of-range, and greater-than-256-bit payloads. Activation
+  validity now rejects a non-canonical decoded hash before state mutation.
+- The focused upstream slice passes 42/42 tests across activation round trips,
+  malformed values, provenance, listener attestation, testnet activation
+  profile, tx11 semantics, tx index/replay, and consensus guardrails.
+- The BitAgent manifest now pins candidate 10 and ordered consensus hash
+  `c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`.
+- The first exact-source BitAgent gate truthfully failed because the clean
+  worktree had no local dependency junction and could not resolve
+  `bignumber.js`. The release runner now supplies both selected-worktree and
+  primary-checkout dependency paths without downloading or copying packages.
+- The rerun selects the tracked-clean candidate-10 source and passes 121/121
+  launch tests, 24/24 trajectories, and 50/50 focused cases with all scores at
+  1 and zero generated failure traces. Release status remains
+  `candidate_not_deployed`; deployment, executability, funded execution,
+  approval, signing, and broadcast remain false.

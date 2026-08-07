@@ -106,10 +106,15 @@ async function main() {
   const args = process.platform === "win32"
     ? ["/d", "/s", "/c", `npm run ${childNpmScript}`]
     : ["run", childNpmScript];
+  const nodePath = [
+    path.join(selected.path, "node_modules"),
+    path.join(externalRepos.tradelayer, "node_modules"),
+    process.env.NODE_PATH
+  ].filter((value): value is string => !!value).join(path.delimiter);
   await new Promise<void>((resolve, reject) => {
     const child = execFile(command, args, {
       cwd: root,
-      env: { ...process.env, TRADELAYER_JS_REPO: selected.path },
+      env: { ...process.env, NODE_PATH: nodePath, TRADELAYER_JS_REPO: selected.path },
       windowsHide: true
     });
     child.stdout?.pipe(process.stdout);

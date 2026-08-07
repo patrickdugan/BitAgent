@@ -1129,3 +1129,38 @@ Remaining:
   preserved listener has a real corrected-release activation transaction;
 - no approval, signing, activation transaction, broadcast, tlBTC credit,
   trade, PnL settlement, or withdrawal occurred.
+
+## Candidate-10 activation wire-decoder checkpoint (2026-08-06)
+
+Decision: **supersede candidate 9 with candidate 10 for new launch checks;
+keep deployment and funded execution disabled.**
+
+Passed:
+
+- TradeLayer commit `fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd`
+  converts the canonical tx0 base36 hash field back to exact padded 64-hex,
+  rejects invalid characters, non-canonical leading zeroes, values above 256
+  bits, extra fields, duplicate transaction types, and types outside 0-35;
+- activation validation rejects any decoded code hash that is not canonical
+  32-byte lowercase hex before registry mutation;
+- 42/42 upstream consensus-focused tests pass, including activation payload,
+  provenance, testnet profile, listener attestation, tx11 procedure, tx index,
+  replay checkpoint, and empty/offline consensus guardrails;
+- the manifest pins exact ordered consensus hash
+  `c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`
+  and the full candidate-10 commit;
+- the release runner can reuse the primary checkout's installed dependencies
+  for a clean worktree without downloading or copying packages;
+- the complete release preflight selects the clean candidate-10 worktree and
+  passes 121/121 launch tests, 24/24 trajectories, and 50/50 focused agent
+  cases with all eight scores at 1 and zero generated failure traces.
+
+Remaining:
+
+- candidate 10 is `candidate_not_deployed`; deployment, executability, and
+  funded execution remain false;
+- the preserved listeners still run candidate 9, pair B remains behind pair
+  A's 107,577 checkpoint, and no candidate-10 tx0 activation exists;
+- synchronized replacement listeners, wallet-visible exact effects, approval,
+  signing, broadcast, independent position verification, and withdrawal remain
+  to be completed in that order.
