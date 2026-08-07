@@ -92,6 +92,13 @@ export type TradeLayerActivationCancellationReceipt = {
   receiptHash: string;
 };
 
+export type PrivateTradeLayerActivationCandidate = {
+  schema: "bitagent_tradelayer_activation_private_candidate_v1";
+  publicCandidate: PreparedTradeLayerActivationCandidate;
+  rawPsbt: string;
+  envelopeHash: string;
+};
+
 function btcToSats(value: number | undefined, label: string): bigint {
   if (!Number.isFinite(value)) {
     throw new IntegrationBoundaryError("signer_broker_error", `Decoded activation PSBT is missing ${label}`);
@@ -146,6 +153,13 @@ function candidateApprovalMaterial(candidate: PreparedTradeLayerActivationCandid
     inputUtxos: candidate.inputUtxos,
     dataOutput: candidate.dataOutput,
     changeOutput: candidate.changeOutput
+  };
+}
+
+function privateEnvelopeMaterial(candidate: PrivateTradeLayerActivationCandidate) {
+  return {
+    publicCandidateHash: candidate.publicCandidate.approvalHash,
+    rawPsbtHash: canonicalHash(candidate.rawPsbt)
   };
 }
 
@@ -215,6 +229,41 @@ function validateCandidate(
   return candidate.inputUtxos.map(({ txid, vout }) => ({ txid, vout }));
 }
 
+export function validatePreparedTradeLayerActivationCandidate(
+  candidate: PreparedTradeLayerActivationCandidate,
+  expectedPolicyFingerprint: string,
+  now: Date = new Date(),
+  allowExpired = false
+): Outpoint[] {
+  const outpoints = validateCandidate(candidate, expectedPolicyFingerprint, now);
+  if (!allowExpired) validateRequest(candidate.request, expectedPolicyFingerprint, now);
+  return outpoints;
+}
+
+export function validatePrivateTradeLayerActivationCandidate(
+  candidate: PrivateTradeLayerActivationCandidate,
+  expectedPolicyFingerprint: string,
+  now: Date = new Date(),
+  allowExpired = false
+): Outpoint[] {
+  if (candidate.schema !== "bitagent_tradelayer_activation_private_candidate_v1" || !candidate.rawPsbt) {
+    throw new IntegrationBoundaryError("signer_broker_error", "Private activation candidate envelope is invalid");
+  }
+  const outpoints = validatePreparedTradeLayerActivationCandidate(
+    candidate.publicCandidate,
+    expectedPolicyFingerprint,
+    now,
+    allowExpired
+  );
+  if (
+    canonicalHash(candidate.rawPsbt) !== candidate.publicCandidate.unsignedPsbtHash ||
+    canonicalHash(privateEnvelopeMaterial(candidate)) !== candidate.envelopeHash
+  ) {
+    throw new IntegrationBoundaryError("signer_broker_error", "Private activation candidate envelope fingerprint mismatch");
+  }
+  return outpoints;
+}
+
 async function releaseInputLocks(rpc: BitcoinCoreBrokerRpc, outpoints: Outpoint[]): Promise<void> {
   if (!outpoints.length) return;
   if (!await rpc.call<boolean>("lockunspent", true, outpoints)) {
@@ -280,10 +329,10 @@ export class TradeLayerActivationCandidateBroker {
     }
   }
 
-  async prepare(
+  private async prepareInternal(
     request: TradeLayerActivationBrokerRequest,
     now: Date = new Date()
-  ): Promise<PreparedTradeLayerActivationCandidate> {
+  ): Promise<PrivateTradeLayerActivationCandidate> {
     validateRequest(request, this.expectedPolicyFingerprint, now);
     await this.validateNetwork();
     const sender = await this.rpc.call<{ ismine?: boolean; iswatchonly?: boolean }>("getaddressinfo", request.senderAddress);
@@ -402,7 +451,14 @@ export class TradeLayerActivationCandidateBroker {
         approvalHash: ""
       } satisfies PreparedTradeLayerActivationCandidate;
       candidate.approvalHash = canonicalHash(candidateApprovalMaterial(candidate));
-      return candidate;
+      const privateCandidate = {
+        schema: "bitagent_tradelayer_activation_private_candidate_v1" as const,
+        publicCandidate: candidate,
+        rawPsbt: funded.psbt,
+        envelopeHash: ""
+      } satisfies PrivateTradeLayerActivationCandidate;
+      privateCandidate.envelopeHash = canonicalHash(privateEnvelopeMaterial(privateCandidate));
+      return privateCandidate;
     } catch (error) {
       if (lockReserved) {
         try {
@@ -416,6 +472,21 @@ export class TradeLayerActivationCandidateBroker {
       }
       throw error;
     }
+  }
+
+  async prepare(
+    request: TradeLayerActivationBrokerRequest,
+    now: Date = new Date()
+  ): Promise<PreparedTradeLayerActivationCandidate> {
+    return (await this.prepareInternal(request, now)).publicCandidate;
+  }
+
+  /** Host-private preparation. The returned PSBT must never enter an agent packet or public response. */
+  async prepareForWalletExecution(
+    request: TradeLayerActivationBrokerRequest,
+    now: Date = new Date()
+  ): Promise<PrivateTradeLayerActivationCandidate> {
+    return this.prepareInternal(request, now);
   }
 
   async cancelPrepared(

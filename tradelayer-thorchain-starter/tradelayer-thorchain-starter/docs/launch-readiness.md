@@ -1233,3 +1233,20 @@ Candidate-only activation simulation:
 - neither local Bitcoin node has a loaded or stored wallet, so live simulation
   and the separately reviewed wallet execution half remain blocked on a funded
   wallet rather than being silently mocked.
+
+Activation approval and execution provider:
+
+- `TradeLayerActivationExecutionBroker` now implements the separately gated
+  wallet-host half using a private PSBT envelope and the exact public approval
+  hash;
+- it revalidates before signing and after finalization, requires exact
+  `testmempoolaccept` identity/fee evidence before broadcast, releases inputs
+  only after definite non-broadcast failure, and retains ambiguous submissions
+  for positive-only reconciliation;
+- 7/7 focused execution cases pass, for 15/15 combined activation broker cases,
+  and the execution provider is not exposed to the language model;
+- the expanded complete release gate passes 140/140 tests, all 24 scripted
+  trajectories, and 50/50 focused agent cases;
+- runtime readiness remains false until full node synchronization, a loaded
+  funded wallet, an operator-visible approval surface, and live positive
+  reconciliation evidence exist.

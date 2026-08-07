@@ -1561,3 +1561,29 @@
 - The live nodes currently contain no loaded or stored wallet, so no candidate,
   address, PSBT, approval, signature, or transaction was produced. A separate
   wallet-owned execution provider and funded testnet4 wallet remain required.
+
+## Wallet-hosted tx11 activation execution broker - 2026-08-07
+
+- Added a host-private activation envelope that binds the raw unsigned PSBT to
+  the already public candidate and approval hash. Public candidate responses
+  and receipts still contain no PSBT or signing material.
+- The separate execution broker accepts only that byte-bound envelope and the
+  exact user approval hash. It rechecks full testnet4 synchronization, decodes
+  and revalidates the unsigned PSBT, asks the external Bitcoin Core wallet to
+  sign, decodes the finalized transaction, and revalidates txid, input, output
+  order, payload, change, and fee before `testmempoolaccept` and broadcast.
+- Rejected signatures, finalized-transaction mutation, and mempool rejection
+  are definite non-broadcast failures and release the exact input. A failed or
+  mismatched `sendrawtransaction` response retains the input and requires
+  positive txid observation; absence never authorizes retry.
+- Seven focused execution cases cover exact approved execution, wrong approval,
+  rejected signature, signed-transaction mutation, mempool rejection,
+  ambiguous submission with positive-only reconciliation, and private-envelope
+  tampering. Together with candidate simulation, 15/15 activation broker cases
+  and TypeScript pass.
+- The complete release gate now passes 140/140 launch tests, all 24 scripted
+  trajectories, and 50/50 focused agent cases while release promotion and
+  funded execution remain false.
+- This code remains operator/wallet-hosted and is not registered as an agent
+  tool. No live wallet exists on the syncing nodes, so none of these RPCs were
+  invoked against live funds.
