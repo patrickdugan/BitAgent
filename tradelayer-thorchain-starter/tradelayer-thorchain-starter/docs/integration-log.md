@@ -1657,8 +1657,9 @@
 - This step writes only a public broker request. Input selection, fee
   simulation, lock reservation, approval, signing, broadcast, and verification
   remain separate downstream boundaries.
-- Three focused cases cover the valid binding, mismatched source commit, and
-  stale evidence. The complete release-aware gate now passes 151/151 tests;
+- Four focused cases cover the valid binding, malformed testnet4 sender,
+  mismatched source commit, and stale evidence. The complete release-aware gate
+  now passes 152/152 tests;
   release status, deployment verification, executability, and funded execution
   remain false.
 - Validated ignored operator plans now name two unique quiescent snapshots, a

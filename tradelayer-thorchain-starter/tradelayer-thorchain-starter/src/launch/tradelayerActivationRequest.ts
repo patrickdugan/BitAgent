@@ -1,5 +1,6 @@
 import { createTradeLayerActivationBrokerRequest } from "../broker/tradelayerActivationCandidateBroker.js";
 import { canonicalHash } from "../survival/policy.js";
+import { validateBitcoinAddress } from "./bitcoin.js";
 import {
   validateTx11ReleaseManifest,
   type Tx11ReleaseManifest
@@ -95,10 +96,11 @@ export function createReleaseBoundActivationRequest(input: {
     now: input.now,
     maxAgeMs: input.maxSourceAgeMs
   });
+  const senderAddress = validateBitcoinAddress(input.senderAddress, "bitcoin-testnet4").address;
   return createTradeLayerActivationBrokerRequest({
     requestId: input.requestId,
     wallet: input.wallet,
-    senderAddress: input.senderAddress,
+    senderAddress,
     releaseId: manifest.releaseId,
     deploymentCommit: manifest.deploymentCommit,
     codeHash: manifest.codeHash,

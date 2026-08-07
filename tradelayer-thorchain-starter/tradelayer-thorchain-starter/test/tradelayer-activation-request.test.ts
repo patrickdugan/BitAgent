@@ -6,10 +6,12 @@ import {
   tx11SourceVerificationHash,
   validateTx11LaunchSourceReceipt
 } from "../src/launch/tradelayerActivationRequest.js";
+import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { validateTx11ReleaseManifest } from "../src/launch/tradelayerRelease.js";
 
 const NOW = new Date("2026-08-07T14:10:00.000Z");
 const manifest = validateTx11ReleaseManifest(manifestJson);
+const senderAddress = encodeSegwitAddress(Buffer.alloc(32, 23), "bitcoin-testnet4", 1);
 const receipt = {
   schema: "bitagent.tradelayer.tx11-launch-source.v1",
   verifiedAt: "2026-08-07T14:02:12.165Z",
@@ -35,7 +37,7 @@ test("builds a candidate-only activation request from fresh exact release eviden
     manifest,
     requestId: "candidate10-live-1",
     wallet: "utxoref-testnet",
-    senderAddress: "tb1ptestaddress",
+    senderAddress,
     policyFingerprint: "71".repeat(32),
     maxFeeSats: "2000",
     expiresAt: "2026-08-07T14:25:00.000Z",
@@ -47,6 +49,20 @@ test("builds a candidate-only activation request from fresh exact release eviden
   assert.equal(request.activation.codeHash, manifest.codeHash);
   assert.equal(request.sourceVerificationHash, tx11SourceVerificationHash(validated, manifest));
   assert.match(request.requestHash, /^[a-f0-9]{64}$/);
+});
+
+test("rejects a malformed sender before producing a public activation request", () => {
+  assert.throws(() => createReleaseBoundActivationRequest({
+    receipt,
+    manifest,
+    requestId: "candidate10-live-malformed",
+    wallet: "utxoref-testnet",
+    senderAddress: "tb1-not-a-valid-address",
+    policyFingerprint: "71".repeat(32),
+    maxFeeSats: "2000",
+    expiresAt: "2026-08-07T14:25:00.000Z",
+    now: NOW
+  }), /Invalid Bitcoin testnet4 address/);
 });
 
 test("rejects a source receipt whose commit does not match the release", () => {
