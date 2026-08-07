@@ -1164,3 +1164,43 @@ Remaining:
 - synchronized replacement listeners, wallet-visible exact effects, approval,
   signing, broadcast, independent position verification, and withdrawal remain
   to be completed in that order.
+
+## Candidate-10 parallel deployment and parity checkpoint (2026-08-07)
+
+Decision: **accept candidate-10 as the running testnet recovery release, but
+keep release promotion, wallet approval, and funded execution disabled.**
+
+Passed:
+
+- immutable candidate-9 state was copied only after explicit parser pause, a
+  12-second realtime-loop drain, three identical inventories, exact copy hash
+  parity, and verified parser resume;
+- candidate-10 commit `fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd`
+  now runs as a parallel pair on ports 3131/3132 from separate state roots and
+  separate Bitcoin Core backends; candidate-9 remains on 3121/3122 for rollback;
+- bounded recovery brought B from 105,001 to 107,604 and A to 107,606 while
+  enforcing prune and listener-lag limits and ending with peer networking off;
+- the two-block final suffix was relayed from A to B only after proving B's tip
+  was on A's active chain. B's own Bitcoin Core accepted both blocks and now
+  shares A's exact height 107,606 and best-block hash;
+- all four TradeLayer listeners report realtime, error-free height 107,606;
+- a fresh candidate-10 preflight passes endpoint/instance independence,
+  observation freshness, and the exact release commit;
+- TypeScript and the complete release gate pass 125/125 tests, all 24 scripted
+  trajectories, and 50/50 focused agent cases.
+
+Remaining:
+
+- both Bitcoin backends are paused and in IBD near 107,606 versus headers near
+  147,344, so `synchronizedTestnet4` correctly remains false;
+- no real Bitcoin tx0 has activated tx11 with the candidate-10 code hash;
+  therefore chain-derived activation, property, template, contract, and
+  reserve-redeem gates all remain false;
+- the manifest remains `candidate_not_deployed`, with
+  `deploymentVerified=false`, `executable=false`, and
+  `fundedExecutionAllowed=false`;
+- the RTX 3050 reached 83 C under a user-owned game process, above the 64 C
+  model start limit. No Bonsai model was loaded and no new model benchmark is
+  claimed;
+- no approval, PSBT, signature, activation transaction, trade, PnL release, or
+  withdrawal was requested or performed.
