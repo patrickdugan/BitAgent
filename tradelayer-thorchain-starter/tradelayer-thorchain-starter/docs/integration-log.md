@@ -1644,3 +1644,24 @@
   and passes 148/148 tests after binding the repo-shipped lifecycle skill and
   example to the current manifest. Deployment and funded execution remain
   false.
+
+## Release-bound tx11 activation request - 2026-08-07
+
+- Added a read-only public request generator between release verification and
+  wallet-hosted activation preparation. It reads the pinned manifest plus the
+  fresh launch-source receipt and cannot access Bitcoin RPC or wallet state.
+- The generated `sourceVerificationHash` commits to the release ID/status,
+  deployment commit, code hash, and the clean exact verified source checkout.
+  Commit/hash drift, false source verification, unsupported execution claims,
+  future timestamps, and receipts older than 15 minutes fail closed.
+- This step writes only a public broker request. Input selection, fee
+  simulation, lock reservation, approval, signing, broadcast, and verification
+  remain separate downstream boundaries.
+- Three focused cases cover the valid binding, mismatched source commit, and
+  stale evidence. The complete release-aware gate now passes 151/151 tests;
+  release status, deployment verification, executability, and funded execution
+  remain false.
+- Validated ignored operator plans now name two unique quiescent snapshots, a
+  bounded B-to-A paused-tip alignment, and fresh candidate10-r2 listener ports,
+  identities, state roots, and log roots. They are plans only and have not been
+  executed while listener B is still synchronizing.
