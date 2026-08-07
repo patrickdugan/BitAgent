@@ -307,7 +307,10 @@ npm run observe:listener-preflight
 The command calls `POST /tl_getLaunchAttestation`, then independently calls
 `getblockchaininfo`, `getblockhash`, `getblockheader`, and block-scoped
 `getrawtransaction` on the Bitcoin Core backend bound to each listener. RPC
-cookies are read locally for each call and never enter the receipt. A launchable result requires
+cookies are read locally for each call and never enter the receipt. It uses the
+selected release manifest by default; set the same explicit
+`BITAGENT_TRADELAYER_RELEASE_MANIFEST` config-child override when observing an
+unselected parallel candidate. A launchable result requires
 `status=verified` and every gate true: unique listener and Bitcoin RPC
 endpoints; node IDs, instance IDs, and challenges; fresh realtime
 synchronization; bounded block lag; an allowlisted release commit and tx11

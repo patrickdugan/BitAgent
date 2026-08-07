@@ -105,7 +105,14 @@ async function main() {
     || path.join(".runtime", "testnet-agent", "reserve-intake-candidate", "prepared-candidate.json"));
   const outputPath = path.resolve(process.env.LISTENER_PREFLIGHT_OUTPUT
     || path.join(".runtime", "testnet-agent", "reserve-intake-candidate", "listener-preflight.json"));
-  const manifestPath = path.resolve("config", "tradelayer-tx11-release.json");
+  const configRoot = path.resolve("config");
+  const manifestPath = path.resolve(process.env.BITAGENT_TRADELAYER_RELEASE_MANIFEST
+    || path.join(configRoot, "tradelayer-tx11-release.json"));
+  const manifestRelative = path.relative(configRoot, manifestPath);
+  if (manifestRelative === "" || manifestRelative.startsWith("..") || path.isAbsolute(manifestRelative)
+    || path.extname(manifestPath).toLowerCase() !== ".json") {
+    throw new Error("TradeLayer release manifest must be a JSON child of the project config directory");
+  }
   const [rawCandidate, rawManifest] = await Promise.all([
     fs.readFile(candidatePath, "utf8"),
     fs.readFile(manifestPath, "utf8")
