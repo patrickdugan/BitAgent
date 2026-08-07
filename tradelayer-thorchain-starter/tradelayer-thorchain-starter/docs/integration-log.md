@@ -1666,3 +1666,17 @@
   bounded B-to-A paused-tip alignment, and fresh candidate10-r2 listener ports,
   identities, state roots, and log roots. They are plans only and have not been
   executed while listener B is still synchronizing.
+
+## Windows atomic status contention recovery - 2026-08-07
+
+- The long-running candidate10 B throttle encountered a transient Windows
+  `EPERM` while replacing its atomic JSON status receipt. The controller failed
+  closed, disabled peer networking, and preserved the terminal failure receipt.
+  An independent RPC check proved `networkactive=false`, zero peers, and exact
+  Bitcoin/listener parity before a fresh controller was started.
+- Atomic status replacement now retries only transient `EPERM`, `EBUSY`, and
+  `EACCES` rename contention eight times with bounded backoff. Non-transient or
+  exhausted failures still propagate to the controller's peer-pause cleanup.
+- Deterministic tests prove transient recovery seals the exact new receipt and
+  exhausted contention preserves the prior receipt while removing temporary
+  state. The complete release gate passes 154/154 tests.

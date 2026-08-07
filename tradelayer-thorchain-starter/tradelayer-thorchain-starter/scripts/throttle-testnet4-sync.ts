@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { writeAtomicStatusFile } from "../src/launch/atomicStatusFile.js";
 import {
   decideTestnet4SyncControl,
   formatBitcoinPeerEndpoint,
@@ -186,10 +187,7 @@ async function pauseAll(pairs: Pair[]) {
 }
 
 async function writeStatus(outputPath: string, value: unknown): Promise<void> {
-  await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  const temporary = outputPath + "." + process.pid + ".tmp";
-  await fs.writeFile(temporary, JSON.stringify(value, null, 2) + "\n", "utf8");
-  await fs.rename(temporary, outputPath);
+  await writeAtomicStatusFile(outputPath, value);
 }
 
 async function main() {
