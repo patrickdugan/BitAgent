@@ -1614,3 +1614,31 @@
 - The release-aware launch gate selects the exact clean candidate10 checkout
   and passes 147/147 tests. The evaluation suite remains 24/24 scripted
   trajectories and 50/50 focused agent cases with all safety scores at 1.
+
+## Candidate10 full-testnet4 recovery - 2026-08-07
+
+- Bitcoin node A reached the bounded full target, but its candidate10 listener
+  had been allowed to fall behind while peer networking advanced. The pruned
+  data horizon overtook its checkpoint and the listener failed closed with
+  `Block not available (pruned data)`. Node A networking is disabled and this
+  listener/state root is retained as failure evidence; it is not eligible for
+  launch proof.
+- Candidate10 listener B remains error-free and is advancing with its own
+  Bitcoin Core under the 20/100-block bounded throttle. No wallet is loaded and
+  the controller has no approval, signing, or broadcast authority.
+- An interrupted PowerShell wrapper demonstrated that piping the throttle
+  through another process can strand Bitcoin peer networking active before a
+  terminal receipt is written. Networking was independently disabled and zero
+  peers verified before recovery continued. The controller now supports
+  `BITAGENT_SYNC_QUIET=1`, and the runbook requires direct supervision plus an
+  independent network-state check after abnormal exit.
+- The recovery plan preserves both prior listener roots. After B reaches exact
+  paused parity, take two quiescent, hash-sealed snapshots from B and deploy a
+  fresh candidate10 pair on unused ports and new state/log roots, one against
+  each independent Bitcoin Core. Only the fresh pair can enter activation
+  preflight.
+- TypeScript and all 15 focused throttle-policy cases pass. The release-aware
+  launch gate still selects commit
+  `fad7f4bb3955559a05ea9b0c82eb7ea34e46aafd` with code hash
+  `c72b3ce9101743c59c05ee3b115100ec229055e21f9e17851ff694002b2d9e29`
+  and passes 147/147 tests. Deployment and funded execution remain false.
