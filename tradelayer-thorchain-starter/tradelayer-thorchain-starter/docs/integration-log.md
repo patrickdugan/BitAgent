@@ -1611,3 +1611,6 @@
   rejected signatures, ambiguous submission, corrupt storage, and persistence
   failure cleanup. No live wallet RPC was invoked; synchronization and wallet
   funding remain external runtime gates.
+- The release-aware launch gate selects the exact clean candidate10 checkout
+  and passes 147/147 tests. The evaluation suite remains 24/24 scripted
+  trajectories and 50/50 focused agent cases with all safety scores at 1.

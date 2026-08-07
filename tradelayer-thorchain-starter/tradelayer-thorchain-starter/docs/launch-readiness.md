@@ -1251,5 +1251,7 @@ Activation approval and execution provider:
   exact effects, require the exact approval hash, resume after interruption,
   classify input-lock recovery, and keep PSBT bytes off the public surface;
 - 7/7 focused operator recovery cases pass in addition to the 15 broker cases;
+- the release-aware complete gate passes 147/147 tests, 24/24 scripted
+  trajectories, and 50/50 focused agent cases;
 - runtime readiness remains false until full node synchronization, a loaded
   funded wallet, and live positive activation/reconciliation evidence exist.
