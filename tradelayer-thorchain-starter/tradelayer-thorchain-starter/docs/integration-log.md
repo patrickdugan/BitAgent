@@ -1887,3 +1887,8 @@
   peer and disconnects every extra peer ID, recording only an aggregate trim
   count. Focused throttle tests pass 20/20 and the release-aware gate passes
   171/171.
+- The real listener-observation timeout and pruned-node disk-floor stop are now
+  sanitized failure traces. Corpus v3 remains byte-for-byte sealed; a new v4
+  lane contains 126 candidate-only examples, including 24 recovery-operator
+  rows. It contains no raw transcript or detected secret and grants no approval,
+  signing, broadcast, execution, fabrication, or parameter-mutation authority.

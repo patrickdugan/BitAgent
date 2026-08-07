@@ -1345,5 +1345,7 @@ Candidate12 unattended-recovery update:
 - a real listener-request timeout failed closed at exact recoverable state, and
   the controller now trims transient peer cardinality to one synchronized
   outbound peer. The release-aware gate passes 171/171;
+- those two live recovery failures are represented in a new 126-row v4 adapter
+  corpus while the 124-row v3 evidence lane remains hash-sealed;
 - replay completion, a second independently replayed listener, candidate12
   release selection, and challenge-bound live preflight remain required.

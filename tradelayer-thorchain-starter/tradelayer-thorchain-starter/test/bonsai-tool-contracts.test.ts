@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
@@ -12,8 +13,10 @@ const artifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2
 const examplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "examples.jsonl");
 const manifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v2", "manifest.json");
 const legacyArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v1", "tool-contracts.json");
-const candidate12ExamplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v3", "examples.jsonl");
-const candidate12ManifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v3", "manifest.json");
+const sealedCandidate12ExamplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v3", "examples.jsonl");
+const sealedCandidate12ManifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v3", "manifest.json");
+const candidate12ExamplesArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v4", "examples.jsonl");
+const candidate12ManifestArtifact = path.join(root, "training", "artifacts", "bonsai-role-corpus-v4", "manifest.json");
 const failureTraceFixture = path.join(root, "eval", "fixtures", "failure-traces.seed.jsonl");
 
 test("Bonsai tool contract bundle mirrors production schemas and denies effectful model calls", async () => {
@@ -88,7 +91,12 @@ test("reserve execution failures produce candidate-only specialist and recovery 
   );
 });
 
-test("candidate12 recovery data evolves in v3 without mutating the sealed v2 corpus", async () => {
+test("candidate12 recovery data evolves in v4 without mutating sealed v3", async () => {
+  const canonicalHash = (value: Buffer) => createHash("sha256")
+    .update(value.toString("utf8").replace(/\r\n/g, "\n").replace(/\r/g, "\n"))
+    .digest("hex");
+  assert.equal(canonicalHash(await fs.readFile(sealedCandidate12ExamplesArtifact)), "728ed7bf43450f78c09a88d177886f760da86af93ad40ce5c35d908e8cab742d");
+  assert.equal(canonicalHash(await fs.readFile(sealedCandidate12ManifestArtifact)), "e0653db42ca3cdcdd514e7989ee29d038606bcb7ef411dc84d7c60a2a56cfaa4");
   const manifest = JSON.parse(await fs.readFile(candidate12ManifestArtifact, "utf8"));
   const rows = (await fs.readFile(candidate12ExamplesArtifact, "utf8"))
     .split(/\r?\n/)
