@@ -1058,8 +1058,8 @@ pause RPCs. Resumed 74,200 and 75,000 targets then completed at A 75,033 and B
 75,054, both with exact listener parity and networking paused. This remains
 IBD recovery rather than launch synchronization.
 
-Further bounded recovery completed at 80,000 and 81,000. Current exact paused
-tips are A 81,193 and B 81,023. A connected peer with no synchronized headers
+Further bounded recovery completed at 80,000, 81,000, and 85,000. Current exact
+paused tips are A 85,042 and B 85,122. A connected peer with no synchronized headers
 or blocks was isolated twice; exact-peer rotation restored progress. The
 controller now performs that rotation automatically only after a bounded
 low-lag stall and preserves synchronized peers. The complete release preflight

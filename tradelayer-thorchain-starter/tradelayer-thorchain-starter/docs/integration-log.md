@@ -1349,3 +1349,9 @@
   and terminal behavior.
 - The refreshed full release preflight passes 114/114 checks, 24 trajectories,
   and 50/50 agent cases with every score equal to 1 and zero failure traces.
+- The committed controller then completed 85,000 at A 85,042/85,042 and B
+  85,122/85,122. The terminal receipt records both backends paused. Fresh live
+  preflight continues to pass listener independence, observation freshness,
+  and exact release commit while correctly failing IBD synchronization and all
+  real chain-derived tx11 registry gates. GPU temperature was 67 C, so Bonsai
+  remained below the launch queue rather than violating the 64 C start gate.
