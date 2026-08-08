@@ -1407,3 +1407,25 @@ Candidate12 activation submission update (2026-08-08):
   activation block must be relayed and parsed independently by both candidate12
   listeners, all chain-derived candidate12 gates must pass, and promotion must
   remain an explicit operator decision.
+
+Candidate12 confirmed-invalid activation update (2026-08-08):
+
+- the submitted Bitcoin transaction is confirmed in active-chain block 147,537
+  and was observed at 24 confirmations; its only irreversible cost is the
+  previously approved 358-sat Bitcoin fee;
+- two recovered candidate12 listeners independently decoded the exact tx11
+  activation hash but rejected the transaction because its P2TR sender is not
+  the TradeLayer testnet4 protocol admin address;
+- the read-only challenge passed listener independence, freshness,
+  synchronized-testnet4, exact-commit, and tx11-active checks, but correctly
+  failed candidate12 chain-derived code-hash and every dependent registry and
+  reserve gate. Candidate12 remains unpromoted;
+- the request and broker layers now require the exact protocol admin address
+  before any wallet RPC. Valid non-admin Bitcoin addresses fail closed, and
+  focused activation coverage passes 30/30 with TypeScript clean. The full
+  launch gate passes 174/174 when explicitly bound to the clean, sealed
+  candidate11 worktree and the reviewed TradeLayer dependency tree;
+- no retry or replacement is authorized. A future activation requires proof
+  that a loaded wallet controls the exact protocol admin address, followed by a
+  wholly new explain/simulate/effects/approval cycle and a second independent
+  listener proof. Until then, starter-strategy funding remains blocked.

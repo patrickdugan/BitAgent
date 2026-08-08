@@ -13,7 +13,8 @@ prepare and simulate -> display exact effects -> approve or cancel -> execute ->
 ## Prerequisites
 
 - a fully synchronized Bitcoin Core testnet4 node;
-- a loaded, funded wallet whose sender address matches the request;
+- a loaded, funded wallet that controls the TradeLayer testnet4 protocol admin
+  address `tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu`;
 - the candidate request and policy fingerprint produced by the release
   preflight;
 - a private runtime directory accessible only to the wallet host.
@@ -29,9 +30,15 @@ request:
 
 ```powershell
 .\node_modules\.bin\tsx.cmd scripts\create-tradelayer-activation-request.ts `
-  --sender-address=<owned-testnet4-address> `
+  --sender-address=tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu `
   --max-fee-sats=2000
 ```
+
+An otherwise valid owned address is not sufficient. Candidate generation now
+fails before wallet RPC unless the sender is the protocol admin address used by
+the pinned TradeLayer testnet4 consensus release. Confirm that the named wallet
+both owns and can spend from that exact address before funding or preparing an
+activation.
 
 For a parallel candidate that is not the selected release, set
 `BITAGENT_TRADELAYER_RELEASE_MANIFEST` to a JSON file under `config`, set

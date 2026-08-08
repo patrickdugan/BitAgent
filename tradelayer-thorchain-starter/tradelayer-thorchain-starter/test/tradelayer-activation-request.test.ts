@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import manifestJson from "../config/tradelayer-tx11-release.json" with { type: "json" };
+import { TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS } from "../src/broker/tradelayerActivationCandidateBroker.js";
 import {
   createReleaseBoundActivationRequest,
   tx11ActivationPolicyFingerprint,
   tx11SourceVerificationHash,
   validateTx11LaunchSourceReceipt
 } from "../src/launch/tradelayerActivationRequest.js";
-import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { validateTx11ReleaseManifest } from "../src/launch/tradelayerRelease.js";
 
 const NOW = new Date("2026-08-07T14:10:00.000Z");
 const manifest = validateTx11ReleaseManifest(manifestJson);
-const senderAddress = encodeSegwitAddress(Buffer.alloc(32, 23), "bitcoin-testnet4", 1);
+const senderAddress = TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS;
 const receipt = {
   schema: "bitagent.tradelayer.tx11-launch-source.v1",
   verifiedAt: "2026-08-07T14:02:12.165Z",
@@ -68,6 +68,19 @@ test("rejects a malformed sender before producing a public activation request", 
     expiresAt: "2026-08-07T14:25:00.000Z",
     now: NOW
   }), /Invalid Bitcoin testnet4 address/);
+});
+
+test("rejects a valid non-admin sender before producing a public activation request", () => {
+  assert.throws(() => createReleaseBoundActivationRequest({
+    receipt,
+    manifest,
+    requestId: "candidate11-live-non-admin",
+    wallet: "utxoref-testnet",
+    senderAddress: "tb1pma0a7clpqfdwpy4aq80ejrxk3dtumgzqkrm5hatpmgl0qn9aqh5ss2puu0",
+    maxFeeSats: "2000",
+    expiresAt: "2026-08-07T14:25:00.000Z",
+    now: NOW
+  }), /protocol admin address/);
 });
 
 test("rejects a manually supplied policy fingerprint that differs from the deterministic policy", () => {

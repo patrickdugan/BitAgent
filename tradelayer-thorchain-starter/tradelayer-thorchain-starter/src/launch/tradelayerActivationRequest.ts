@@ -1,4 +1,7 @@
-import { createTradeLayerActivationBrokerRequest } from "../broker/tradelayerActivationCandidateBroker.js";
+import {
+  createTradeLayerActivationBrokerRequest,
+  TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS
+} from "../broker/tradelayerActivationCandidateBroker.js";
 import { canonicalHash } from "../survival/policy.js";
 import { validateBitcoinAddress } from "./bitcoin.js";
 import {
@@ -90,6 +93,9 @@ export function tx11ActivationPolicyFingerprint(input: {
     throw new Error("TradeLayer activation fee cap must be a positive integer string");
   }
   const senderAddress = validateBitcoinAddress(input.senderAddress, "bitcoin-testnet4").address;
+  if (senderAddress !== TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS) {
+    throw new Error("TradeLayer testnet4 activation sender must equal the protocol admin address");
+  }
   return canonicalHash({
     schema: "bitagent.tradelayer.tx11-activation-policy.v1",
     network: "testnet4",

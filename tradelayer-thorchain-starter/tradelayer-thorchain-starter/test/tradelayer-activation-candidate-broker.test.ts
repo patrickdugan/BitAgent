@@ -4,13 +4,13 @@ import type { BitcoinCoreBrokerRpc } from "../src/broker/types.js";
 import {
   buildTradeLayerTx11ActivationPayload,
   createTradeLayerActivationBrokerRequest,
+  TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS,
   TradeLayerActivationCandidateBroker
 } from "../src/broker/tradelayerActivationCandidateBroker.js";
-import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { canonicalHash } from "../src/survival/policy.js";
 
 const NOW = new Date("2026-08-07T12:00:00.000Z");
-const SENDER = encodeSegwitAddress(Buffer.alloc(20, 17), "bitcoin-testnet4");
+const SENDER = TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS;
 const INPUT_TXID = "31".repeat(32);
 const UNSIGNED_TXID = "42".repeat(32);
 const CODE_HASH = "8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623";
@@ -175,6 +175,21 @@ test("fails before wallet calls on stale requests, payload tampering, or unsynch
     /fully synchronized/
   );
   assert.deepEqual(syncing.methods, ["getblockchaininfo"]);
+});
+
+test("rejects a non-admin activation sender before any wallet RPC", () => {
+  assert.throws(() => createTradeLayerActivationBrokerRequest({
+    requestId: "candidate11-non-admin-fixture",
+    wallet: "fixture-wallet",
+    senderAddress: "tb1pma0a7clpqfdwpy4aq80ejrxk3dtumgzqkrm5hatpmgl0qn9aqh5ss2puu0",
+    releaseId: "tx11-utxoref-dynamic-contract-candidate-11",
+    deploymentCommit: "b3423bf7f72a4e8bfad3fbc61f757505553b9d4c",
+    codeHash: CODE_HASH,
+    sourceVerificationHash: "90".repeat(32),
+    policyFingerprint: POLICY,
+    maxFeeSats: "2000",
+    expiresAt: "2026-08-07T12:15:00.000Z"
+  }), /protocol admin address/);
 });
 
 test("tampered cancellation cannot release an input under a different approval hash", async () => {

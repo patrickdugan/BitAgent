@@ -3,17 +3,17 @@ import test from "node:test";
 import type { BitcoinCoreBrokerRpc } from "../src/broker/types.js";
 import {
   createTradeLayerActivationBrokerRequest,
+  TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS,
   TradeLayerActivationCandidateBroker
 } from "../src/broker/tradelayerActivationCandidateBroker.js";
 import {
   isTradeLayerActivationExecutionError,
   TradeLayerActivationExecutionBroker
 } from "../src/broker/tradelayerActivationExecutionBroker.js";
-import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { canonicalHash } from "../src/survival/policy.js";
 
 const NOW = new Date("2026-08-07T13:00:00.000Z");
-const SENDER = encodeSegwitAddress(Buffer.alloc(20, 23), "bitcoin-testnet4");
+const SENDER = TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS;
 const INPUT_TXID = "31".repeat(32);
 const UNSIGNED_TXID = "42".repeat(32);
 const POLICY = canonicalHash({ policy: "tx11-activation-execution-fixture" });

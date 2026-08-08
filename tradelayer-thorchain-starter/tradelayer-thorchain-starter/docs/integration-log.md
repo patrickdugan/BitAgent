@@ -2031,3 +2031,50 @@
 - The transaction is not yet confirmed and candidate12 is not promoted. The
   next legal transition is positive block confirmation, exact final-block relay
   to both isolated backends, and independent two-listener activation proof.
+
+## Candidate12 confirmed invalid activation and sender guard - 2026-08-08
+
+- Bitcoin testnet4 positively confirmed txid
+  `b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e`
+  in active-chain block 147,537,
+  `0000000000636b836039f8eb1e04ed9f3b52629d162fbc655d726985f4c8d989`.
+  A later observation reported 24 confirmations. The Bitcoin effects remain
+  exactly one 302,443-sat input, a zero-value tx11 OP_RETURN, 302,085 sats back
+  to the same wallet address, and a 358-sat fee. Retry is not authorized.
+- The prior candidate12 listeners correctly failed closed on the intervening
+  fork with `REORG_FULL_REPLAY_REQUIRED`. Two subsequent 30-second deployments
+  failed before HTTP bind and stopped only their owned listener PIDs, with no
+  wallet, approval, signing, or broadcast effect. A bounded post-clean probe
+  measured 57,318 ms to load `walletListener.js`, proving the deploy timeout was
+  too short rather than authorizing an indefinite restart loop.
+- Both isolated Bitcoin backends were aligned peer-off from their durable
+  147,434 checkpoint through exact height 147,560 and hash
+  `00000000005d2dd3efd9255f36403d6caebd1e154c6e48588118874d107b863d`.
+  Each independently accepted 126 source blocks. A single 120-second recovery
+  deployment then copied both sealed 34-file snapshots byte-for-byte and
+  started candidate12 commit
+  `8544512bda290f040a112b94f0a4bc6b556101d7`; both listeners reached
+  realtime track height 147,560 with `error=null`.
+- The challenge-bound preflight passed independent listeners, freshness,
+  synchronized testnet4, exact release commit, and tx11-active gates. Both
+  listeners decoded the new wire payload to tx0 activating tx11 with exact
+  candidate12 hash
+  `57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb`,
+  then deterministically rejected it: sender
+  `tb1pma0a7clpqfdwpy4aq80ejrxk3dtumgzqkrm5hatpmgl0qn9aqh5ss2puu0`
+  did not equal protocol admin
+  `tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu`. The stored tx11 state
+  therefore remains the prior height-134,066 activation; candidate12 is not
+  activated or promoted, and all dependent tlBTC/template/contract/reserve
+  gates remain false.
+- BitAgent now rejects every testnet4 activation request whose sender is not
+  the protocol admin address, both at deterministic policy/request generation
+  and again inside candidate validation. The guard runs before any wallet RPC,
+  approval, signing, or broadcast. Thirty focused activation tests pass,
+  TypeScript is clean, and the full launch gate passes 174/174 when bound to
+  the sealed candidate11 source plus the reviewed TradeLayer dependency tree.
+  The prior confirmed transaction is retained as a sanitized failure trace,
+  not training evidence for executing a replacement.
+- Backends A/B were returned to networking disabled with zero peers after the
+  challenge. The independent source remains network-active for positive chain
+  observation. No replacement activation is simulated or authorized.

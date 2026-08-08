@@ -1,0 +1,67 @@
+{
+  "schema": "bitagent_candidate12_activation_verification_checkpoint_v1",
+  "status": "failed_closed_invalid_protocol_sender",
+  "authority": "read_only_observer",
+  "effect": "none",
+  "release": {
+    "releaseId": "tx11-utxoref-reorg-failclosed-candidate-12",
+    "deploymentCommit": "8544512bda290f040a112b94f0a4bc6b556101d7",
+    "codeHash": "57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb",
+    "promoted": false
+  },
+  "bitcoinActivation": {
+    "txid": "b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e",
+    "blockHeight": 147537,
+    "blockHash": "0000000000636b836039f8eb1e04ed9f3b52629d162fbc655d726985f4c8d989",
+    "inActiveChain": true,
+    "confirmationsAtObservation": 24,
+    "inputSats": "302443",
+    "changeSats": "302085",
+    "feeSats": "358",
+    "retryAuthorized": false
+  },
+  "listenerRecovery": {
+    "alignmentReceipts": [
+      ".runtime/testnet-agent/tip-alignments/candidate12-activation-a-147560.json",
+      ".runtime/testnet-agent/tip-alignments/candidate12-activation-b-147560.json"
+    ],
+    "deploymentReceipt": ".runtime/testnet-agent/listener-deployments/candidate12-pair-reorg147560-v3.json",
+    "preflightReceipt": ".runtime/testnet-agent/listener-preflight-candidate12-verified-147560.json",
+    "tipHeight": 147560,
+    "tipHash": "00000000005d2dd3efd9255f36403d6caebd1e154c6e48588118874d107b863d",
+    "listenerPhase": "realtime",
+    "listenerError": null
+  },
+  "protocolEvaluation": {
+    "wireDecoded": true,
+    "decodedTxType": 0,
+    "decodedActivatedTxTypes": [11],
+    "decodedCodeHash": "57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb",
+    "senderAddress": "tb1pma0a7clpqfdwpy4aq80ejrxk3dtumgzqkrm5hatpmgl0qn9aqh5ss2puu0",
+    "requiredAdminAddress": "tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu",
+    "valid": false,
+    "reason": "Not sent from admin address",
+    "candidate12Activated": false
+  },
+  "preflightGates": {
+    "independentLiveListeners": true,
+    "freshObservations": true,
+    "synchronizedTestnet4": true,
+    "exactReleaseCommit": true,
+    "tx11Active": true,
+    "tx11ChainDerived": false,
+    "tx11CodeHash": false,
+    "intendedTlBtcProperty": false,
+    "templateParity": false,
+    "contractParity": false,
+    "reserveRedeemAddress": false
+  },
+  "mitigation": {
+    "nonAdminRequestRejectedBeforeWalletRpc": true,
+    "replacementSimulated": false,
+    "approvalRequested": false,
+    "signingPerformed": false,
+    "broadcastPerformed": false,
+    "recovery": "Require proof that the loaded wallet controls the protocol admin address, then create a new approval cycle."
+  }
+}

@@ -6,16 +6,16 @@ import test from "node:test";
 import { BitcoinCoreBrokerRpc } from "../src/broker/types.js";
 import {
   createTradeLayerActivationBrokerRequest,
+  TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS,
   TradeLayerActivationCandidateBroker
 } from "../src/broker/tradelayerActivationCandidateBroker.js";
 import { FileTradeLayerActivationCandidateStore } from "../src/broker/tradelayerActivationCandidateStore.js";
 import { TradeLayerActivationExecutionBroker } from "../src/broker/tradelayerActivationExecutionBroker.js";
 import { TradeLayerActivationOperator } from "../src/broker/tradelayerActivationOperator.js";
-import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { canonicalHash } from "../src/survival/policy.js";
 
 const NOW = new Date("2026-08-07T13:00:00.000Z");
-const SENDER = encodeSegwitAddress(Buffer.alloc(20, 29), "bitcoin-testnet4");
+const SENDER = TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS;
 const INPUT_TXID = "31".repeat(32);
 const UNSIGNED_TXID = "42".repeat(32);
 const POLICY = canonicalHash({ policy: "tx11-activation-operator-fixture" });

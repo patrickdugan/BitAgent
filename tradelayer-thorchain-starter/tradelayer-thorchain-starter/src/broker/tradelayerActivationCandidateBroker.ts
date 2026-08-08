@@ -4,6 +4,9 @@ import type { BitcoinCoreBrokerRpc } from "./types.js";
 
 type Outpoint = { txid: string; vout: number };
 
+export const TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS =
+  "tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu";
+
 type SpendableUtxo = Outpoint & {
   amount?: number;
   spendable?: boolean;
@@ -193,6 +196,12 @@ function validateRequest(
   ) {
     throw new IntegrationBoundaryError("signer_broker_error", "TradeLayer activation release, wallet, or fee identity is invalid");
   }
+  if (request.senderAddress !== TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS) {
+    throw new IntegrationBoundaryError(
+      "signer_broker_error",
+      "TradeLayer testnet4 activation sender must equal the protocol admin address"
+    );
+  }
   const exact = buildTradeLayerTx11ActivationPayload(request.activation.codeHash);
   if (canonicalHash(exact) !== canonicalHash(request.activation)) {
     throw new IntegrationBoundaryError("signer_broker_error", "TradeLayer activation payload differs from the exact tx11 release payload");
@@ -289,6 +298,12 @@ export function createTradeLayerActivationBrokerRequest(input: {
   maxFeeSats: string;
   expiresAt: string;
 }): TradeLayerActivationBrokerRequest {
+  if (input.senderAddress.trim() !== TRADELAYER_TESTNET4_ACTIVATION_ADMIN_ADDRESS) {
+    throw new IntegrationBoundaryError(
+      "signer_broker_error",
+      "TradeLayer testnet4 activation sender must equal the protocol admin address"
+    );
+  }
   const core = {
     schema: "bitagent_tradelayer_activation_broker_request_v1" as const,
     network: "testnet4" as const,
