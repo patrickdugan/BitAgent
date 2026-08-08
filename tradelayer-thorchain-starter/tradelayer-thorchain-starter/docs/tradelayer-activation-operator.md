@@ -23,6 +23,27 @@ Set `BITCOIN_BIN`, `BTCTEST_DATADIR`, `BTCTEST_RPC_PORT`, `BTCTEST_WALLET`, and
 `TL_ACTIVATION_POLICY_FINGERPRINT` for that wallet host. No private key, WIF,
 mnemonic, or seed phrase is accepted.
 
+If the loaded wallet controls the protocol-admin address but that address has
+no confirmed UTXO, use the separate admin-funding operator before activation.
+It consolidates exactly one reviewed wallet UTXO into one admin-address output,
+subtracts the fee from that output, and has its own approval hash and interlocks:
+
+```powershell
+$env:TL_TESTNET_ADMIN_FUNDING_PREPARE = "true"
+.\node_modules\.bin\tsx.cmd scripts\tradelayer-admin-funding-operator.ts `
+  --action=prepare --fee-rate-sat-vb=2 --max-fee-sats=1000
+```
+
+Preparation only reserves the input and writes the raw PSBT to the host-private
+store. Resume with `--action=status --approval-hash=<hash>`. After displaying
+the exact input, destination value, fee, unsigned txid, PSBT hash, expiry, and
+approval hash, a separately approved execution requires both
+`TL_TESTNET_ADMIN_FUNDING_SUBMIT=true` and
+`--action=approve-execute --approve=<exact-hash>`. A rejected or expired
+candidate can be released with `--action=cancel --cancel=<exact-hash>`.
+Ambiguous submission is never retried; use `--action=reconcile` and require
+positive observation of the exact txid.
+
 After rerunning `npm run test:launch:release`, build the public request from the
 fresh, exact release-source receipt. This command has no wallet or network
 effect; it only validates the pinned manifest/source binding and writes a public

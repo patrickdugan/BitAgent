@@ -1,0 +1,41 @@
+{
+  "schema": "bitagent_tradelayer_admin_funding_simulation_evidence_v1",
+  "status": "pending_approval",
+  "network": "testnet4",
+  "walletControl": {
+    "adminAddress": "tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu",
+    "isMine": true,
+    "isWatchOnly": false,
+    "solvable": true,
+    "privateKeysEnabled": true,
+    "privateKeyMaterialRead": false
+  },
+  "exactEffects": {
+    "input": {
+      "txid": "b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e",
+      "vout": 1,
+      "address": "tb1pma0a7clpqfdwpy4aq80ejrxk3dtumgzqkrm5hatpmgl0qn9aqh5ss2puu0",
+      "valueSats": "302085"
+    },
+    "destinationOutput": {
+      "vout": 0,
+      "address": "tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu",
+      "valueSats": "301885"
+    },
+    "feeRateSatVb": 2,
+    "feeSats": "200",
+    "maxFeeSats": "1000",
+    "unsignedTxid": "2e7e6573352109592470cef49735309206a85361d3fbc725dee155bf87a86ec9",
+    "unsignedPsbtHash": "2fd878ac945eb53b9bf978017b0589856ec669f55981b10c9e0cd845126236a0",
+    "approvalHash": "3485416d24452d16f3f00f05907a4201861d19d39f7401843529ba88a40c9e41",
+    "expiresAt": "2026-08-08T22:37:41.525Z"
+  },
+  "authority": {
+    "next": "wallet_user",
+    "inputLocked": true,
+    "signingPerformed": false,
+    "broadcastPerformed": false,
+    "activationAuthorized": false
+  },
+  "policyFingerprint": "1e3fc01b7713cd68c7328219ea2492729b466940d2417fdaedc932fe0bf36f13"
+}

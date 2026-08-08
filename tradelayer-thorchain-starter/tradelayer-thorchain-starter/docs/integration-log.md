@@ -2078,3 +2078,32 @@
 - Backends A/B were returned to networking disabled with zero peers after the
   challenge. The independent source remains network-active for positive chain
   observation. No replacement activation is simulated or authorized.
+
+## Protocol-admin wallet authority and funding simulation - 2026-08-08
+
+- Read-only Bitcoin Core metadata proved the already-loaded local testnet4
+  descriptor wallet owns the exact protocol-admin address, is not watch-only,
+  is solvable, and has private-key operations enabled. No key, seed, WIF,
+  descriptor, signature, or raw PSBT was read into the public/operator surface.
+- The admin address had no confirmed UTXO. The previously confirmed invalid
+  activation produced a safe, spendable, unlocked 302,085-sat change outpoint
+  at its non-admin P2TR sender, so direct tx11 preparation remained correctly
+  blocked.
+- Added a host-only admin-funding operator with deterministic prepare, status,
+  cancel, approve/execute, and positive-only reconciliation. It requires one
+  exact confirmed input, one exact output to the protocol-admin address, a fee
+  cap, a private PSBT store, a prepare interlock, a separate submit interlock,
+  write-ahead execution state, final-transaction revalidation, mempool
+  admission, and no-retry ambiguous-submission recovery. Four focused tests
+  cover containment, cancellation, exact execution, and rejected signatures;
+  the complete launch gate passes 178/178 with TypeScript clean.
+- Live preparation reserved only outpoint
+  `b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e:1`
+  (302,085 sats). The candidate pays 200 sats at 2 sat/vB and produces one
+  301,885-sat output to
+  `tb1qpg5jvhd32vut07pvxg92dka7pttudjy570auuu`. Its unsigned txid is
+  `2e7e6573352109592470cef49735309206a85361d3fbc725dee155bf87a86ec9`
+  and its approval hash is
+  `3485416d24452d16f3f00f05907a4201861d19d39f7401843529ba88a40c9e41`.
+  The input is locked, the decision is pending, and no signing or broadcast
+  occurred. This funding approval cannot authorize the later activation.
