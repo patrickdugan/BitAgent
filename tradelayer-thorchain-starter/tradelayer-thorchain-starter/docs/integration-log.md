@@ -1968,3 +1968,36 @@
   trajectories, at least 50 focused agent cases, the exact-relay reserve guard,
   corpus-v5 sealing, listener deployment, activation authority, and reorg
   recovery suites.
+
+## Candidate12 activation simulation - 2026-08-08
+
+- With explicit user authorization, the expired candidate11 approval
+  `d4349f54db77cf354897c3e1a2ff72a70e7f3a503b2d7618e46e51f16a3da1a3`
+  was cancelled through the typed operator. Its receipt hash is
+  `e2e6c6a21e63650b9af3889ad69e396882c4b307eeb3c5c014f0f3bded187328`;
+  it proves the one input lock was released and that neither signing nor
+  broadcast occurred.
+- The release-source gate now accepts an explicit JSON manifest under project
+  `config` and a distinct runtime receipt path. This produced a fresh,
+  candidate-only receipt for exact tracked-clean candidate12 commit
+  `8544512bda290f040a112b94f0a4bc6b556101d7` and recomputed code hash
+  `57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb`
+  without changing the selected candidate11 manifest or default receipt.
+- The approval view no longer hardcodes candidate11. It displays the release ID
+  and code hash from the integrity-checked request so parallel-candidate effects
+  cannot be mislabeled. Fifteen focused activation/release tests and TypeScript
+  pass after this correction.
+- The fresh candidate12 simulation reserves the same owned 302,443-sat input.
+  It creates only vout 0 OP_RETURN
+  `tl011,26ovxc51bi0ma7ahzsoyjck6gf2fbya61g7exvuk60r8etfi0r`, returns
+  302,085 sats to the same owned P2TR address at vout 1, and charges 358 sats
+  under the 2,000-sat cap. Its unsigned txid is
+  `b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e`.
+- Independent checks recomputed the source hash, round-tripped the base36 wire
+  field to the exact candidate12 hash, found exactly the displayed input lock,
+  and found the unsigned txid in neither chain nor mempool. Signing and
+  broadcast remain false.
+- The new exact approval hash is
+  `4320d3a89a39ebf8e3855c88f4097db0a36664d5531ad88c25f06fc9d29338fb`
+  and expires at `2026-08-08T15:41:12.077Z`. No execution is authorized. If it
+  expires, it must be cancelled and replaced rather than reused.

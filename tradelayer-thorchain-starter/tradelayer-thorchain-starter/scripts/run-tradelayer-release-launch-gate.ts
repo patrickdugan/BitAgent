@@ -15,8 +15,16 @@ import {
 
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
-const manifestPath = path.join(root, "config", "tradelayer-tx11-release.json");
-const outputPath = path.join(root, ".runtime", "testnet-agent", "tx11-launch-source.json");
+const configRoot = path.join(root, "config");
+const manifestPath = path.resolve(process.env.BITAGENT_TRADELAYER_RELEASE_MANIFEST
+  || path.join(configRoot, "tradelayer-tx11-release.json"));
+const manifestRelative = path.relative(configRoot, manifestPath);
+if (manifestRelative === "" || manifestRelative.startsWith("..") || path.isAbsolute(manifestRelative)
+  || path.extname(manifestPath).toLowerCase() !== ".json") {
+  throw new Error("TradeLayer release manifest must be a JSON child of the project config directory");
+}
+const outputPath = path.resolve(process.env.BITAGENT_TRADELAYER_RELEASE_SOURCE_RECEIPT
+  || path.join(root, ".runtime", "testnet-agent", "tx11-launch-source.json"));
 
 async function git(repo: string, args: string[]): Promise<string> {
   const { stdout } = await execFileAsync("git", ["-C", repo, ...args], {

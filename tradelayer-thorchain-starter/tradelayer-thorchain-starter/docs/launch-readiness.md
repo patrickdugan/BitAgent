@@ -1372,3 +1372,23 @@ Candidate12 unattended-recovery update:
 - the release-aware gate passes 172/172 and continues to select only the clean
   candidate11 worktree. Candidate12 parallel deployment does not silently
   change that selection.
+
+Candidate12 approval-bound activation update (2026-08-08):
+
+- the expired candidate11 request was explicitly cancelled; its input lock was
+  released and its receipt proves signing and broadcast were not performed;
+- an explicit-manifest source receipt now binds exact clean candidate12 commit
+  `8544512bda290f040a112b94f0a4bc6b556101d7` to code hash
+  `57b3a04ddbb8f8698e993fdc38419e1685f86505b18812cfda5ca687b7687dfb`
+  without replacing the selected candidate11 release;
+- the fresh candidate12 simulation spends one 302,443-sat input, returns
+  302,085 sats to the same owned address, and charges 358 sats. The tx11-only
+  payload and the unsigned transaction are displayed exactly;
+- independent source, wire, wallet-lock, chain, and mempool checks pass. The
+  public approval view contains no PSBT, signing is false, and broadcast is
+  `not_performed`;
+- approval hash
+  `4320d3a89a39ebf8e3855c88f4097db0a36664d5531ad88c25f06fc9d29338fb`
+  is pending until `2026-08-08T15:41:12.077Z`. Launch remains blocked on a
+  current exact wallet approval, followed by host signing/broadcast,
+  confirmation, resynchronized two-listener proof, and explicit promotion.

@@ -1,7 +1,7 @@
 # TradeLayer tx11 activation operator
 
-This is a supervised Bitcoin testnet4 host workflow for activating tx11 on the
-pinned candidate11 release. It is not an agent tool. The language model never
+This is a supervised Bitcoin testnet4 host workflow for activating tx11 on an
+explicitly pinned release manifest. It is not an agent tool. The language model never
 receives the PSBT, approves, signs, broadcasts, or authorizes a retry.
 
 The required order is:
@@ -14,7 +14,7 @@ prepare and simulate -> display exact effects -> approve or cancel -> execute ->
 
 - a fully synchronized Bitcoin Core testnet4 node;
 - a loaded, funded wallet whose sender address matches the request;
-- the candidate11 request and policy fingerprint produced by the release
+- the candidate request and policy fingerprint produced by the release
   preflight;
 - a private runtime directory accessible only to the wallet host.
 
@@ -32,6 +32,13 @@ request:
   --sender-address=<owned-testnet4-address> `
   --max-fee-sats=2000
 ```
+
+For a parallel candidate that is not the selected release, set
+`BITAGENT_TRADELAYER_RELEASE_MANIFEST` to a JSON file under `config`, set
+`BITAGENT_TRADELAYER_RELEASE_SOURCE_RECEIPT` to a distinct runtime receipt,
+and run `npm run test:launch:release -- --verify-only`. Pass those same exact
+manifest and receipt paths to the request builder. This leaves the selected
+release manifest and its default receipt untouched.
 
 The source receipt must be no more than 15 minutes old by default. The generated
 `sourceVerificationHash` binds the release ID, status, deployment commit, code

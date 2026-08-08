@@ -134,7 +134,8 @@ function approvalView(record: PrivateActivationRecord, now = new Date()): TradeL
     schema: "bitagent_tradelayer_activation_approval_view_v1",
     authority: "wallet_user",
     status: record.status,
-    explanation: "Activate only TradeLayer tx type 11 for the pinned candidate11 code hash on Bitcoin testnet4.",
+    explanation: `Activate only TradeLayer tx type 11 for release ${candidate.request.releaseId} `
+      + `with code hash ${candidate.request.activation.codeHash} on Bitcoin testnet4.`,
     exactEffects: {
       inputUtxos: structuredClone(candidate.inputUtxos),
       dataOutput: { ...structuredClone(candidate.dataOutput), payloadUtf8: candidate.request.activation.payloadUtf8 },

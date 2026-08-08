@@ -127,6 +127,8 @@ test("durably resumes a host-private candidate through a PSBT-free approval view
     assert.equal(prepared.approval.expiresAt, request.expiresAt);
     assert.equal(prepared.approval.expired, false);
     assert.equal(prepared.approval.decisionStatus, "pending");
+    assert.match(prepared.explanation, new RegExp(request.releaseId));
+    assert.match(prepared.explanation, new RegExp(request.activation.codeHash));
     assert.equal(prepared.exactEffects.dataOutput.payloadUtf8, request.activation.payloadUtf8);
     assert.equal(prepared.exactEffects.feeSats, "1000");
     assert.equal(JSON.stringify(prepared).includes("rawPsbt"), false);
