@@ -1392,3 +1392,18 @@ Candidate12 approval-bound activation update (2026-08-08):
   is pending until `2026-08-08T15:41:12.077Z`. Launch remains blocked on a
   current exact wallet approval, followed by host signing/broadcast,
   confirmation, resynchronized two-listener proof, and explicit promotion.
+
+Candidate12 activation submission update (2026-08-08):
+
+- the exact approval was received before expiry; host revalidation,
+  wallet signing, `testmempoolaccept`, and one broadcast succeeded for txid
+  `b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e`;
+- independent observation matches the reviewed one-input/two-output vector and
+  358-sat fee. The transaction is positively observed and propagated in the
+  mempool, with retry prohibited;
+- both candidate12 backends and listeners have advanced through exact active
+  height 147,535 and remain realtime/error-null with peer networks disabled;
+- launch is still not proven: the tx requires positive confirmation, the
+  activation block must be relayed and parsed independently by both candidate12
+  listeners, all chain-derived candidate12 gates must pass, and promotion must
+  remain an explicit operator decision.

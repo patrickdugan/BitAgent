@@ -2001,3 +2001,33 @@
   `4320d3a89a39ebf8e3855c88f4097db0a36664d5531ad88c25f06fc9d29338fb`
   and expires at `2026-08-08T15:41:12.077Z`. No execution is authorized. If it
   expires, it must be cancelled and replaced rather than reused.
+
+## Candidate12 tx11 submission - 2026-08-08
+
+- The wallet user repeated exact approval hash
+  `4320d3a89a39ebf8e3855c88f4097db0a36664d5531ad88c25f06fc9d29338fb`
+  while it was current. The host durably recorded execution intent, revalidated
+  the candidate before and after signing, passed `testmempoolaccept`, and
+  broadcast the exact reviewed transaction once.
+- The resulting txid is
+  `b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e`.
+  Submission receipt hash
+  `c2a8a1006585bf7ad85da89302d8ebb7cca106dda7c79021428c3659de9f656e`
+  binds the request, approval, txid, mempool admission, signing, and broadcast.
+- Independent Bitcoin Core observation proves one input, exactly two outputs,
+  the reviewed candidate12 OP_RETURN at vout 0, 302,085 sats back to the same
+  owned address at vout 1, 179 vbytes, and a 358-sat fee. The transaction is a
+  propagated trusted mempool entry (`unbroadcastcount=0`) at 2 sat/vB, above
+  the node's 0.1 sat/vB mempool minimum.
+- Durable reconciliation status is `mempool`, with positive-observation receipt
+  hash `5024f9746f98b01fa7eab4b843b1bfcb19d1e0022330999f96dd6b84f21fcc67`.
+  Retry remains unauthorized; lack of confirmation cannot trigger a second
+  submission.
+- While confirmation was pending, both isolated candidate12 backends accepted
+  the 102-block active-chain suffix from 147,434 through 147,535 through the
+  disk-reserve-guarded exact relay. Both listeners reached realtime/error-null
+  parity at 147,535, and both Bitcoin peer networks remain disabled with zero
+  connections.
+- The transaction is not yet confirmed and candidate12 is not promoted. The
+  next legal transition is positive block confirmation, exact final-block relay
+  to both isolated backends, and independent two-listener activation proof.
