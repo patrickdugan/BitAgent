@@ -1495,3 +1495,8 @@ Deterministic runtime-promotion gate (2026-08-09):
   effect was performed;
 - remaining defect: the foreign GPU workload still prevents the exclusive,
   cool-start smoke/screening evidence needed to begin live sidecar validation.
+- final read-only testnet4 evidence: height 147,604, IBD false, 316,818
+  confirmed sats, zero unconfirmed sats, zero locks, seven safe non-admin
+  UTXOs, and zero protocol-admin UTXOs; no secrets, signing, or broadcast were
+  involved. The GPU remained at 88 C with 206 MiB free VRAM and 99% foreign
+  utilization, so no Bonsai load was attempted.

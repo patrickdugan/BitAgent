@@ -2217,3 +2217,10 @@ Deterministic DAG runtime-promotion update (2026-08-09):
 - the checked-in assessment remains blocked, `passedGates=[]`,
   `operatorReady=false`, and `modelAvailable=false`. No model, wallet, or chain
   action occurred in this update.
+- the final six-RPC read-only snapshot observed synchronized testnet4 height
+  147,604, 316,818 confirmed sats, zero unconfirmed sats, zero locks, seven
+  safe non-admin UTXOs, and no protocol-admin UTXO. It read no secret material
+  and performed no signing or broadcast;
+- the GPU remained ineligible at 88 C, 206 MiB free VRAM, and 99% utilization
+  under a foreign Python process. No model load was attempted and that process
+  was not interrupted.
