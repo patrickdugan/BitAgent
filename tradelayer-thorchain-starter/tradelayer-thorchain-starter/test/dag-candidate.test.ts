@@ -8,6 +8,7 @@ import {
 import { createTestLaunchKernel } from "../src/launch/factory.js";
 import { validateDagRuntimeManifest } from "../src/launch/dagRuntimeManifest.js";
 import runtimeManifest from "../config/bitagent-bonsai-dag-runtime.json" with { type: "json" };
+import { buildDagFailureTrace } from "../src/launch/dagFailureTrace.js";
 
 const NOW = new Date("2026-08-09T04:00:00.000Z");
 
@@ -160,4 +161,26 @@ test("runtime manifest exposes the packaged adapter but fails closed on authorit
     }),
     /frozen artifact binding mismatch/i
   );
+});
+
+test("failure traces discard malformed secret-bearing proposal fields", async () => {
+  const kernel = createTestLaunchKernel({ now: () => NOW });
+  const workflow = await kernel.start({ intent: "deposit_bitcoin", network: "bitcoin-testnet4" });
+  const conversation = new BitAgentConversation(kernel);
+  const plan = await conversation.plan(workflow.id, "Help me deposit Bitcoin.", {
+    persistIntent: false
+  });
+  const task = buildDagCandidateTask({ state: await kernel.getPublic(workflow.id), plan, now: NOW });
+  const receipt = validateDagCandidate({
+    task,
+    proposed: { ...task.canonicalCandidate, seed_phrase: "must-not-survive" }
+  });
+  const trace = buildDagFailureTrace({ task, receipt, observedAt: NOW });
+  const serialized = JSON.stringify(trace);
+
+  assert.equal(receipt.proposed_candidate, null);
+  assert.equal(trace.execution, false);
+  assert.equal(trace.secret_access, false);
+  assert.doesNotMatch(serialized, /must-not-survive|seed_phrase/i);
+  assert.match(trace.trace_sha256, /^[a-f0-9]{64}$/);
 });

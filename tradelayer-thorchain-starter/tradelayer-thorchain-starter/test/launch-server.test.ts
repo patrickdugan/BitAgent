@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import type { AddressInfo } from "node:net";
@@ -171,7 +173,12 @@ test("HTTP launch surface returns persisted rejected-authorization state for UI 
 });
 
 test("HTTP DAG surface normalizes model proposals without mutating workflow state", async () => {
-  const server = createBitAgentServer({ kernel: createTestLaunchKernel() });
+  const traceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "bitagent-dag-trace-"));
+  const tracePath = path.join(traceRoot, "failures.jsonl");
+  const server = createBitAgentServer({
+    kernel: createTestLaunchKernel(),
+    dagFailureTracePath: tracePath
+  });
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", resolve);
@@ -226,7 +233,12 @@ test("HTTP DAG surface normalizes model proposals without mutating workflow stat
     assert.equal(rejected.body.receipt.ok, false);
     assert.equal(rejected.body.receipt.checks.authority_boundary, false);
     assert.equal(rejected.body.receipt.execution, false);
+    assert.equal(rejected.body.failureTrace.schema, "bitagent.dag_failure_trace.v2");
+    assert.equal(rejected.body.failureTrace.execution, false);
     assert.equal(rejected.body.state.events.length, taskResponse.body.state.events.length);
+    const traces = (await fs.readFile(tracePath, "utf8")).trim().split(/\r?\n/);
+    assert.equal(traces.length, 1);
+    assert.equal(JSON.parse(traces[0]!).trace_id, rejected.body.failureTrace.trace_id);
 
     const accepted = await post(
       `/api/workflows/${encodeURIComponent(workflowId)}/dag-candidate`,
@@ -239,5 +251,6 @@ test("HTTP DAG surface normalizes model proposals without mutating workflow stat
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => error ? reject(error) : resolve()));
+    await fs.rm(traceRoot, { recursive: true, force: true });
   }
 });

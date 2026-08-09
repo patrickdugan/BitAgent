@@ -167,6 +167,13 @@ fails closed on any substitution. The current status is
 `adapter_packaged_gpu_screening_required`, `modelAvailable=false`; this route
 does not probe, start, or load the model.
 
+Every rejected `/dag-candidate` proposal is serialized to
+`.runtime/dag-failure-traces.jsonl` as `bitagent.dag_failure_trace.v2`. The
+trace stores task/family/state/plan hashes, failed deterministic checks, the
+strictly typed proposal (or `null` when malformed), and the canonical repair
+target. It deliberately omits the user message and every unknown proposal
+field. Failure to persist the trace fails the no-effect request closed.
+
 ## Evaluation artifacts
 
 - `test/launch-kernel.e2e.test.ts`: 24 end-to-end trajectories.
@@ -175,6 +182,8 @@ does not probe, start, or load the model.
 - `eval/artifacts/failure-traces.jsonl`: failures from the latest run.
 - `eval/fixtures/failure-traces.seed.jsonl`: sanitized recovery-oriented seed
   failures, retained even when the latest run is clean.
+- `.runtime/dag-failure-traces.jsonl`: sanitized live candidate mismatches for
+  later review and corpus curation; never directly optimizer-eligible.
 
 Failure records exclude wallet secrets and are shaped for later adapter
 training or hill-climbing without granting an adapter execution authority.

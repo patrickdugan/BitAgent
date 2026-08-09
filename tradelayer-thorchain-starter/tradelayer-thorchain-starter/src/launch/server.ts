@@ -7,6 +7,7 @@ import { errorResult, LaunchKernelError } from "./errors.js";
 import { createLaunchKernel } from "./factory.js";
 import { buildDagCandidateTask, validateDagCandidate } from "./dagCandidate.js";
 import { readDagRuntimeManifest } from "./dagRuntimeManifest.js";
+import { appendDagFailureTrace, buildDagFailureTrace } from "./dagFailureTrace.js";
 import type { BitAgentLaunchKernel } from "./kernel.js";
 import {
   defaultReserveOperatorEvidencePaths,
@@ -27,6 +28,13 @@ const defaultDagRuntimeManifestPath = path.resolve(
   "..",
   "config",
   "bitagent-bonsai-dag-runtime.json"
+);
+const defaultDagFailureTracePath = path.resolve(
+  moduleDir,
+  "..",
+  "..",
+  ".runtime",
+  "dag-failure-traces.jsonl"
 );
 
 async function readBody(request: http.IncomingMessage) {
@@ -79,6 +87,7 @@ export function createBitAgentServer(options: {
   kernel?: BitAgentLaunchKernel;
   reserveOperatorEvidencePaths?: ReserveOperatorEvidencePaths;
   dagRuntimeManifestPath?: string;
+  dagFailureTracePath?: string;
 } = {}) {
   const kernel = options.kernel || createLaunchKernel();
   const conversation = new BitAgentConversation(kernel);
@@ -88,6 +97,7 @@ export function createBitAgentServer(options: {
     || defaultReserveOperatorEvidencePaths(path.resolve(moduleDir, "..", ".."));
   const operatorTools = new ReserveOperatorToolRegistry(evidencePaths);
   const dagRuntimeManifestPath = options.dagRuntimeManifestPath || defaultDagRuntimeManifestPath;
+  const dagFailureTracePath = options.dagFailureTracePath || defaultDagFailureTracePath;
   const publicToolSchemas = { ...launchToolSchemas, ...reserveOperatorToolSchemas };
 
   return http.createServer(async (request, response) => {
@@ -147,8 +157,12 @@ export function createBitAgentServer(options: {
         const plan = await conversation.plan(workflowId, message, { persistIntent: false });
         const state = await kernel.getPublic(workflowId);
         const task = buildDagCandidateTask({ state, plan });
+        const receipt = validateDagCandidate({ task, proposed: body.candidate });
+        const failureTrace = receipt.ok ? undefined : buildDagFailureTrace({ task, receipt });
+        if (failureTrace) await appendDagFailureTrace(dagFailureTracePath, failureTrace);
         return json(response, 200, {
-          receipt: validateDagCandidate({ task, proposed: body.candidate }),
+          receipt,
+          failureTrace,
           plan,
           state
         });
