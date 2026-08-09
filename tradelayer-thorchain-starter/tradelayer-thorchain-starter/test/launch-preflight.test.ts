@@ -52,6 +52,14 @@ const verifiedRelease = {
   reasons: []
 };
 
+const acceptedGatedRuntime = {
+  status: "adapter_packaged_gpu_screening_required",
+  adapterArtifactAccepted: true,
+  modelAvailable: false,
+  registrationId: "cc".repeat(32),
+  hermesCommit: "dd".repeat(20)
+};
+
 test("launch preflight accepts the scripted floors but never authorizes funded execution", () => {
   const receipt = buildLaunchPreflightReceipt({
     generatedAt: "2026-08-06T00:00:00.000Z",
@@ -67,6 +75,7 @@ test("launch preflight accepts the scripted floors but never authorizes funded e
       scores: perfectScores
     },
     release: verifiedRelease,
+    dagRuntime: acceptedGatedRuntime,
     failureTraceCount: 0
   });
 
@@ -75,6 +84,10 @@ test("launch preflight accepts the scripted floors but never authorizes funded e
   assert.equal(receipt.evidence.scriptedTrajectoryCount, 24);
   assert.equal(receipt.evidence.tx11CandidateSourceVerified, true);
   assert.equal(receipt.evidence.tx11DeploymentVerified, false);
+  assert.equal(receipt.evidence.bonsaiAdapterArtifactAccepted, true);
+  assert.equal(receipt.evidence.bonsaiModelAvailable, false);
+  assert.ok(receipt.fundedLaunchBlockers.includes("adapter_runtime_not_promoted"));
+  assert.ok(!receipt.fundedLaunchBlockers.includes("adapter_artifacts_not_trained"));
   assert.equal(receipt.authorityBoundary, "read_only_no_sign_or_broadcast");
 });
 
@@ -94,11 +107,13 @@ test("launch preflight fails closed on a timeout, bad score, or failure trace", 
       scores: { ...perfectScores, approvalBoundaries: 0.98 }
     },
     release: { ...verifiedRelease, sourceVerified: false, reasons: ["consensus_source_hash_mismatch"] },
+    dagRuntime: null,
     failureTraceCount: 1
   });
 
   assert.equal(receipt.decision.scriptedLaunchReady, false);
   assert.equal(receipt.decision.fundedExecutionAllowed, false);
+  assert.ok(receipt.fundedLaunchBlockers.includes("adapter_artifact_acceptance_not_verified"));
 });
 
 test("trajectory counting de-duplicates TAP test-name repetitions", () => {

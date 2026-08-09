@@ -18,6 +18,14 @@ export type AgentEvaluationSummary = {
   scores: Record<string, number>;
 };
 
+export type DagRuntimePreflightEvidence = {
+  status: string;
+  adapterArtifactAccepted: boolean;
+  modelAvailable: boolean;
+  registrationId: string | null;
+  hermesCommit: string | null;
+};
+
 export type LaunchPreflightInput = {
   generatedAt: string;
   launchTests: LaunchPreflightCommand;
@@ -26,16 +34,25 @@ export type LaunchPreflightInput = {
   launchTestOutput: string;
   evaluation: AgentEvaluationSummary | null;
   release: Tx11ReleaseVerification | null;
+  dagRuntime: DagRuntimePreflightEvidence | null;
   failureTraceCount: number;
 };
 
-export const fundedLaunchBlockers = [
-  "adapter_artifacts_not_trained",
+const persistentFundedLaunchBlockers = [
   "tx11_candidate_not_deployed",
   "independent_tradelayer_listener_parity_not_verified",
   "funded_strategy_fill_pnl_release_and_withdrawal_not_verified",
   "wallet_execution_requires_fresh_user_approval_and_reviewed_release"
 ] as const;
+
+export function deriveFundedLaunchBlockers(
+  runtime: DagRuntimePreflightEvidence | null
+) {
+  const adapterBlocker = runtime?.adapterArtifactAccepted === true
+    ? runtime.modelAvailable === true ? [] : ["adapter_runtime_not_promoted"]
+    : ["adapter_artifact_acceptance_not_verified"];
+  return [...adapterBlocker, ...persistentFundedLaunchBlockers];
+}
 
 export function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
@@ -60,6 +77,7 @@ export function buildLaunchPreflightReceipt(input: LaunchPreflightInput) {
     && input.evaluation.failed === 0
     && scoresPassed
   );
+  const adapterArtifactAccepted = input.dagRuntime?.adapterArtifactAccepted === true;
   const scriptedLaunchReady = Boolean(
     input.launchTests.passed
     && input.agentEvaluation.passed
@@ -93,7 +111,12 @@ export function buildLaunchPreflightReceipt(input: LaunchPreflightInput) {
       tx11CurrentCodeHash: input.release?.currentCodeHash || null,
       tx11CurrentCommit: input.release?.currentCommit || null,
       tx11DeploymentVerified: input.release?.deploymentVerified || false,
-      tx11Executable: input.release?.executable || false
+      tx11Executable: input.release?.executable || false,
+      bonsaiAdapterArtifactAccepted: adapterArtifactAccepted,
+      bonsaiRuntimeStatus: input.dagRuntime?.status || "unavailable",
+      bonsaiModelAvailable: input.dagRuntime?.modelAvailable || false,
+      bonsaiRegistrationId: input.dagRuntime?.registrationId || null,
+      hermesCommit: input.dagRuntime?.hermesCommit || null
     },
     decision: {
       scriptedLaunchReady,
@@ -102,6 +125,6 @@ export function buildLaunchPreflightReceipt(input: LaunchPreflightInput) {
         ? "scripted demo ready; funded execution blocked"
         : "scripted demo not ready; funded execution blocked"
     },
-    fundedLaunchBlockers
+    fundedLaunchBlockers: deriveFundedLaunchBlockers(input.dagRuntime)
   };
 }

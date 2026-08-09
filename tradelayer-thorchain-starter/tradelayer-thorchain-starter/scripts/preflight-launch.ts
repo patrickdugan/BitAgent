@@ -7,12 +7,17 @@ import {
   type AgentEvaluationSummary,
   type LaunchPreflightCommand
 } from "../src/launch/preflight.js";
+import { readDagRuntimeManifest } from "../src/launch/dagRuntimeManifest.js";
 
 const root = process.cwd();
 const outputPath = path.join(root, ".runtime", "launch-preflight", "latest.json");
 const evaluationPath = path.join(root, "eval", "artifacts", "agent-evaluation-latest.json");
 const failureTracePath = path.join(root, "eval", "artifacts", "failure-traces.jsonl");
 const releaseVerificationPath = path.join(root, ".runtime", "testnet-agent", "tx11-release-verification.json");
+const dagRuntimeManifestPath = path.resolve(
+  process.env.BITAGENT_DAG_RUNTIME_MANIFEST
+    || path.join(root, "config", "bitagent-bonsai-dag-runtime.json")
+);
 const commandTimeoutMs = 180_000;
 
 async function runNpmScript(name: LaunchPreflightCommand["name"]) {
@@ -83,6 +88,29 @@ async function readReleaseVerification() {
   }
 }
 
+async function readDagRuntimeEvidence() {
+  try {
+    const runtime = await readDagRuntimeManifest(dagRuntimeManifestPath) as Record<string, any>;
+    const status = String(runtime.status || "unavailable");
+    return {
+      status,
+      adapterArtifactAccepted: [
+        "adapter_packaged_gpu_screening_required",
+        "ready"
+      ].includes(status),
+      modelAvailable: runtime.modelAvailable === true,
+      registrationId: typeof runtime.environment?.registrationId === "string"
+        ? runtime.environment.registrationId
+        : null,
+      hermesCommit: typeof runtime.hermesLite?.commit === "string"
+        ? runtime.hermesLite.commit
+        : null
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function countFailureTraces() {
   try {
     return (await fs.readFile(failureTracePath, "utf8"))
@@ -112,6 +140,7 @@ async function main() {
     launchTestOutput: launchTests.output,
     evaluation: await readEvaluation(),
     release: await readReleaseVerification(),
+    dagRuntime: await readDagRuntimeEvidence(),
     failureTraceCount: await countFailureTraces()
   });
   await writeAtomic(outputPath, receipt);

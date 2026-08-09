@@ -2224,3 +2224,25 @@ Deterministic DAG runtime-promotion update (2026-08-09):
 - the GPU remained ineligible at 88 C, 206 MiB free VRAM, and 99% utilization
   under a foreign Python process. No model load was attempted and that process
   was not interrupted.
+
+Launch-preflight runtime-evidence update (2026-08-09):
+
+- `scripts/preflight-launch.ts` now loads the same tracked DAG runtime manifest
+  used by the launch server, validates it through the deterministic runtime
+  loader, and passes only its public acceptance/readiness fields into the
+  preflight receipt;
+- `src/launch/preflight.ts` derives the adapter blocker from that evidence. An
+  accepted packaged adapter with `modelAvailable=false` yields
+  `adapter_runtime_not_promoted`; missing or invalid acceptance evidence yields
+  `adapter_artifact_acceptance_not_verified`;
+- tests cover both paths and explicitly reject regression to the stale
+  `adapter_artifacts_not_trained` label. TypeScript and 11 focused preflight/DAG
+  tests pass;
+- the complete release preflight passes 192/192 tests and 50/50 agent cases.
+  The receipt identifies the accepted Prime registration and exact Hermes
+  commit while preserving candidate-only, read-only authority and keeping
+  funded execution false;
+- the sealed Bonsai confirmation audit remains the acceptance evidence: 32
+  independent items, 32 adapter wins, 1,152/1,152 deterministic checks, grade
+  A, no hard-fail selections, and an explicit warning that the independent
+  sample remains below the preferred 50-item policy size.

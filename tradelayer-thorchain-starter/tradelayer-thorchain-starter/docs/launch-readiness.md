@@ -1500,3 +1500,32 @@ Deterministic runtime-promotion gate (2026-08-09):
   UTXOs, and zero protocol-admin UTXOs; no secrets, signing, or broadcast were
   involved. The GPU remained at 88 C with 206 MiB free VRAM and 99% foreign
   utilization, so no Bonsai load was attempted.
+
+Prime adapter evidence and launch-preflight correction (2026-08-09):
+
+- the Prime Intellect `moralitylab/bitagent-dag-ops-v2@0.3.1` Bonsai 8B LoRA
+  run is a real accepted adapter candidate, not an untrained placeholder. Its
+  independent confirmation lane records 32/32 exact adapter wins, 1,152/1,152
+  deterministic authority checks, zero hard-fail selections, and zero
+  post-confirmation optimizer steps;
+- the sealed release-gate audit supports only the declared candidate/read-only
+  DAG claim. It assigns grade A and `accept`, while retaining the medium,
+  non-blocking warning that 32 independent items is below the preferred 50;
+- the earlier Prime 4B pilot remains exploratory and not promoted. Its mixed
+  development policy is useful training-signal evidence but is not substituted
+  for the independent Bonsai confirmation lane;
+- launch preflight now reads and validates the tracked DAG runtime manifest.
+  It records the accepted registration
+  `ee2fa077968e6313aa4ddc96751a38eb0cd43e0e5b32a25e3f191ad16ab81f8c`,
+  exact Hermes commit `395d634c9505dc435221eee1223aa32cb1c19cc9`, runtime status,
+  and `modelAvailable` state instead of reporting the stale
+  `adapter_artifacts_not_trained` blocker;
+- the regenerated release receipt passes 192/192 tests, 24/24 scripted
+  trajectories, and 50/50 focused agent cases with all score dimensions at
+  1.0 and zero failure traces. It reports `scriptedLaunchReady=true` and
+  `fundedExecutionAllowed=false`;
+- the exact funded blockers are now: adapter runtime not promoted, tx11 not
+  deployed, independent TradeLayer listener parity not verified, funded
+  fill/PnL-release/withdrawal not verified, and a missing fresh exact wallet
+  approval. The local GPU remained ineligible at 88 C, 206 MiB free VRAM, and
+  95% utilization by a foreign process, so no model load was attempted.
