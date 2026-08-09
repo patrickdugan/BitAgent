@@ -2280,3 +2280,22 @@ Referral UI safety audit (2026-08-09):
 - scripted launch remains ready while funded execution, adapter runtime
   promotion, tx11 deployment, and listener/funded lifecycle evidence remain
   blocked by their existing gates.
+
+Exclusive Bonsai runtime screening completion (2026-08-09):
+
+- the frozen BitAgent runtime and product-promotion contract now pin clean
+  Hermes commit `c12ddd46fb42e33c97f748957eed073349ecb773`;
+- that commit records one accepted exclusive RTX 3050 smoke and six resumable
+  one-cell screening segments under the 1,792 MB Job, 50% CPU, 50 MB/s I/O,
+  64 C start, 85 C stop, 512 MB free-VRAM, and exclusive-owner constraints;
+- the combined screen completed 6/6 cases with exact candidate, approval,
+  schema, source, read-only, and reward scores all at 1.0; it records zero
+  provider, truncation, secret-request, or fabricated-state failures and no
+  optimizer or held-out consumption;
+- the low-memory profile used Q8 KV caches, batch 32, microbatch 16, and eight
+  GPU layers. Observed Job peaks were approximately 1,431-1,448 MB and VRAM use
+  was 497 MiB, with owned-process cleanup complete and no foreign compute PID;
+- Hermes assessment is `ready_for_operator_approval` with no effect applied.
+  BitAgent remains `operatorReady=false`, `modelAvailable=false`, and
+  incapable of wallet or chain action until the exact Hermes approval, live
+  three-intent sidecar validation, and separate product approval all pass.

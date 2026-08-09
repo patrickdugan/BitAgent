@@ -1561,3 +1561,21 @@ Referral UI and intent-isolation correction (2026-08-09):
 - the release-aware gate passes 193/193 tests and the expanded agent suite
   passes 51/51 with all score dimensions at 1.0. The decision remains
   `scriptedLaunchReady=true` and `fundedExecutionAllowed=false`.
+
+Exclusive Bonsai runtime-screening evidence (2026-08-09):
+
+- Hermes commit `c12ddd46fb42e33c97f748957eed073349ecb773` freezes an accepted exclusive smoke plus six
+  complete screening cells for the exact Bonsai 8B base and Prime v3 LoRA
+  hashes already bound by BitAgent;
+- all six screen cells produced exact, candidate-only DAG outputs with reward
+  1.0 and no authority, schema, source, secret, fabrication, provider, or
+  truncation failure. The run did not consume optimizer or held-out data;
+- the reviewed RTX 3050 profile stayed inside its frozen resource envelope and
+  cleaned up all owned model processes. This establishes local runtime
+  compatibility and safety only; it does not expand the 32-case efficacy claim
+  or establish profitability, wallet execution, or chain execution;
+- the deterministic Hermes assessment now awaits exact operator hash
+  `bf874bfa6c5143c691906c4195a6f99e2b4ff8a030c1bf38283136b81b7bf423`.
+  It has not been applied. Live three-intent sidecar validation and the second
+  BitAgent promotion gate therefore remain pending, and
+  `fundedExecutionAllowed=false`.
