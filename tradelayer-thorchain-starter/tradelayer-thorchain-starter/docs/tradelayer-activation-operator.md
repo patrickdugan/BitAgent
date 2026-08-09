@@ -44,6 +44,26 @@ candidate can be released with `--action=cancel --cancel=<exact-hash>`.
 Ambiguous submission is never retried; use `--action=reconcile` and require
 positive observation of the exact txid.
 
+Before preparing or resuming either operation, capture a sanitized read-only
+wallet snapshot. The command uses only `getblockchaininfo`, `getwalletinfo`,
+`getbalances`, `getaddressinfo`, `listlockunspent`, and `listunspent`. It emits
+aggregate balances and ownership flags, never addresses from the UTXO set,
+PSBTs, descriptors, keys, cookies, or RPC credentials:
+
+```powershell
+$env:BITCOIN_BIN="D:\tools\BitcoinCore-31.1\bitcoin-31.1\bin"
+$env:BTCTEST_DATADIR="D:\BitcoinTestnet"
+$env:BTCTEST_RPC_PORT="48332"
+$env:BTCTEST_WALLET="utxoref-testnet"
+npm run inspect:testnet4-wallet
+```
+
+Pass `--tracked-outpoint=<txid>:<vout>` directly to
+`scripts/inspect-testnet4-wallet.ts` when recovery must prove whether a known
+public outpoint remains locked. A zero-lock snapshot does not cancel or repair
+an expired durable approval record; update that record through its exact
+cancellation boundary before creating a replacement simulation.
+
 After rerunning `npm run test:launch:release`, build the public request from the
 fresh, exact release-source receipt. This command has no wallet or network
 effect; it only validates the pinned manifest/source binding and writes a public

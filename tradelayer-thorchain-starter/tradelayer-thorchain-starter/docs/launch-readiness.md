@@ -1429,3 +1429,17 @@ Candidate12 confirmed-invalid activation update (2026-08-08):
   that a loaded wallet controls the exact protocol admin address, followed by a
   wholly new explain/simulate/effects/approval cycle and a second independent
   listener proof. Until then, starter-strategy funding remains blocked.
+
+Testnet4 wallet recovery snapshot update (2026-08-09):
+
+- a new sanitized operator command uses only six read-only Bitcoin Core RPCs
+  and returns aggregate state with no UTXO addresses, PSBTs, keys, cookies, or
+  credentials;
+- Bitcoin Core 31.1 reports the wallet synchronized at exact testnet4 height
+  147,594 with IBD false, 316,818 confirmed sats, and ownership of the required
+  protocol-admin address;
+- the protocol-admin address has zero confirmed UTXOs, while seven safe
+  non-admin UTXOs total 316,818 sats;
+- the wallet has zero locks and the expired funding outpoint is not locked.
+  The old durable record still requires exact cancellation before a fresh
+  admin-funding simulation; no signing or broadcast was performed.

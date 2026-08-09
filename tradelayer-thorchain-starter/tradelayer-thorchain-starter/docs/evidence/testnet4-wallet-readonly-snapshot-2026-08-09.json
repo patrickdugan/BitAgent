@@ -1,0 +1,42 @@
+{
+  "schema": "bitagent_testnet4_wallet_readonly_snapshot_v1",
+  "authority": "read_only_observer",
+  "effect": "none",
+  "observedAt": "2026-08-09T03:16:23.326Z",
+  "chain": {
+    "network": "testnet4",
+    "height": 147594,
+    "headers": 147594,
+    "initialBlockDownload": false,
+    "verificationProgress": 1
+  },
+  "wallet": {
+    "name": "utxoref-testnet",
+    "privateKeysEnabled": true,
+    "descriptors": true,
+    "confirmedBalanceSats": "316818",
+    "unconfirmedBalanceSats": "0",
+    "txcount": 153
+  },
+  "protocolAdmin": {
+    "isMine": true,
+    "isWatchOnly": false,
+    "solvable": true
+  },
+  "locks": {
+    "count": 0,
+    "trackedOutpoint": "b5cf09c4757ce0e62ca533c7dff4f830793d9e876506832c464e0597a76cdc5e:1",
+    "trackedOutpointLocked": false
+  },
+  "available": {
+    "safeConfirmedCount": 7,
+    "adminUtxoCount": 0,
+    "adminSats": "0",
+    "nonAdminUtxoCount": 7,
+    "nonAdminSats": "316818"
+  },
+  "secretMaterialRead": false,
+  "signingPerformed": false,
+  "broadcastPerformed": false,
+  "next": "Cancel the expired store record under its exact approval hash, then create and display a fresh admin-funding simulation."
+}
