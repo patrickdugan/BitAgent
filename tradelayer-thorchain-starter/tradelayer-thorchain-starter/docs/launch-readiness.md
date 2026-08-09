@@ -1477,5 +1477,5 @@ Hermes/Bonsai launch-server integration update (2026-08-09):
   false, so current launches do not start the sidecar or load the model;
 - Hermes Lite sidecar and backend guardrail coverage passes 16/16. The frozen
   integration now binds exact Hermes commit
-  `482e895dc782e1de39563eb477a87e909522272f` and sidecar config
+  `acd60539667c13731f0a0ac0520ff5d3c5f95589` and sidecar config
   `configs/bitagent_dag_model_sidecar_v1.json`.

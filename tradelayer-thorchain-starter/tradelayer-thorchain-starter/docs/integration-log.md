@@ -2163,11 +2163,13 @@
   BitAgent runtime reports ready, verifies canonical response hashes and exact
   no-effect flags, and never exposes wallet, RPC, approval, signing, execution,
   broadcast, or secret capabilities to the model.
-- Hermes Lite commit `482e895dc782e1de39563eb477a87e909522272f`
+- Hermes Lite commit `acd60539667c13731f0a0ac0520ff5d3c5f95589`
   adds the live `bitagent.dag_task_packet.v2` client and sidecar. It limits the
   active task to 12,000 serialized bytes, three read-only tool rounds, six
   calls, and 384 completion tokens; it rejects illegal transitions and
   unapproved execution proposals before BitAgent's second deterministic LDT.
+  Secret-shaped and oversized packets are rejected before runtime readiness is
+  consulted, so an unpromoted runtime is not a weaker input-validation lane.
 - The browser checks `/api/dag-runtime`, calls the model route only when
   `modelAvailable=true`, and truthfully falls back to the deterministic planner
   on provider outage. The present runtime remains

@@ -12,7 +12,7 @@
     "loraGgufSha256": "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704"
   },
   "hermesLite": {
-    "commit": "482e895dc782e1de39563eb477a87e909522272f",
+    "commit": "acd60539667c13731f0a0ac0520ff5d3c5f95589",
     "runtimeManifest": "configs/bitagent_bonsai_runtime_v2.json",
     "sidecarConfig": "configs/bitagent_dag_model_sidecar_v1.json"
   },
