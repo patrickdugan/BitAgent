@@ -1529,3 +1529,20 @@ Prime adapter evidence and launch-preflight correction (2026-08-09):
   fill/PnL-release/withdrawal not verified, and a missing fresh exact wallet
   approval. The local GPU remained ineligible at 88 C, 206 MiB free VRAM, and
   95% utilization by a foreign process, so no model load was attempted.
+
+Current Hermes runtime binding (2026-08-09):
+
+- the frozen BitAgent runtime now pins tracked-clean Hermes commit
+  `7254c67f2e389cfac1e9c80477071aade5fe1008`, which contains the reviewed
+  segmented live-evaluator fix and the design-only 56-case post-v1 confirmation
+  lane;
+- the accepted primary registration and base/adapter hashes are unchanged;
+- no v2 inference result is claimed, and runtime promotion remains blocked on
+  exclusive RTX 3050 smoke and screening, followed by live three-intent sidecar
+  validation and exact operator approval;
+- `operatorReady=false`, `modelAvailable=false`, and funded execution remains
+  disabled.
+- validation passes TypeScript, 14 focused tests, the complete 192/192 release
+  gate, 24/24 scripted trajectories, and 50/50 agent cases;
+- the RTX 3050 remains ineligible at 88 C, 206 MiB free VRAM, and 99%
+  utilization under a foreign process, so no Bonsai process was started.

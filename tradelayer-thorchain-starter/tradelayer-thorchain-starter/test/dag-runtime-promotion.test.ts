@@ -11,7 +11,7 @@ import {
 import runtimeManifest from "../config/bitagent-bonsai-dag-runtime.json" with { type: "json" };
 
 const REGISTRATION = "ee2fa077968e6313aa4ddc96751a38eb0cd43e0e5b32a25e3f191ad16ab81f8c";
-const HERMES_COMMIT = "395d634c9505dc435221eee1223aa32cb1c19cc9";
+const HERMES_COMMIT = "7254c67f2e389cfac1e9c80477071aade5fe1008";
 const HERMES_AUTHORITY = {
   candidate_only: true,
   wallet_approval: false,

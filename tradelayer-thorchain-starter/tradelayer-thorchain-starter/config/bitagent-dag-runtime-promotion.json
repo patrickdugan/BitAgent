@@ -7,7 +7,7 @@
   "expected": {
     "runtimeFromStatus": "adapter_packaged_gpu_screening_required",
     "registrationId": "ee2fa077968e6313aa4ddc96751a38eb0cd43e0e5b32a25e3f191ad16ab81f8c",
-    "hermesCommit": "395d634c9505dc435221eee1223aa32cb1c19cc9",
+    "hermesCommit": "7254c67f2e389cfac1e9c80477071aade5fe1008",
     "allowedHermesTrackedChanges": [
       "configs/bitagent_bonsai_runtime_v2.json"
     ],

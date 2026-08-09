@@ -2246,3 +2246,19 @@ Launch-preflight runtime-evidence update (2026-08-09):
   independent items, 32 adapter wins, 1,152/1,152 deterministic checks, grade
   A, no hard-fail selections, and an explicit warning that the independent
   sample remains below the preferred 50-item policy size.
+
+Hermes runtime-provenance advance (2026-08-09):
+
+- BitAgent's frozen runtime and promotion contracts now bind tracked-clean
+  Hermes commit `7254c67f2e389cfac1e9c80477071aade5fe1008`;
+- that commit adds the bounded/resumable live evaluator and freezes a separate
+  56-case post-v1 confirmation design without changing the accepted primary
+  registration or its artifact hashes;
+- the 56 cases are ready for inference but have no model outcomes yet, so they
+  do not extend the original 32-case efficacy claim;
+- runtime state remains `adapter_packaged_gpu_screening_required`, with
+  `operatorReady=false`, `modelAvailable=false`, and no wallet or chain effect.
+- TypeScript, 14 focused DAG/promotion/preflight tests, the complete 192-test
+  release gate, and 50/50 agent cases pass against the new binding;
+- the physical GPU gate remains closed at 88 C, 206 MiB free VRAM, and 99%
+  utilization under foreign PID 4452, which was neither started nor stopped.

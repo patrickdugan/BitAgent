@@ -10,7 +10,7 @@ const FROZEN_RUNTIME = {
   baseModelSha256: "284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54",
   sourceAdapterSha256: "ceb39699033124710f2537d1e65d3cb794f43f9e7c3313b3c93522da7df913be",
   loraGgufSha256: "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704",
-  hermesCommit: "395d634c9505dc435221eee1223aa32cb1c19cc9",
+  hermesCommit: "7254c67f2e389cfac1e9c80477071aade5fe1008",
   runtimeManifest: "configs/bitagent_bonsai_runtime_v2.json",
   sidecarConfig: "configs/bitagent_dag_model_sidecar_v1.json"
 } as const;
