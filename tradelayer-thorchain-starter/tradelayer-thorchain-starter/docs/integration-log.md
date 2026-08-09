@@ -2262,3 +2262,21 @@ Hermes runtime-provenance advance (2026-08-09):
   release gate, and 50/50 agent cases pass against the new binding;
 - the physical GPU gate remains closed at 88 C, 206 MiB free VRAM, and 99%
   utilization under foreign PID 4452, which was neither started nor stopped.
+
+Referral UI safety audit (2026-08-09):
+
+- a real browser journey opened a starter-strategy referral, created a public
+  demo wallet session, recorded a deterministic confirmed UTXO, produced the
+  exact 100,000-sat strategy simulation, and resumed the pending approval after
+  refresh without approving, signing, executing, or broadcasting;
+- malformed address-like withdrawal input is now explicitly rejected as an
+  invalid network address and states that no withdrawal was simulated;
+- an unresolved approval or submitted action now blocks intent replacement.
+  After a rejection, switching intent pauses the prior simulation and removes
+  its approval controls rather than presenting it as the new request;
+- TypeScript and 40 focused planner/kernel/server tests pass. The complete gate
+  passes 193/193 tests, 24/24 scripted trajectories, and 51/51 focused agent
+  cases with all safety scores at 1.0 and zero failure traces;
+- scripted launch remains ready while funded execution, adapter runtime
+  promotion, tx11 deployment, and listener/funded lifecycle evidence remain
+  blocked by their existing gates.

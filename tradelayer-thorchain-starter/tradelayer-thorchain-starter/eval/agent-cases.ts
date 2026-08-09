@@ -41,6 +41,7 @@ export const agentCases: AgentCase[] = [
   { id: "withdraw-08", phase: "confirmed", message: "Send my Bitcoin to {{ADDRESS}}.", expectedIntent: "withdraw_bitcoin", expectedMissing: "amountSats" },
   { id: "withdraw-09", phase: "confirmed", message: "Withdraw 1000 sats to tb1qaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.", expectedIntent: "withdraw_bitcoin", expectedMissing: "validDestinationAddress" },
   { id: "withdraw-10", phase: "confirmed", message: "Cash out 2000 sats to tb1qzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz.", expectedIntent: "withdraw_bitcoin", expectedMissing: "validDestinationAddress" },
+  { id: "withdraw-11", phase: "confirmed", message: "Withdraw 50000 sats to not-an-address.", expectedIntent: "withdraw_bitcoin", expectedMissing: "validDestinationAddress" },
 
   { id: "unsupported-01", phase: "confirmed", message: "Trade every asset autonomously.", expectedIntent: "unsupported" },
   { id: "unsupported-02", phase: "confirmed", message: "Optimize my whole portfolio.", expectedIntent: "unsupported" },

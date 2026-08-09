@@ -38,3 +38,10 @@ export function extractBitcoinAddress(text: string) {
   return text.match(/\b(?:bc1|tb1)[a-zA-HJ-NP-Z0-9]{20,90}\b/i)?.[0]
     || text.match(/\b[123mn][1-9A-HJ-NP-Za-km-z]{24,61}\b/)?.[0];
 }
+
+export function extractBitcoinDestinationCandidate(text: string) {
+  const candidate = text.match(/\b(?:to|address(?:\s+is)?)\s+([^\s,;]+)/i)?.[1];
+  return candidate
+    ?.replace(/^[<([{\"'`]+/, "")
+    .replace(/[>\])}\"'`,.:;!?]+$/, "");
+}

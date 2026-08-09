@@ -152,6 +152,12 @@ function renderSimulation(simulation) {
     </div>`;
 }
 
+function simulationIntent(simulation) {
+  if (simulation?.action === "withdraw_bitcoin") return "withdraw_bitcoin";
+  if (["starter_strategy", "fund_starter_strategy"].includes(simulation?.action)) return "starter_strategy";
+  return null;
+}
+
 function render() {
   stageTitle.textContent = state.stage.replaceAll("_", " ");
   journey.innerHTML = journeyItems().map(([label, complete, current]) =>
@@ -207,9 +213,23 @@ function render() {
     </div>`);
   }
 
-  if (state.simulation) cards.push(renderSimulation(state.simulation));
+  const activeSimulation = state.simulation
+    && simulationIntent(state.simulation) === state.currentIntent;
+  const unresolvedSimulation = state.simulation && (
+    ["pending", "approved"].includes(state.pendingApproval?.status)
+    || (state.execution && state.verification?.status === "pending")
+  );
+  const visibleSimulation = activeSimulation || unresolvedSimulation;
+  if (visibleSimulation) cards.push(renderSimulation(state.simulation));
+  if (unresolvedSimulation && !activeSimulation) {
+    cards.push(`<div class="card error"><h3>Finish the saved wallet action first</h3>
+      <p>An approval or submitted action is still unresolved. BitAgent will not replace it with a different intent.</p></div>`);
+  } else if (state.simulation && !activeSimulation) {
+    cards.push(`<div class="card"><h3>Previous simulation paused</h3>
+      <p>The saved ${simulationIntent(state.simulation) === "starter_strategy" ? "starter strategy" : "withdrawal"} simulation has no active approval controls while you work on ${escapeHtml(state.currentIntent.replaceAll("_", " "))}.</p></div>`);
+  }
   const approvalRetry = ["rejected", "cancelled"].includes(state.pendingApproval?.status);
-  if (state.simulation && (!state.pendingApproval || approvalRetry)) {
+  if (visibleSimulation && (!state.pendingApproval || approvalRetry)) {
     const recovery = approvalRetry
       ? `<p>${escapeHtml(state.recoveryInstructions?.join(" ") || "No transaction was executed. Review the saved simulation and try again.")}</p>`
       : "";
@@ -219,7 +239,7 @@ function render() {
       ${recovery}
       <div class="button-row">${button(approvalRetry ? "Request wallet approval again" : "Request wallet approval", "approval-request")}</div></div>`);
   }
-  if (state.pendingApproval?.status === "pending") {
+  if (visibleSimulation && state.pendingApproval?.status === "pending") {
     const walletOwnedRequest = Boolean(state.pendingApproval.walletApprovalRequestId);
     cards.push(`<div class="card">
       <p class="eyebrow">Approval boundary</p>
@@ -233,12 +253,12 @@ function render() {
       </div>
     </div>`);
   }
-  if (state.pendingApproval?.status === "approved" && !state.execution) {
+  if (visibleSimulation && state.pendingApproval?.status === "approved" && !state.execution) {
     cards.push(`<div class="card"><h3>Exact action approved</h3>
       <p>The one-time approval is bound to the displayed simulation.</p>
       <div class="button-row">${button("Execute approved action", "execute")}</div></div>`);
   }
-  if (state.execution && state.verification?.status === "pending") {
+  if (visibleSimulation && state.execution && state.verification?.status === "pending") {
     cards.push(`<div class="card"><h3>Submitted, not yet verified</h3>
       <p class="mono">${escapeHtml(state.execution.txid)}</p>
       <div class="button-row">${button("Verify result", "verify")}</div></div>`);
@@ -258,6 +278,13 @@ function render() {
     cards.push(`<div class="card"><h3>Structured plan ready</h3>
       <p>${escapeHtml(lastPlan.summary)}</p>
       <div class="button-row">${button("Continue with simulation", "plan-tool")}</div></div>`);
+  } else if (lastPlan?.missingParameters?.length) {
+    cards.push(`<div class="card ${lastPlan.missingParameters.includes("validDestinationAddress") ? "error" : ""}">
+      <h3>${lastPlan.missingParameters.includes("validDestinationAddress") ? "Invalid Bitcoin address" : "More information needed"}</h3>
+      <p>${escapeHtml(lastPlan.summary)}</p></div>`);
+  } else if (!lastPlan && state.stage === "withdrawal_parameters_required") {
+    cards.push(`<div class="card"><h3>Withdrawal details needed</h3>
+      <p>Ask BitAgent to withdraw an exact satoshi amount to a normal address on your connected Bitcoin network.</p></div>`);
   }
   actionPanel.innerHTML = cards.join("");
 }

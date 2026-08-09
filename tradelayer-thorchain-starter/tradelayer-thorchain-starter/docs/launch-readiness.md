@@ -1546,3 +1546,18 @@ Current Hermes runtime binding (2026-08-09):
   gate, 24/24 scripted trajectories, and 50/50 agent cases;
 - the RTX 3050 remains ineligible at 88 C, 206 MiB free VRAM, and 99%
   utilization under a foreign process, so no Bonsai process was started.
+
+Referral UI and intent-isolation correction (2026-08-09):
+
+- browser verification covers referral entry, wallet creation, deterministic
+  UTXO deposit, natural-language strategy planning, exact simulation display,
+  pending-approval refresh recovery, rejection recovery, and malformed-address
+  handling without any wallet or chain effect;
+- malformed address-like input now produces an explicit invalid-address error
+  and no simulation instead of looking like an omitted parameter;
+- pending approval and submitted-action states cannot be replaced by a new
+  intent. Rejected/cancelled simulations may be left paused, but their approval
+  controls are hidden after a legitimate intent switch;
+- the release-aware gate passes 193/193 tests and the expanded agent suite
+  passes 51/51 with all score dimensions at 1.0. The decision remains
+  `scriptedLaunchReady=true` and `fundedExecutionAllowed=false`.

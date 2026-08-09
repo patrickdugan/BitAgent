@@ -229,6 +229,33 @@ test("trajectory 01: referral -> wallet -> deposit -> strategy -> withdrawal", a
   assert.equal((await kernel.get(workflowId)).wallet.confirmedBalanceSats, "98500");
 });
 
+test("an unresolved wallet action blocks intent replacement until rejection", async () => {
+  const { kernel, workflowId } = await connectedKernel({ confirmed: true });
+  const conversation = new BitAgentConversation(kernel);
+  await conversation.plan(workflowId, "Use 100000 sats in the starter strategy.");
+  const simulation = await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
+  await kernel.requestApproval(workflowId);
+
+  const blocked = await conversation.plan(
+    workflowId,
+    `Withdraw 50000 sats to ${address()}.`
+  );
+  const blockedState = await kernel.get(workflowId);
+  assert.deepEqual(blocked.missingParameters, ["currentActionResolution"]);
+  assert.equal(blocked.suggestedTool, undefined);
+  assert.equal(blockedState.currentIntent, "starter_strategy");
+  assert.equal(blockedState.pendingApproval?.status, "pending");
+  assert.equal(blockedState.simulation?.hash, simulation.hash);
+
+  await kernel.resolveApproval(workflowId, "reject");
+  const recovered = await conversation.plan(
+    workflowId,
+    `Withdraw 50000 sats to ${address()}.`
+  );
+  assert.equal(recovered.suggestedTool?.name, "bitagent.withdraw.simulate");
+  assert.equal((await kernel.get(workflowId)).currentIntent, "withdraw_bitcoin");
+});
+
 test("trajectory 02: connect an existing public wallet address", async () => {
   const kernel = createTestLaunchKernel();
   await kernel.start({ workflowId: "existing-wallet" });

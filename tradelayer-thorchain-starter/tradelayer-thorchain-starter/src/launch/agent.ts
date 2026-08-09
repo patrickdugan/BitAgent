@@ -4,6 +4,7 @@ import {
   containsSecretMaterial,
   extractAmountSats,
   extractBitcoinAddress,
+  extractBitcoinDestinationCandidate,
   identifyIntent
 } from "./intent.js";
 import type { BitAgentWorkflowState, StructuredPlan, SupportedIntent } from "./types.js";
@@ -64,6 +65,19 @@ function basePlan(state: BitAgentWorkflowState, intent: SupportedIntent | "unsup
   };
 }
 
+function simulationIntent(state: BitAgentWorkflowState): SupportedIntent | undefined {
+  if (state.simulation?.action === "withdraw_bitcoin") return "withdraw_bitcoin";
+  if (["starter_strategy", "fund_starter_strategy"].includes(String(state.simulation?.action))) {
+    return "starter_strategy";
+  }
+  return undefined;
+}
+
+function hasUnresolvedAction(state: BitAgentWorkflowState) {
+  return ["pending", "approved"].includes(String(state.pendingApproval?.status))
+    || Boolean(state.execution && state.verification?.status === "pending");
+}
+
 export class BitAgentConversation {
   constructor(private readonly kernel: BitAgentLaunchKernel) {}
 
@@ -84,6 +98,13 @@ export class BitAgentConversation {
     const plan = basePlan(state, intent);
     if (intent === "unsupported") {
       plan.summary = "BitAgent currently supports only Bitcoin deposit, the starter TradeLayer strategy, and Bitcoin withdrawal.";
+      return plan;
+    }
+
+    const existingIntent = simulationIntent(state);
+    if (existingIntent && existingIntent !== intent && hasUnresolvedAction(state)) {
+      plan.summary = `Resolve or cancel the current ${existingIntent === "starter_strategy" ? "starter strategy" : "withdrawal"} wallet action before starting another workflow.`;
+      plan.missingParameters = ["currentActionResolution"];
       return plan;
     }
 
@@ -154,7 +175,13 @@ export class BitAgentConversation {
 
     const amountSats = extractAmountSats(message);
     const destinationAddress = extractBitcoinAddress(message);
+    const destinationCandidate = extractBitcoinDestinationCandidate(message);
     if (!amountSats) plan.missingParameters.push("amountSats");
+    if (!destinationAddress && destinationCandidate) {
+      plan.missingParameters.push("validDestinationAddress");
+      plan.summary = "The destination is not a valid address for the connected Bitcoin network. No withdrawal was simulated.";
+      return plan;
+    }
     if (!destinationAddress) plan.missingParameters.push("destinationAddress");
     if (destinationAddress) {
       try {
