@@ -7,11 +7,57 @@ import type { AddressInfo } from "node:net";
 import { ScriptedWalletBroker } from "../src/launch/broker.js";
 import { createTestLaunchKernel } from "../src/launch/factory.js";
 import { createBitAgentServer } from "../src/launch/server.js";
+import type { DagProposalProvider } from "../src/launch/dagProposalProvider.js";
+
+class ScriptedDagProposalProvider implements DagProposalProvider {
+  readonly source = "scripted_candidate_only_provider";
+  calls = 0;
+  closed = false;
+  mutateCandidate?: (candidate: Record<string, any>) => void;
+
+  async propose(task: any) {
+    this.calls++;
+    const node = task.dag.find((row: { id: string }) => row.id === task.workflow_state.current_node);
+    const stateEvidence = task.visible_evidence.find((row: { kind: string }) => row.kind === "workflow_state");
+    const sourceEvidence = task.visible_evidence.find((row: { kind: string }) => row.kind === "source_contract");
+    const candidate: Record<string, any> = {
+        schema: "bitagent.dag_candidate.v2" as const,
+        task_id: task.task_id,
+        decision: "advance",
+        next_node: node.next[0],
+        tool: node.tool,
+        evidence_ids: [stateEvidence.id, sourceEvidence.id],
+        reason_code: "source_contract_required",
+        risk_flags: [],
+        authority: "model_candidate" as const,
+        effect: "none" as const
+    };
+    this.mutateCandidate?.(candidate);
+    return {
+      candidate,
+      toolCallsUsed: 1,
+      toolRoundsUsed: 1,
+      authority: "candidate_only_no_effect" as const,
+      authorization: false as const,
+      signing: false as const,
+      execution: false as const,
+      broadcast: false as const,
+      secretAccess: false as const,
+      source: this.source
+    };
+  }
+
+  async close() {
+    this.closed = true;
+  }
+}
 
 test("HTTP launch surface exposes typed tools, referral workflow state, and the non-secret UI", async () => {
   const missingEvidenceRoot = path.join(process.cwd(), "test", "fixtures", "missing-operator-evidence");
+  const dagProvider = new ScriptedDagProposalProvider();
   const server = createBitAgentServer({
     kernel: createTestLaunchKernel(),
+    dagProposalProvider: dagProvider,
     reserveOperatorEvidencePaths: {
       candidatePath: path.join(missingEvidenceRoot, "candidate.json"),
       preflightPath: path.join(missingEvidenceRoot, "preflight.json"),
@@ -98,6 +144,17 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
     assert.equal(startedResult.state.stage, "wallet_required");
     assert.equal(startedResult.state.referral?.status, "pending");
 
+    const gatedProposal = await fetch(
+      `${origin}/api/workflows/${encodeURIComponent(startedResult.state.id)}/dag-propose`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "Use 100000 sats in the starter TradeLayer strategy." })
+      }
+    );
+    assert.equal(gatedProposal.status, 400);
+    assert.equal(dagProvider.calls, 0);
+
     const resumed = await fetch(
       `${origin}/api/workflows/${encodeURIComponent(startedResult.state.id)}`
     );
@@ -110,6 +167,7 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => error ? reject(error) : resolve()));
+    assert.equal(dagProvider.closed, true);
   }
 });
 
@@ -166,6 +224,9 @@ test("HTTP launch surface returns persisted rejected-authorization state for UI 
     assert.match(script, /error\.state/);
     assert.match(script, /bitagent\.referralKey/);
     assert.match(script, /storedReferralKey !== activeReferralKey/);
+    assert.match(script, /dagRuntime\?\.modelAvailable === true/);
+    assert.match(script, /\/dag-propose/);
+    assert.match(script, /deterministic safety planner/);
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => error ? reject(error) : resolve()));
@@ -252,5 +313,92 @@ test("HTTP DAG surface normalizes model proposals without mutating workflow stat
     await new Promise<void>((resolve, reject) =>
       server.close((error) => error ? reject(error) : resolve()));
     await fs.rm(traceRoot, { recursive: true, force: true });
+  }
+});
+
+test("promoted DAG route uses the candidate-only provider and still performs no effect", async () => {
+  const runtimeRoot = await fs.mkdtemp(path.join(os.tmpdir(), "bitagent-dag-runtime-"));
+  const runtimePath = path.join(runtimeRoot, "runtime.json");
+  const tracePath = path.join(runtimeRoot, "failures.jsonl");
+  const runtime = JSON.parse(await fs.readFile(
+    path.join(process.cwd(), "config", "bitagent-bonsai-dag-runtime.json"),
+    "utf8"
+  ));
+  runtime.status = "ready";
+  runtime.promotion.operatorReady = true;
+  runtime.promotion.passedGates = [...runtime.promotion.requiredGates];
+  await fs.writeFile(runtimePath, JSON.stringify(runtime), "utf8");
+  const provider = new ScriptedDagProposalProvider();
+  const server = createBitAgentServer({
+    kernel: createTestLaunchKernel(),
+    dagRuntimeManifestPath: runtimePath,
+    dagFailureTracePath: tracePath,
+    dagProposalProvider: provider
+  });
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  try {
+    const { port } = server.address() as AddressInfo;
+    const origin = `http://127.0.0.1:${port}`;
+    const started = await fetch(`${origin}/api/workflows`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ intent: "deposit_bitcoin" })
+    });
+    const startedBody = await started.json() as { state: { id: string; events: unknown[] } };
+    const proposed = await fetch(
+      `${origin}/api/workflows/${encodeURIComponent(startedBody.state.id)}/dag-propose`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "Help me deposit Bitcoin." })
+      }
+    );
+    const body = await proposed.json() as Record<string, any>;
+
+    assert.equal(proposed.status, 200);
+    assert.equal(provider.calls, 1);
+    assert.equal(body.proposal.source, provider.source);
+    assert.equal(body.proposal.toolCallsUsed, 1);
+    assert.equal(body.proposal.execution, false);
+    assert.equal(body.receipt.ok, true);
+    assert.equal(body.receipt.authorization, false);
+    assert.equal(body.receipt.execution, false);
+    assert.equal(body.state.execution, undefined);
+    assert.equal(body.state.events.length, startedBody.state.events.length);
+    await assert.rejects(() => fs.stat(tracePath), /ENOENT/);
+
+    provider.mutateCandidate = (candidate) => {
+      candidate.authority = "model_executor";
+      candidate.effect = "broadcast";
+      candidate.tool = "host.execute_approved";
+    };
+    const adversarial = await fetch(
+      `${origin}/api/workflows/${encodeURIComponent(startedBody.state.id)}/dag-propose`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "Help me deposit Bitcoin." })
+      }
+    );
+    const adversarialBody = await adversarial.json() as Record<string, any>;
+    assert.equal(adversarial.status, 200);
+    assert.equal(provider.calls, 2);
+    assert.equal(adversarialBody.receipt.ok, false);
+    assert.equal(adversarialBody.receipt.checks.authority_boundary, false);
+    assert.equal(adversarialBody.failureTrace.failure_kind, "authority_escalation");
+    assert.equal(adversarialBody.failureTrace.execution, false);
+    assert.equal(adversarialBody.state.execution, undefined);
+    const traceLines = (await fs.readFile(tracePath, "utf8")).trim().split(/\r?\n/);
+    assert.equal(traceLines.length, 1);
+    assert.equal(JSON.parse(traceLines[0]!).trace_id, adversarialBody.failureTrace.trace_id);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => error ? reject(error) : resolve()));
+    assert.equal(provider.closed, true);
+    await fs.rm(runtimeRoot, { recursive: true, force: true });
   }
 });

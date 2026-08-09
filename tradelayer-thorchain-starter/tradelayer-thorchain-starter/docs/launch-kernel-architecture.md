@@ -140,6 +140,11 @@ Prime-trained `bitagent.dag_candidate.v2` contract:
   persisted state and applies a deterministic LDT to the proposed candidate.
   A refresh or intervening wallet action changes the task ID and invalidates an
   older proposal.
+- `POST /api/workflows/:id/dag-propose` is enabled only after the hash-frozen
+  runtime manifest reports `modelAvailable=true`. It sends the same packet to
+  an owned Hermes Lite child over shell-free stdio JSONL, verifies the
+  response hash and candidate-only flags, and then applies the same
+  deterministic LDT. The child receives no wallet or RPC capability.
 
 The three product intents route to the trained control families:
 
@@ -160,14 +165,22 @@ and `secret_access=false`. On an exactly approved DAG node the model may propose
 `host.execute_approved`, but only the existing wallet broker can authorize and
 perform that later host transition. The DAG endpoint itself never calls it.
 
+The Hermes client is bounded to three read-only tool rounds, six read-only
+tool calls, and a 12,000-byte active task packet. It rejects illegal
+transitions and any `host.execute_approved` proposal made before persisted
+wallet approval. Provider errors and malformed or hash-mismatched responses
+fail closed. The launch UI uses the model route only when the tracked runtime
+is promoted; otherwise, or during a provider outage, it continues through the
+deterministic planner.
+
 `GET /api/dag-runtime` exposes the tracked runtime manifest used for operator
 and UI readiness. The loader freezes the Prime environment registration,
-Bonsai base, source adapter, converted LoRA, and Hermes Lite commit hashes and
-fails closed on any substitution. The current status is
+Bonsai base, source adapter, converted LoRA, exact Hermes Lite commit, and
+runtime/config paths, and fails closed on any substitution. The current status is
 `adapter_packaged_gpu_screening_required`, `modelAvailable=false`; this route
 does not probe, start, or load the model.
 
-Every rejected `/dag-candidate` proposal is serialized to
+Every rejected `/dag-candidate` or `/dag-propose` proposal is serialized to
 `.runtime/dag-failure-traces.jsonl` as `bitagent.dag_failure_trace.v2`. The
 trace stores task/family/state/plan hashes, failed deterministic checks, the
 strictly typed proposal (or `null` when malformed), and the canonical repair

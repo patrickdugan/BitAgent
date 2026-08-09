@@ -8,6 +8,7 @@ const messageInput = $("#message");
 
 let state = null;
 let lastPlan = null;
+let dagRuntime = null;
 
 function referralKey(params) {
   const key = new URLSearchParams();
@@ -46,6 +47,11 @@ async function api(path, options = {}) {
 }
 
 async function start() {
+  try {
+    dagRuntime = (await api("/api/dag-runtime")).runtime;
+  } catch {
+    dagRuntime = null;
+  }
   const params = new URLSearchParams(location.search);
   const hasReferral = params.has("ref") && params.has("campaign") && params.has("workflow");
   const activeReferralKey = hasReferral ? referralKey(params) : null;
@@ -296,10 +302,26 @@ $("#chat-form").addEventListener("submit", async (event) => {
   addMessage(message, "user");
   messageInput.value = "";
   try {
-    const body = await api(`/api/workflows/${encodeURIComponent(state.id)}/message`, {
-      method: "POST",
-      body: JSON.stringify({ message })
-    });
+    let body;
+    if (dagRuntime?.modelAvailable === true) {
+      try {
+        body = await api(`/api/workflows/${encodeURIComponent(state.id)}/dag-propose`, {
+          method: "POST",
+          body: JSON.stringify({ message })
+        });
+        if (body.receipt?.ok === false) {
+          addMessage("The local model proposal was normalized by the deterministic safety controller.");
+        }
+      } catch {
+        addMessage("The local model is temporarily unavailable. Continuing with the deterministic safety planner.");
+      }
+    }
+    if (!body) {
+      body = await api(`/api/workflows/${encodeURIComponent(state.id)}/message`, {
+        method: "POST",
+        body: JSON.stringify({ message })
+      });
+    }
     lastPlan = body.plan;
     state = body.state;
     addMessage(body.plan.summary);

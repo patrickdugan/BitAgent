@@ -61,6 +61,37 @@ replacement.
 Never enter a seed phrase, mnemonic, private key, or WIF. BitAgent will refuse
 those inputs.
 
+## Run the local Hermes/Bonsai proposal boundary
+
+The launch server reads `config/bitagent-bonsai-dag-runtime.json` before it
+starts any model process. The checked-in manifest currently reports
+`modelAvailable=false`, so the browser uses the deterministic planner and the
+`/dag-propose` route fails before spawning Hermes or loading Bonsai.
+
+Inspect the public, hash-frozen readiness view:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8790/api/dag-runtime
+```
+
+After the exclusive RTX 3050 smoke and screening gates, sidecar validation,
+zero-effect safety gates, and explicit operator promotion all pass, configure
+the launch process before startup:
+
+```powershell
+$env:BITAGENT_HERMES_ROOT="C:\projects\hermes-lite"
+$env:BITAGENT_HERMES_PYTHON="C:\projects\hermes-lite\.venv\Scripts\python.exe"
+$env:BITAGENT_HERMES_DAG_CONFIG="configs\bitagent_dag_model_sidecar_v1.json"
+$env:BITAGENT_HERMES_TIMEOUT_MS="480000"
+npm run launch
+```
+
+BitAgent owns a shell-free stdio child and sends it public, state-bound packets
+only. Never put a wallet token, RPC cookie, private key, seed, WIF, descriptor,
+or PSBT in these variables or model context. A provider timeout, bad response
+hash, illegal transition, or authority mismatch falls back to the
+deterministic planner and grants no approval or execution.
+
 ## Verify the build
 
 For the shortest fail-closed operator check, run:

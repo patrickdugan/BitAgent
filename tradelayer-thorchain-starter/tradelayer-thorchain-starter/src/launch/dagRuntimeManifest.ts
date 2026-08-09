@@ -10,7 +10,9 @@ const FROZEN_RUNTIME = {
   baseModelSha256: "284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54",
   sourceAdapterSha256: "ceb39699033124710f2537d1e65d3cb794f43f9e7c3313b3c93522da7df913be",
   loraGgufSha256: "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704",
-  hermesCommit: "61228bddeb9be07d4b1a0d501c85e4032be8dc29"
+  hermesCommit: "482e895dc782e1de39563eb477a87e909522272f",
+  runtimeManifest: "configs/bitagent_bonsai_runtime_v2.json",
+  sidecarConfig: "configs/bitagent_dag_model_sidecar_v1.json"
 } as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -84,7 +86,9 @@ export function validateDagRuntimeManifest(value: unknown) {
     baseModelSha256: exactSha(artifacts.baseModelSha256, "artifacts.baseModelSha256"),
     sourceAdapterSha256: exactSha(artifacts.sourceAdapterSha256, "artifacts.sourceAdapterSha256"),
     loraGgufSha256: exactSha(artifacts.loraGgufSha256, "artifacts.loraGgufSha256"),
-    hermesCommit: hermesLite.commit
+    hermesCommit: hermesLite.commit,
+    runtimeManifest: hermesLite.runtimeManifest,
+    sidecarConfig: hermesLite.sidecarConfig
   };
   if (typeof hermesLite.commit !== "string" || !/^[a-f0-9]{40}$/.test(hermesLite.commit)) {
     throw new LaunchKernelError("validation_error", "DAG runtime Hermes commit must be exact");

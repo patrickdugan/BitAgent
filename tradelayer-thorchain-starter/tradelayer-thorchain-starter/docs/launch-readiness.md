@@ -1453,8 +1453,8 @@ Hermes/Bonsai launch-server integration update (2026-08-09):
   requests, and model authority escalation fail closed;
 - the endpoint is candidate-only and cannot authorize, sign, execute, or
   broadcast. Existing wallet approval and host-broker boundaries are unchanged;
-- focused DAG plus HTTP coverage passes 11/11, TypeScript is clean, and the full
-  release-aware launch gate passes 188/188 against the exact tracked-clean
+- focused DAG plus HTTP coverage passes 12/12, TypeScript is clean, and the full
+  release-aware launch gate passes 189/189 against the exact tracked-clean
   candidate11 source while keeping the release non-executable;
 - local RTX 3050 screening is still pending because an unrelated workload owns
   the GPU and exceeds the frozen thermal/VRAM start gates. This is a benchmark
@@ -1467,3 +1467,15 @@ Hermes/Bonsai launch-server integration update (2026-08-09):
   later adapter hill-climbing. Messages and malformed extra fields are omitted,
   traces have no effects or optimizer eligibility, and trace-write failure
   fails closed.
+- an owned, shell-free Hermes Lite stdio provider now accepts only public
+  state-bound task packets after runtime promotion. It is limited to three
+  read-only tool rounds and six calls, verifies hash-bound responses, and is
+  rejected by BitAgent's deterministic LDT if it proposes an illegal
+  transition, invisible evidence, or authority/effect escalation;
+- the launch UI calls `/dag-propose` only when `modelAvailable=true` and uses
+  the deterministic planner on provider outage. The checked-in runtime remains
+  false, so current launches do not start the sidecar or load the model;
+- Hermes Lite sidecar and backend guardrail coverage passes 16/16. The frozen
+  integration now binds exact Hermes commit
+  `482e895dc782e1de39563eb477a87e909522272f` and sidecar config
+  `configs/bitagent_dag_model_sidecar_v1.json`.

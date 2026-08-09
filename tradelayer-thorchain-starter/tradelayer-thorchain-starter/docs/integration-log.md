@@ -2158,3 +2158,37 @@
 - The append lane is serialized per file and a persistence error fails the
   candidate request closed. Live rows remain `optimizer_eligible=false` until
   separate review and split assignment.
+- Added `/api/workflows/:id/dag-propose` and an owned Hermes Lite stdio
+  provider. The provider uses `shell=false`, starts only after the frozen
+  BitAgent runtime reports ready, verifies canonical response hashes and exact
+  no-effect flags, and never exposes wallet, RPC, approval, signing, execution,
+  broadcast, or secret capabilities to the model.
+- Hermes Lite commit `482e895dc782e1de39563eb477a87e909522272f`
+  adds the live `bitagent.dag_task_packet.v2` client and sidecar. It limits the
+  active task to 12,000 serialized bytes, three read-only tool rounds, six
+  calls, and 384 completion tokens; it rejects illegal transitions and
+  unapproved execution proposals before BitAgent's second deterministic LDT.
+- The browser checks `/api/dag-runtime`, calls the model route only when
+  `modelAvailable=true`, and truthfully falls back to the deterministic planner
+  on provider outage. The present runtime remains
+  `adapter_packaged_gpu_screening_required`, so no sidecar or model starts in
+  normal launch operation.
+- Hermes contract/transport/guardrail coverage passes 16/16. BitAgent focused
+  DAG and HTTP coverage passes 12/12, including a promoted-manifest harness,
+  provider bypass containment, zero workflow effects, and sanitized failure
+  capture.
+- The complete release-aware launch gate passes 189/189 against exact
+  tracked-clean candidate11 commit
+  `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c` and code hash
+  `8f8e83ae0bac5b578087af7c2dd00c63d3ca87952be72e6e70c4a6acdfffd623`.
+  It still reports `candidate_not_deployed`, `deploymentVerified=false`, and
+  `executable=false`.
+- A post-gate six-RPC read-only Bitcoin Core snapshot observed synchronized
+  testnet4 height 147,596, 316,818 confirmed sats, zero unconfirmed sats, zero
+  wallet locks, protocol-admin ownership but zero admin UTXOs, and seven safe
+  non-admin UTXOs. It read no secret material and performed no signing or
+  broadcast.
+- The RTX 3050 remained ineligible at 88 C with only 206 MiB free VRAM and a
+  foreign Python compute process at 99% utilization. No model was loaded, the
+  foreign process was not interrupted, and the frozen 64 C/exclusive-owner
+  gates were not relaxed.

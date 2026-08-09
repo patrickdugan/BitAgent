@@ -161,6 +161,13 @@ test("runtime manifest exposes the packaged adapter but fails closed on authorit
     }),
     /frozen artifact binding mismatch/i
   );
+  assert.throws(
+    () => validateDagRuntimeManifest({
+      ...runtimeManifest,
+      hermesLite: { ...runtimeManifest.hermesLite, sidecarConfig: "configs/unreviewed.json" }
+    }),
+    /frozen artifact binding mismatch/i
+  );
 });
 
 test("failure traces discard malformed secret-bearing proposal fields", async () => {

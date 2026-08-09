@@ -8,6 +8,10 @@ import { createLaunchKernel } from "./factory.js";
 import { buildDagCandidateTask, validateDagCandidate } from "./dagCandidate.js";
 import { readDagRuntimeManifest } from "./dagRuntimeManifest.js";
 import { appendDagFailureTrace, buildDagFailureTrace } from "./dagFailureTrace.js";
+import {
+  defaultDagProposalProvider,
+  type DagProposalProvider
+} from "./dagProposalProvider.js";
 import type { BitAgentLaunchKernel } from "./kernel.js";
 import {
   defaultReserveOperatorEvidencePaths,
@@ -88,6 +92,7 @@ export function createBitAgentServer(options: {
   reserveOperatorEvidencePaths?: ReserveOperatorEvidencePaths;
   dagRuntimeManifestPath?: string;
   dagFailureTracePath?: string;
+  dagProposalProvider?: DagProposalProvider;
 } = {}) {
   const kernel = options.kernel || createLaunchKernel();
   const conversation = new BitAgentConversation(kernel);
@@ -98,9 +103,10 @@ export function createBitAgentServer(options: {
   const operatorTools = new ReserveOperatorToolRegistry(evidencePaths);
   const dagRuntimeManifestPath = options.dagRuntimeManifestPath || defaultDagRuntimeManifestPath;
   const dagFailureTracePath = options.dagFailureTracePath || defaultDagFailureTracePath;
+  const dagProposalProvider = options.dagProposalProvider || defaultDagProposalProvider();
   const publicToolSchemas = { ...launchToolSchemas, ...reserveOperatorToolSchemas };
 
-  return http.createServer(async (request, response) => {
+  const server = http.createServer(async (request, response) => {
     if (request.method === "OPTIONS") return json(response, 204, {});
     const url = new URL(request.url || "/", "http://localhost");
     try {
@@ -150,6 +156,33 @@ export function createBitAgentServer(options: {
         });
       }
       const dagCandidateMatch = url.pathname.match(/^\/api\/workflows\/([^/]+)\/dag-candidate$/);
+      const dagProposeMatch = url.pathname.match(/^\/api\/workflows\/([^/]+)\/dag-propose$/);
+      if (request.method === "POST" && dagProposeMatch) {
+        const runtime = await readDagRuntimeManifest(dagRuntimeManifestPath);
+        if (runtime.modelAvailable !== true) {
+          throw new LaunchKernelError(
+            "provider_unavailable",
+            "Hermes/Bonsai DAG runtime has not passed its promotion gates"
+          );
+        }
+        const body = await readBody(request);
+        const workflowId = decodeURIComponent(dagProposeMatch[1]);
+        const message = String(body.message || "");
+        const plan = await conversation.plan(workflowId, message, { persistIntent: false });
+        const state = await kernel.getPublic(workflowId);
+        const task = buildDagCandidateTask({ state, plan });
+        const proposal = await dagProposalProvider.propose(task.packet);
+        const receipt = validateDagCandidate({ task, proposed: proposal.candidate });
+        const failureTrace = receipt.ok ? undefined : buildDagFailureTrace({ task, receipt });
+        if (failureTrace) await appendDagFailureTrace(dagFailureTracePath, failureTrace);
+        return json(response, 200, {
+          proposal,
+          receipt,
+          failureTrace,
+          plan,
+          state
+        });
+      }
       if (request.method === "POST" && dagCandidateMatch) {
         const body = await readBody(request);
         const workflowId = decodeURIComponent(dagCandidateMatch[1]);
@@ -199,4 +232,8 @@ export function createBitAgentServer(options: {
       json(response, result.code === "not_found" ? 404 : 400, { error: result });
     }
   });
+  server.once("close", () => {
+    void dagProposalProvider.close?.();
+  });
+  return server;
 }
