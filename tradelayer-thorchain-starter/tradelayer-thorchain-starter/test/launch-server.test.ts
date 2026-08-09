@@ -327,6 +327,16 @@ test("promoted DAG route uses the candidate-only provider and still performs no 
   runtime.status = "ready";
   runtime.promotion.operatorReady = true;
   runtime.promotion.passedGates = [...runtime.promotion.requiredGates];
+  runtime.promotion.evidence = {
+    schema: "bitagent.dag_runtime_promotion_evidence.v1",
+    assessmentSha256: "1".repeat(64),
+    approvalSha256: "2".repeat(64),
+    hermesReportFileSha256: "3".repeat(64),
+    hermesApplyReceiptSha256: "4".repeat(64),
+    sidecarValidationReceiptSha256: "5".repeat(64),
+    effect: "runtime_readiness_only",
+    walletOrChainEffect: false
+  };
   await fs.writeFile(runtimePath, JSON.stringify(runtime), "utf8");
   const provider = new ScriptedDagProposalProvider();
   const server = createBitAgentServer({

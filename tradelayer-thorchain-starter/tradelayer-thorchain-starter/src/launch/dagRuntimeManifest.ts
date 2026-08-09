@@ -10,7 +10,7 @@ const FROZEN_RUNTIME = {
   baseModelSha256: "284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54",
   sourceAdapterSha256: "ceb39699033124710f2537d1e65d3cb794f43f9e7c3313b3c93522da7df913be",
   loraGgufSha256: "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704",
-  hermesCommit: "acd60539667c13731f0a0ac0520ff5d3c5f95589",
+  hermesCommit: "395d634c9505dc435221eee1223aa32cb1c19cc9",
   runtimeManifest: "configs/bitagent_bonsai_runtime_v2.json",
   sidecarConfig: "configs/bitagent_dag_model_sidecar_v1.json"
 } as const;
@@ -72,11 +72,36 @@ export function validateDagRuntimeManifest(value: unknown) {
     throw new LaunchKernelError("validation_error", "DAG runtime passed an unknown promotion gate");
   }
   const operatorReady = promotion.operatorReady === true;
-  if (operatorReady && (manifest.status !== "ready" || passedGates.length !== requiredGates.length)) {
+  const requiredGateSet = new Set(requiredGates);
+  const passedGateSet = new Set(passedGates);
+  if (requiredGateSet.size !== requiredGates.length || passedGateSet.size !== passedGates.length) {
+    throw new LaunchKernelError("validation_error", "DAG runtime promotion gates must be unique");
+  }
+  const allGatesPassed = passedGateSet.size === requiredGateSet.size
+    && [...requiredGateSet].every((gate) => passedGateSet.has(gate));
+  if (operatorReady && (manifest.status !== "ready" || !allGatesPassed)) {
     throw new LaunchKernelError("validation_error", "DAG runtime readiness is not backed by every promotion gate");
   }
   if (!operatorReady && manifest.status === "ready") {
     throw new LaunchKernelError("validation_error", "DAG runtime cannot be ready without operator promotion");
+  }
+  const promotionEvidence = promotion.evidence;
+  if (operatorReady) {
+    const evidence = record(promotionEvidence, "promotion.evidence");
+    if (evidence.schema !== "bitagent.dag_runtime_promotion_evidence.v1"
+      || evidence.effect !== "runtime_readiness_only"
+      || evidence.walletOrChainEffect !== false) {
+      throw new LaunchKernelError("validation_error", "DAG runtime promotion evidence boundary drift");
+    }
+    for (const field of [
+      "assessmentSha256",
+      "approvalSha256",
+      "hermesReportFileSha256",
+      "hermesApplyReceiptSha256",
+      "sidecarValidationReceiptSha256"
+    ]) exactSha(evidence[field], `promotion.evidence.${field}`);
+  } else if (promotionEvidence !== undefined) {
+    throw new LaunchKernelError("validation_error", "unpromoted DAG runtime may not carry promotion evidence");
   }
   if (environment.id !== "moralitylab/bitagent-dag-ops-v2" || environment.version !== "0.3.1") {
     throw new LaunchKernelError("validation_error", "DAG runtime environment binding mismatch");

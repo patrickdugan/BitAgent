@@ -2163,7 +2163,7 @@
   BitAgent runtime reports ready, verifies canonical response hashes and exact
   no-effect flags, and never exposes wallet, RPC, approval, signing, execution,
   broadcast, or secret capabilities to the model.
-- Hermes Lite commit `acd60539667c13731f0a0ac0520ff5d3c5f95589`
+- Hermes Lite commit `395d634c9505dc435221eee1223aa32cb1c19cc9`
   adds the live `bitagent.dag_task_packet.v2` client and sidecar. It limits the
   active task to 12,000 serialized bytes, three read-only tool rounds, six
   calls, and 384 completion tokens; it rejects illegal transitions and
@@ -2194,3 +2194,26 @@
   foreign Python compute process at 99% utilization. No model was loaded, the
   foreign process was not interrupted, and the frozen 64 C/exclusive-owner
   gates were not relaxed.
+
+Deterministic DAG runtime-promotion update (2026-08-09):
+
+- Hermes now exposes a hash-bound assess/apply conveyor at commit
+  `395d634c9505dc435221eee1223aa32cb1c19cc9`; its complete 1,409-test suite
+  passes, while the current no-effect assessment is blocked only on missing
+  exclusive-GPU smoke and screening evidence;
+- BitAgent now pins that exact commit and replaces manual manifest promotion
+  with `assess:dag-runtime` and `promote:dag-runtime` commands. Exact Hermes
+  report/apply bytes and sidecar-validation bytes are bound into the approval
+  candidate;
+- `validate:dag-sidecar` refuses to load the model before Hermes promotion and,
+  afterward, checks deposit, starter-strategy, and withdrawal candidates using
+  an in-memory no-effect kernel and BitAgent's deterministic LDT;
+- missing receipts, a wrong approval hash, a secret request, fabricated state,
+  any authorization/signing/execution/broadcast flag, duplicate gates, or
+  hand-edited ready state fails closed;
+- the exact release-aware gate passes 192/192 against tracked-clean candidate11
+  commit `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c` while retaining
+  `candidate_not_deployed`, `deploymentVerified=false`, and `executable=false`;
+- the checked-in assessment remains blocked, `passedGates=[]`,
+  `operatorReady=false`, and `modelAvailable=false`. No model, wallet, or chain
+  action occurred in this update.

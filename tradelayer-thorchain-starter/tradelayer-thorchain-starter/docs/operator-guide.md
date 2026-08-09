@@ -83,6 +83,21 @@ $env:BITAGENT_HERMES_ROOT="C:\projects\hermes-lite"
 $env:BITAGENT_HERMES_PYTHON="C:\projects\hermes-lite\.venv\Scripts\python.exe"
 $env:BITAGENT_HERMES_DAG_CONFIG="configs\bitagent_dag_model_sidecar_v1.json"
 $env:BITAGENT_HERMES_TIMEOUT_MS="480000"
+npm run validate:dag-sidecar
+npm run assess:dag-runtime
+```
+
+The first command refuses to start the sidecar until Hermes has a successful,
+exactly applied runtime-promotion receipt. It then exercises deposit, starter
+strategy, and withdrawal task packets against the real sidecar using an
+in-memory test kernel with no wallet or chain effect. The assessment emits one
+BitAgent `approvalSha256` only if all three candidates pass the deterministic
+LDT with zero secret requests, fabricated state, or unauthorized effects.
+
+Review that exact assessment, then apply only its displayed hash:
+
+```powershell
+npm run promote:dag-runtime -- --approval-sha256 <exact-BitAgent-approvalSha256>
 npm run launch
 ```
 
@@ -91,6 +106,10 @@ only. Never put a wallet token, RPC cookie, private key, seed, WIF, descriptor,
 or PSBT in these variables or model context. A provider timeout, bad response
 hash, illegal transition, or authority mismatch falls back to the
 deterministic planner and grants no approval or execution.
+
+Do not edit `passedGates`, `operatorReady`, or `status` by hand. The promotion
+command atomically changes runtime eligibility only; it cannot approve a
+wallet action, sign, execute, or broadcast.
 
 ## Verify the build
 

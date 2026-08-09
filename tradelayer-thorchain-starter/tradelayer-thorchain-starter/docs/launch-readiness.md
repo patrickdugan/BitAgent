@@ -1477,5 +1477,21 @@ Hermes/Bonsai launch-server integration update (2026-08-09):
   false, so current launches do not start the sidecar or load the model;
 - Hermes Lite sidecar and backend guardrail coverage passes 16/16. The frozen
   integration now binds exact Hermes commit
-  `acd60539667c13731f0a0ac0520ff5d3c5f95589` and sidecar config
+  `395d634c9505dc435221eee1223aa32cb1c19cc9` and sidecar config
   `configs/bitagent_dag_model_sidecar_v1.json`.
+
+Deterministic runtime-promotion gate (2026-08-09):
+
+- Hermes 1,409-test verification passes and its frozen artifact, registration,
+  sampling, authority, and resource gates pass. Exclusive RTX 3050 smoke and
+  screening receipts are still absent, so Hermes remains unpromoted;
+- BitAgent now requires an exact Hermes apply receipt, a live sidecar receipt
+  for all three supported intents, zero unsafe model behavior, and a second
+  exact operator approval hash before exposing the model;
+- focused BitAgent runtime-promotion, DAG, and HTTP tests pass 15/15, and
+  TypeScript is clean. The release-aware gate passes 192/192 against exact,
+  tracked-clean candidate11 source while keeping the release non-executable.
+  The current checked-in runtime is unavailable and no financial or chain
+  effect was performed;
+- remaining defect: the foreign GPU workload still prevents the exclusive,
+  cool-start smoke/screening evidence needed to begin live sidecar validation.

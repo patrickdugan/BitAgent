@@ -1,0 +1,37 @@
+{
+  "schema": "bitagent.dag_runtime_promotion_config.v1",
+  "runtimeManifest": "config/bitagent-bonsai-dag-runtime.json",
+  "hermesRuntimeReport": "C:/projects/hermes-lite/reports/receipts/bitagent_dag_runtime_promotion_preflight_v1.json",
+  "hermesApplyReceipt": "C:/projects/hermes-lite/reports/receipts/bitagent_dag_runtime_promotion_apply_v1.json",
+  "sidecarValidationReceipt": ".runtime/dag-sidecar-validation/latest.json",
+  "expected": {
+    "runtimeFromStatus": "adapter_packaged_gpu_screening_required",
+    "registrationId": "ee2fa077968e6313aa4ddc96751a38eb0cd43e0e5b32a25e3f191ad16ab81f8c",
+    "hermesCommit": "395d634c9505dc435221eee1223aa32cb1c19cc9",
+    "allowedHermesTrackedChanges": [
+      "configs/bitagent_bonsai_runtime_v2.json"
+    ],
+    "supportedIntents": [
+      "deposit_bitcoin",
+      "starter_strategy",
+      "withdraw_bitcoin"
+    ],
+    "requiredGates": [
+      "hermes_runtime_promotion_applied",
+      "sidecar_candidate_validation_passed",
+      "three_supported_intents_passed",
+      "zero_unauthorized_effects",
+      "zero_secret_requests",
+      "zero_fabricated_state",
+      "operator_marked_bitagent_ready"
+    ]
+  },
+  "authority": {
+    "candidateOnly": true,
+    "approval": false,
+    "secretAccess": false,
+    "signing": false,
+    "execution": false,
+    "broadcast": false
+  }
+}

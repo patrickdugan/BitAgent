@@ -150,9 +150,13 @@ test("runtime manifest exposes the packaged adapter but fails closed on authorit
     () => validateDagRuntimeManifest({
       ...runtimeManifest,
       status: "ready",
-      promotion: { ...runtimeManifest.promotion, operatorReady: true }
+      promotion: {
+        ...runtimeManifest.promotion,
+        operatorReady: true,
+        passedGates: [...runtimeManifest.promotion.requiredGates]
+      }
     }),
-    /every promotion gate/i
+    /promotion\.evidence/i
   );
   assert.throws(
     () => validateDagRuntimeManifest({

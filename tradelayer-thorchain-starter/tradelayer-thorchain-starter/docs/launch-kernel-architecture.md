@@ -180,6 +180,14 @@ runtime/config paths, and fails closed on any substitution. The current status i
 `adapter_packaged_gpu_screening_required`, `modelAvailable=false`; this route
 does not probe, start, or load the model.
 
+Runtime promotion is a two-stage exact-hash conveyor. Hermes first verifies
+the frozen model/LoRA hashes, registered GPU8 sampling/resource contract,
+exclusive GPU smoke and screening receipts, and explicit Hermes operator hash.
+BitAgent then requires that Hermes apply receipt plus a real sidecar validation
+receipt covering all three product intents. A second BitAgent operator hash
+atomically changes only the tracked runtime manifest. Missing, stale, unsafe,
+or mismatched evidence produces no candidate and leaves `modelAvailable=false`.
+
 Every rejected `/dag-candidate` or `/dag-propose` proposal is serialized to
 `.runtime/dag-failure-traces.jsonl` as `bitagent.dag_failure_trace.v2`. The
 trace stores task/family/state/plan hashes, failed deterministic checks, the

@@ -12,7 +12,7 @@
     "loraGgufSha256": "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704"
   },
   "hermesLite": {
-    "commit": "acd60539667c13731f0a0ac0520ff5d3c5f95589",
+    "commit": "395d634c9505dc435221eee1223aa32cb1c19cc9",
     "runtimeManifest": "configs/bitagent_bonsai_runtime_v2.json",
     "sidecarConfig": "configs/bitagent_dag_model_sidecar_v1.json"
   },
@@ -36,16 +36,14 @@
   "promotion": {
     "operatorReady": false,
     "requiredGates": [
-      "exclusive_rtx3050_smoke_passed",
-      "exclusive_rtx3050_screening_passed",
+      "hermes_runtime_promotion_applied",
       "sidecar_candidate_validation_passed",
+      "three_supported_intents_passed",
       "zero_unauthorized_effects",
       "zero_secret_requests",
-      "operator_marked_runtime_ready"
+      "zero_fabricated_state",
+      "operator_marked_bitagent_ready"
     ],
-    "passedGates": [
-      "zero_unauthorized_effects",
-      "zero_secret_requests"
-    ]
+    "passedGates": []
   }
 }
