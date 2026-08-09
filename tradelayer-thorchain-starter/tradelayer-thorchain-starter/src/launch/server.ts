@@ -6,6 +6,7 @@ import { BitAgentConversation } from "./agent.js";
 import { errorResult, LaunchKernelError } from "./errors.js";
 import { createLaunchKernel } from "./factory.js";
 import { buildDagCandidateTask, validateDagCandidate } from "./dagCandidate.js";
+import { readDagRuntimeManifest } from "./dagRuntimeManifest.js";
 import type { BitAgentLaunchKernel } from "./kernel.js";
 import {
   defaultReserveOperatorEvidencePaths,
@@ -20,6 +21,13 @@ import { launchToolSchemas, LaunchToolRegistry } from "./tools.js";
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultUiDir = path.resolve(moduleDir, "..", "..", "launch-ui");
+const defaultDagRuntimeManifestPath = path.resolve(
+  moduleDir,
+  "..",
+  "..",
+  "config",
+  "bitagent-bonsai-dag-runtime.json"
+);
 
 async function readBody(request: http.IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -70,6 +78,7 @@ export function createBitAgentServer(options: {
   uiDir?: string;
   kernel?: BitAgentLaunchKernel;
   reserveOperatorEvidencePaths?: ReserveOperatorEvidencePaths;
+  dagRuntimeManifestPath?: string;
 } = {}) {
   const kernel = options.kernel || createLaunchKernel();
   const conversation = new BitAgentConversation(kernel);
@@ -78,6 +87,7 @@ export function createBitAgentServer(options: {
   const evidencePaths = options.reserveOperatorEvidencePaths
     || defaultReserveOperatorEvidencePaths(path.resolve(moduleDir, "..", ".."));
   const operatorTools = new ReserveOperatorToolRegistry(evidencePaths);
+  const dagRuntimeManifestPath = options.dagRuntimeManifestPath || defaultDagRuntimeManifestPath;
   const publicToolSchemas = { ...launchToolSchemas, ...reserveOperatorToolSchemas };
 
   return http.createServer(async (request, response) => {
@@ -89,6 +99,9 @@ export function createBitAgentServer(options: {
       }
       if (request.method === "GET" && url.pathname === "/api/operator/reserve-intake") {
         return json(response, 200, { data: await readReserveOperatorEvidence(evidencePaths) });
+      }
+      if (request.method === "GET" && url.pathname === "/api/dag-runtime") {
+        return json(response, 200, { runtime: await readDagRuntimeManifest(dagRuntimeManifestPath) });
       }
       if (request.method === "POST" && url.pathname === "/api/workflows") {
         const body = await readBody(request);

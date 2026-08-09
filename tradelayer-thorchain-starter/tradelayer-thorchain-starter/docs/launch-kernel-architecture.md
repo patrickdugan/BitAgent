@@ -160,6 +160,13 @@ and `secret_access=false`. On an exactly approved DAG node the model may propose
 `host.execute_approved`, but only the existing wallet broker can authorize and
 perform that later host transition. The DAG endpoint itself never calls it.
 
+`GET /api/dag-runtime` exposes the tracked runtime manifest used for operator
+and UI readiness. The loader freezes the Prime environment registration,
+Bonsai base, source adapter, converted LoRA, and Hermes Lite commit hashes and
+fails closed on any substitution. The current status is
+`adapter_packaged_gpu_screening_required`, `modelAvailable=false`; this route
+does not probe, start, or load the model.
+
 ## Evaluation artifacts
 
 - `test/launch-kernel.e2e.test.ts`: 24 end-to-end trajectories.

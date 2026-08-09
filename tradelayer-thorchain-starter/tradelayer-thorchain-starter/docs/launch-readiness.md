@@ -1453,9 +1453,13 @@ Hermes/Bonsai launch-server integration update (2026-08-09):
   requests, and model authority escalation fail closed;
 - the endpoint is candidate-only and cannot authorize, sign, execute, or
   broadcast. Existing wallet approval and host-broker boundaries are unchanged;
-- focused DAG plus HTTP coverage passes 9/9, TypeScript is clean, and the full
-  release-aware launch gate passes 186/186 against the exact tracked-clean
+- focused DAG plus HTTP coverage passes 10/10, TypeScript is clean, and the full
+  release-aware launch gate passes 187/187 against the exact tracked-clean
   candidate11 source while keeping the release non-executable;
 - local RTX 3050 screening is still pending because an unrelated workload owns
   the GPU and exceeds the frozen thermal/VRAM start gates. This is a benchmark
   blocker, not authority to stop that workload or relax the gates.
+- `/api/dag-runtime` now gives the UI and operator a hash-frozen readiness view.
+  It truthfully reports the accepted packaged adapter but keeps
+  `modelAvailable=false` until every GPU, sidecar, safety, and explicit operator
+  gate is recorded; tampered artifact or authority metadata fails closed.

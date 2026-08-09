@@ -2130,7 +2130,7 @@
 - DAG task generation and candidate validation use the planner's read-only
   preview mode. Repeating either endpoint against unchanged workflow state does
   not append an event and reproduces the same task binding.
-- Six focused contract tests plus three HTTP launch-server tests pass. They
+- Seven focused contract tests plus three HTTP launch-server tests pass. They
   cover exact candidates, escalation/fabrication, secret refusal, approved-path
   containment, persisted-state drift, endpoint normalization, and the absence
   of an execution object.
@@ -2140,4 +2140,13 @@
   was interrupted.
 - The release-aware regression selects exact tracked-clean candidate11 commit
   `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c`, keeps release status
-  `candidate_not_deployed` and execution false, and passes 186/186 tests.
+  `candidate_not_deployed` and execution false, and passes 187/187 tests.
+- Added `GET /api/dag-runtime` backed by a tracked manifest. It freezes the
+  accepted Prime registration ID, base-model hash, source-adapter hash,
+  converted-LoRA hash, and exact Hermes Lite commit `61228bd`. The loader fails
+  on hash substitution, context-budget drift, contract drift, authority drift,
+  or a readiness claim that lacks every promotion gate.
+- The public runtime state remains
+  `adapter_packaged_gpu_screening_required`, `modelAvailable=false`, and
+  `candidate_only_no_wallet_authority`; reading it does not start a process or
+  load model weights.

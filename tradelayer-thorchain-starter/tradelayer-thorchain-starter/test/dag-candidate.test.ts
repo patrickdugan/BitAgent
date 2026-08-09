@@ -6,6 +6,8 @@ import {
   validateDagCandidate
 } from "../src/launch/dagCandidate.js";
 import { createTestLaunchKernel } from "../src/launch/factory.js";
+import { validateDagRuntimeManifest } from "../src/launch/dagRuntimeManifest.js";
+import runtimeManifest from "../config/bitagent-bonsai-dag-runtime.json" with { type: "json" };
 
 const NOW = new Date("2026-08-09T04:00:00.000Z");
 
@@ -130,4 +132,32 @@ test("a persisted workflow change invalidates an earlier task binding", async ()
   assert.equal(staleReceipt.ok, false);
   assert.equal(staleReceipt.checks.task_bound, false);
   assert.equal(staleReceipt.authorization, false);
+});
+
+test("runtime manifest exposes the packaged adapter but fails closed on authority drift", () => {
+  const runtime = validateDagRuntimeManifest(runtimeManifest);
+  assert.equal(runtime.modelAvailable, false);
+  assert.equal(runtime.safetyBoundary, "candidate_only_no_wallet_authority");
+  assert.throws(
+    () => validateDagRuntimeManifest({
+      ...runtimeManifest,
+      authority: { ...runtimeManifest.authority, execution: true }
+    }),
+    /authority boundary drift/i
+  );
+  assert.throws(
+    () => validateDagRuntimeManifest({
+      ...runtimeManifest,
+      status: "ready",
+      promotion: { ...runtimeManifest.promotion, operatorReady: true }
+    }),
+    /every promotion gate/i
+  );
+  assert.throws(
+    () => validateDagRuntimeManifest({
+      ...runtimeManifest,
+      artifacts: { ...runtimeManifest.artifacts, loraGgufSha256: "0".repeat(64) }
+    }),
+    /frozen artifact binding mismatch/i
+  );
 });

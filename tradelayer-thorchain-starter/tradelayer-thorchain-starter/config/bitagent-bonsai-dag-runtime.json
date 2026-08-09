@@ -1,0 +1,51 @@
+{
+  "schema": "bitagent.bonsai_dag_runtime_manifest.v1",
+  "status": "adapter_packaged_gpu_screening_required",
+  "environment": {
+    "id": "moralitylab/bitagent-dag-ops-v2",
+    "version": "0.3.1",
+    "registrationId": "ee2fa077968e6313aa4ddc96751a38eb0cd43e0e5b32a25e3f191ad16ab81f8c"
+  },
+  "artifacts": {
+    "baseModelSha256": "284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54",
+    "sourceAdapterSha256": "ceb39699033124710f2537d1e65d3cb794f43f9e7c3313b3c93522da7df913be",
+    "loraGgufSha256": "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704"
+  },
+  "hermesLite": {
+    "commit": "61228bddeb9be07d4b1a0d501c85e4032be8dc29",
+    "runtimeManifest": "configs/bitagent_bonsai_runtime_v2.json",
+    "sidecarConfig": "configs/bitagent_hermes_sidecar_v2.json"
+  },
+  "contracts": {
+    "task": "bitagent.dag_task_packet.v2",
+    "candidate": "bitagent.dag_candidate.v2",
+    "validationReceipt": "bitagent.dag_validation_receipt.v2"
+  },
+  "context": {
+    "inclusiveWindowTokens": 12000,
+    "activePacketTokens": 4000
+  },
+  "authority": {
+    "candidateOnly": true,
+    "approval": false,
+    "secretAccess": false,
+    "signing": false,
+    "execution": false,
+    "broadcast": false
+  },
+  "promotion": {
+    "operatorReady": false,
+    "requiredGates": [
+      "exclusive_rtx3050_smoke_passed",
+      "exclusive_rtx3050_screening_passed",
+      "sidecar_candidate_validation_passed",
+      "zero_unauthorized_effects",
+      "zero_secret_requests",
+      "operator_marked_runtime_ready"
+    ],
+    "passedGates": [
+      "zero_unauthorized_effects",
+      "zero_secret_requests"
+    ]
+  }
+}

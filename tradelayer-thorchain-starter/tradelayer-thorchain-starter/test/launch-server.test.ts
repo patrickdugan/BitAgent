@@ -31,6 +31,24 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
     assert.match(html, /Put Bitcoin to work/i);
     assert.match(html, /never asks for a seed phrase/i);
 
+    const dagRuntime = await fetch(`${origin}/api/dag-runtime`);
+    assert.equal(dagRuntime.status, 200);
+    const dagRuntimeResult = await dagRuntime.json() as {
+      runtime: {
+        status: string;
+        modelAvailable: boolean;
+        safetyBoundary: string;
+        contracts: { candidate: string };
+        authority: { execution: boolean; secretAccess: boolean };
+      };
+    };
+    assert.equal(dagRuntimeResult.runtime.status, "adapter_packaged_gpu_screening_required");
+    assert.equal(dagRuntimeResult.runtime.modelAvailable, false);
+    assert.equal(dagRuntimeResult.runtime.safetyBoundary, "candidate_only_no_wallet_authority");
+    assert.equal(dagRuntimeResult.runtime.contracts.candidate, "bitagent.dag_candidate.v2");
+    assert.equal(dagRuntimeResult.runtime.authority.execution, false);
+    assert.equal(dagRuntimeResult.runtime.authority.secretAccess, false);
+
     const tools = await fetch(`${origin}/api/tools`);
     assert.equal(tools.status, 200);
     const toolResult = await tools.json() as { tools: Record<string, unknown> };
