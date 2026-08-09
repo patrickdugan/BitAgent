@@ -67,7 +67,11 @@ function basePlan(state: BitAgentWorkflowState, intent: SupportedIntent | "unsup
 export class BitAgentConversation {
   constructor(private readonly kernel: BitAgentLaunchKernel) {}
 
-  async plan(workflowId: string, message: string): Promise<StructuredPlan> {
+  async plan(
+    workflowId: string,
+    message: string,
+    options: { persistIntent?: boolean } = {}
+  ): Promise<StructuredPlan> {
     const state = await this.kernel.get(workflowId);
     if (containsSecretMaterial(message)) {
       const plan = basePlan(state, "unsupported");
@@ -83,7 +87,9 @@ export class BitAgentConversation {
       return plan;
     }
 
-    await this.kernel.selectIntent(workflowId, intent);
+    if (options.persistIntent !== false) {
+      await this.kernel.selectIntent(workflowId, intent);
+    }
     if (state.wallet.status !== "connected") {
       plan.summary = "Connect or create a TradeLayer wallet before continuing. BitAgent will never request its recovery phrase.";
       plan.missingParameters = ["wallet_connection_choice"];

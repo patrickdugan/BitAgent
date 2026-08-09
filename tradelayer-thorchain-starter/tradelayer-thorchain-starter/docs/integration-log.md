@@ -2107,3 +2107,37 @@
   `3485416d24452d16f3f00f05907a4201861d19d39f7401843529ba88a40c9e41`.
   The input is locked, the decision is pending, and no signing or broadcast
   occurred. This funding approval cannot authorize the later activation.
+
+## Launch-server DAG adapter seam - 2026-08-09
+
+- Added a host-side `bitagent.dag_task_packet.v2` builder for the three launch
+  intents. Deposit and reserve funding route through `utxoref_settlement`, the
+  starter order through `trading_risk`, and withdrawal through
+  `bitcoin_rpc_txbuild`.
+- The task packet binds the public persisted workflow state and deterministic
+  structured plan by SHA-256, carries a compact state projection and a closed
+  explain/simulate/display/approval/execute/verify graph, and is about 4.3 kB
+  at entry. It therefore fits the Hermes Lite 4,000-token active-packet lane
+  inside the inclusive 12k context allocation.
+- Added `/api/workflows/:id/dag-task` and `/dag-candidate`. The latter rebuilds
+  current bindings and applies a deterministic LDT. It rejects stale task IDs,
+  fabricated evidence, unknown tools, illegal transitions, and authority or
+  effect escalation, then returns the canonical normalized candidate.
+- Every validation receipt fixes authorization, signing, execution, broadcast,
+  and secret access to false. Even the exact approved-node
+  `host.execute_approved` candidate remains a no-effect proposal and cannot call
+  the wallet broker through this surface.
+- DAG task generation and candidate validation use the planner's read-only
+  preview mode. Repeating either endpoint against unchanged workflow state does
+  not append an event and reproduces the same task binding.
+- Six focused contract tests plus three HTTP launch-server tests pass. They
+  cover exact candidates, escalation/fabrication, secret refusal, approved-path
+  containment, persisted-state drift, endpoint normalization, and the absence
+  of an execution object.
+- The RTX 3050 screening lane remained closed during this work: a foreign
+  Python process occupied almost all VRAM and drove the GPU above the frozen
+  64 C start threshold. No model was loaded by BitAgent and no foreign process
+  was interrupted.
+- The release-aware regression selects exact tracked-clean candidate11 commit
+  `b3423bf7f72a4e8bfad3fbc61f757505553b9d4c`, keeps release status
+  `candidate_not_deployed` and execution false, and passes 186/186 tests.

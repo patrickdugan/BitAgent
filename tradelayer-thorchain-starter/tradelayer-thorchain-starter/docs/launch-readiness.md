@@ -1443,3 +1443,19 @@ Testnet4 wallet recovery snapshot update (2026-08-09):
 - the wallet has zero locks and the expired funding outpoint is not locked.
   The old durable record still requires exact cancellation before a fresh
   admin-funding simulation; no signing or broadcast was performed.
+
+Hermes/Bonsai launch-server integration update (2026-08-09):
+
+- the launch server now emits state- and plan-bound DAG task packets for all
+  three supported intents and deterministically validates Bonsai/Hermes model
+  candidates;
+- stale tasks, fabricated evidence, illegal transitions, unknown tools, secret
+  requests, and model authority escalation fail closed;
+- the endpoint is candidate-only and cannot authorize, sign, execute, or
+  broadcast. Existing wallet approval and host-broker boundaries are unchanged;
+- focused DAG plus HTTP coverage passes 9/9, TypeScript is clean, and the full
+  release-aware launch gate passes 186/186 against the exact tracked-clean
+  candidate11 source while keeping the release non-executable;
+- local RTX 3050 screening is still pending because an unrelated workload owns
+  the GPU and exceeds the frozen thermal/VRAM start gates. This is a benchmark
+  blocker, not authority to stop that workload or relax the gates.

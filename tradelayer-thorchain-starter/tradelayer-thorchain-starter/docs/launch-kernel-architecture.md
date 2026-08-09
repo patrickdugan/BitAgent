@@ -127,6 +127,39 @@ depth from read-only Bitcoin Core evidence. Missing, mempool, and temporarily
 offline observations remain retryable `pending`; mismatches and reorgs fail
 closed. This verifier never selects inputs, signs, or broadcasts.
 
+## Hermes Lite / Bonsai DAG boundary
+
+The launch server exposes an additive, candidate-only controller seam for the
+Prime-trained `bitagent.dag_candidate.v2` contract:
+
+- `POST /api/workflows/:id/dag-task` previews the deterministic natural-language
+  planner without changing workflow state, binds the resulting plan and public
+  persisted workflow state by SHA-256, and returns a compact
+  `bitagent.dag_task_packet.v2` packet.
+- `POST /api/workflows/:id/dag-candidate` reconstructs that packet from current
+  persisted state and applies a deterministic LDT to the proposed candidate.
+  A refresh or intervening wallet action changes the task ID and invalidates an
+  older proposal.
+
+The three product intents route to the trained control families:
+
+| Product flow | DAG family |
+|---|---|
+| Deposit and reserve funding | `utxoref_settlement` |
+| Starter order | `trading_risk` |
+| Bitcoin withdrawal | `bitcoin_rpc_txbuild` |
+
+Packets contain only a compact public-state projection, the closed DAG, visible
+evidence IDs, and allowed candidate tools. The current entry packet is about
+4.3 kB, leaving room inside Hermes Lite's 4,000-token active-packet lane and
+inclusive 12,000-token context budget.
+
+The validation receipt always reports no effects and fixes
+`authorization=false`, `signing=false`, `execution=false`, `broadcast=false`,
+and `secret_access=false`. On an exactly approved DAG node the model may propose
+`host.execute_approved`, but only the existing wallet broker can authorize and
+perform that later host transition. The DAG endpoint itself never calls it.
+
 ## Evaluation artifacts
 
 - `test/launch-kernel.e2e.test.ts`: 24 end-to-end trajectories.

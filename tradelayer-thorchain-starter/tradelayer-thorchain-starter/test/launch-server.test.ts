@@ -151,3 +151,75 @@ test("HTTP launch surface returns persisted rejected-authorization state for UI 
       server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test("HTTP DAG surface normalizes model proposals without mutating workflow state", async () => {
+  const server = createBitAgentServer({ kernel: createTestLaunchKernel() });
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  try {
+    const { port } = server.address() as AddressInfo;
+    const origin = `http://127.0.0.1:${port}`;
+    const post = async (requestPath: string, body: Record<string, unknown>) => {
+      const response = await fetch(`${origin}${requestPath}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      return { response, body: await response.json() as Record<string, any> };
+    };
+    const started = await post("/api/workflows", { intent: "deposit_bitcoin" });
+    const workflowId = started.body.state.id as string;
+    const message = "Help me deposit Bitcoin.";
+    const taskResponse = await post(
+      `/api/workflows/${encodeURIComponent(workflowId)}/dag-task`,
+      { message }
+    );
+
+    assert.equal(taskResponse.response.status, 200);
+    assert.equal(taskResponse.body.task.schema, "bitagent.dag_task_packet.v2");
+    assert.equal(taskResponse.body.modelAuthority, "candidate_only");
+    assert.equal(taskResponse.body.task.safety_boundary.execution, false);
+    assert.equal(taskResponse.body.task.safety_boundary.secret_access, false);
+    assert.equal(taskResponse.body.state.events.length, started.body.state.events.length);
+    const evidenceIds = taskResponse.body.task.visible_evidence
+      .filter((row: { kind: string }) => row.kind !== "structured_plan")
+      .map((row: { id: string }) => row.id);
+    const unsafeCandidate = {
+      schema: "bitagent.dag_candidate.v2",
+      task_id: taskResponse.body.task.task_id,
+      decision: "advance",
+      next_node: "validate",
+      tool: "host.execute_approved",
+      evidence_ids: evidenceIds,
+      reason_code: "source_contract_required",
+      risk_flags: [],
+      authority: "model_candidate",
+      effect: "none"
+    };
+    const rejected = await post(
+      `/api/workflows/${encodeURIComponent(workflowId)}/dag-candidate`,
+      { message, candidate: unsafeCandidate }
+    );
+
+    assert.equal(rejected.response.status, 200);
+    assert.equal(rejected.body.receipt.ok, false);
+    assert.equal(rejected.body.receipt.checks.authority_boundary, false);
+    assert.equal(rejected.body.receipt.execution, false);
+    assert.equal(rejected.body.state.events.length, taskResponse.body.state.events.length);
+
+    const accepted = await post(
+      `/api/workflows/${encodeURIComponent(workflowId)}/dag-candidate`,
+      { message, candidate: rejected.body.receipt.candidate }
+    );
+    assert.equal(accepted.body.receipt.ok, true);
+    assert.equal(accepted.body.receipt.normalization.applied, false);
+    assert.equal(accepted.body.receipt.execution, false);
+    assert.equal(accepted.body.state.execution, undefined);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => error ? reject(error) : resolve()));
+  }
+});

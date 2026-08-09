@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { BitAgentConversation } from "./agent.js";
 import { errorResult, LaunchKernelError } from "./errors.js";
 import { createLaunchKernel } from "./factory.js";
+import { buildDagCandidateTask, validateDagCandidate } from "./dagCandidate.js";
 import type { BitAgentLaunchKernel } from "./kernel.js";
 import {
   defaultReserveOperatorEvidencePaths,
@@ -109,6 +110,35 @@ export function createBitAgentServer(options: {
         const workflowId = decodeURIComponent(messageMatch[1]);
         const plan = await conversation.plan(workflowId, String(body.message || ""));
         return json(response, 200, { plan, state: await kernel.getPublic(workflowId) });
+      }
+      const dagTaskMatch = url.pathname.match(/^\/api\/workflows\/([^/]+)\/dag-task$/);
+      if (request.method === "POST" && dagTaskMatch) {
+        const body = await readBody(request);
+        const workflowId = decodeURIComponent(dagTaskMatch[1]);
+        const message = String(body.message || "");
+        const plan = await conversation.plan(workflowId, message, { persistIntent: false });
+        const state = await kernel.getPublic(workflowId);
+        const task = buildDagCandidateTask({ state, plan });
+        return json(response, 200, {
+          plan,
+          task: task.packet,
+          state,
+          modelAuthority: "candidate_only"
+        });
+      }
+      const dagCandidateMatch = url.pathname.match(/^\/api\/workflows\/([^/]+)\/dag-candidate$/);
+      if (request.method === "POST" && dagCandidateMatch) {
+        const body = await readBody(request);
+        const workflowId = decodeURIComponent(dagCandidateMatch[1]);
+        const message = String(body.message || "");
+        const plan = await conversation.plan(workflowId, message, { persistIntent: false });
+        const state = await kernel.getPublic(workflowId);
+        const task = buildDagCandidateTask({ state, plan });
+        return json(response, 200, {
+          receipt: validateDagCandidate({ task, proposed: body.candidate }),
+          plan,
+          state
+        });
       }
       const toolMatch = url.pathname.match(/^\/api\/tools\/(.+)$/);
       if (request.method === "POST" && toolMatch) {
