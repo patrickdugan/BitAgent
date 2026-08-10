@@ -1594,6 +1594,7 @@ Release-bound onboarding MVP audit (2026-08-09):
 - referral and compliance suites additionally pass 38/38 and 18/18;
 - scripted launch is ready. Funded execution is not launch-ready: candidate11
   remains `candidate_not_deployed`, independent listener/deployment evidence is
-  absent, the wallet-owned production approval/signing endpoint is unfinished,
-  and the intake/DLC live seams remain provisional. No test or demo moved
-  funds, signed, submitted, or broadcast a transaction.
+  absent, and the wallet-owned reserve/withdraw approval code is not
+  deployment-enabled. The wallet still has no TradeLayer starter-order
+  execution provider, while the live intake/DLC seams remain provisional. No
+  test or demo moved funds, signed, submitted, or broadcast a transaction.
