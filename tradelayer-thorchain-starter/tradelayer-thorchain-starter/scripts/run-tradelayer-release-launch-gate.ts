@@ -109,7 +109,11 @@ async function main() {
   }, null, 2));
 
   if (process.argv.includes("--verify-only")) return;
-  const childNpmScript = process.argv.includes("--preflight") ? "preflight:launch" : "test:launch";
+  const childNpmScript = process.argv.includes("--demo-onboard")
+    ? "demo:onboard:direct"
+    : process.argv.includes("--preflight")
+      ? "preflight:launch"
+      : "test:launch";
   const command = process.platform === "win32" ? (process.env.ComSpec || "cmd.exe") : "npm";
   const args = process.platform === "win32"
     ? ["/d", "/s", "/c", `npm run ${childNpmScript}`]

@@ -1579,3 +1579,21 @@ Exclusive Bonsai runtime-screening evidence (2026-08-09):
   It has not been applied. Live three-intent sidecar validation and the second
   BitAgent promotion gate therefore remain pending, and
   `fundedExecutionAllowed=false`.
+
+
+Release-bound onboarding MVP audit (2026-08-09):
+
+- `npm run demo:onboard` now resolves the exact clean candidate11 source and
+  its reviewed dependency tree automatically; a scripted ETH-to-BTC preview
+  completed through normalized UTXO receipt, UTXORef V2 funding root, tx11
+  build-only payload, wallet activity feed, and typed DLC stub;
+- `npm run build` and TypeScript validation pass;
+- the release-aware launch and preflight gates pass 194/194 tests, including
+  24/24 scripted trajectories; the focused agent harness passes 51/51 with all
+  score dimensions at 1.0 and zero failure traces;
+- referral and compliance suites additionally pass 38/38 and 18/18;
+- scripted launch is ready. Funded execution is not launch-ready: candidate11
+  remains `candidate_not_deployed`, independent listener/deployment evidence is
+  absent, the wallet-owned production approval/signing endpoint is unfinished,
+  and the intake/DLC live seams remain provisional. No test or demo moved
+  funds, signed, submitted, or broadcast a transaction.
