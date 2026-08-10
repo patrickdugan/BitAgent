@@ -4,7 +4,13 @@ import { LaunchKernelError } from "./errors.js";
 import { parseReferralLink } from "./referral.js";
 import { assertVerifiedStrategyFunding } from "./strategyFunding.js";
 import { buildReserveIntakePlan } from "./reserveIntake.js";
-import { simulateBitcoinWithdrawal, simulateReserveIntake, simulateStarterStrategy } from "./tradelayerTool.js";
+import {
+  buildStarterOrderPlan,
+  hashStarterOrderProtocolObject,
+  simulateBitcoinWithdrawal,
+  simulateReserveIntake,
+  simulateStarterStrategy
+} from "./tradelayerTool.js";
 import { observeBitcoinDeposit } from "./utxoTool.js";
 import type {
   BitAgentWorkflowState,
@@ -265,17 +271,37 @@ export class BitAgentLaunchKernel {
       amountSats,
       now
     });
+    if (!state.wallet.walletSessionId || !state.wallet.bitcoinAddress) {
+      throw new LaunchKernelError("wallet_not_connected", "A connected wallet is required for a starter-order plan");
+    }
+    const starterOrderPlan = buildStarterOrderPlan({
+      workflowId: state.id,
+      walletSessionId: state.wallet.walletSessionId,
+      walletAddress: state.wallet.bitcoinAddress,
+      network: state.wallet.network,
+      amountSats,
+      quote
+    });
     const fee = await this.options.walletBroker.estimateFee({
       action: "starter_strategy",
       amountSats,
+      starterOrderPlan,
       state
     });
+    if (!fee.starterOrderCandidate) {
+      throw new LaunchKernelError(
+        "provider_unavailable",
+        "Wallet broker did not return the exact starter-order candidate"
+      );
+    }
     const simulation = simulateStarterStrategy({
       amountSats,
       balanceSats: verifiedFunding.bitcoinSpendableSats,
       tlBtcAvailableSats: verifiedFunding.tlBtcAvailableSats,
       networkFeeSats: fee.networkFeeSats,
       quote,
+      starterOrderPlan,
+      walletCandidate: fee.starterOrderCandidate,
       now
     });
     state.currentIntent = "starter_strategy";
@@ -287,6 +313,10 @@ export class BitAgentLaunchKernel {
     state.stage = "strategy_simulated";
     this.event(state, "strategy.simulated", {
       simulationHash: simulation.hash,
+      planHash: starterOrderPlan.planHash,
+      candidateId: fee.starterOrderCandidate.candidateId,
+      candidateHash: fee.starterOrderCandidate.candidateHash,
+      unsignedTxid: fee.starterOrderCandidate.unsignedTxid,
       amountSats,
       quoteId: quote.quoteId,
       quoteSource: quote.source,
@@ -655,7 +685,10 @@ export class BitAgentLaunchKernel {
   private assertFreshSimulation(state: BitAgentWorkflowState) {
     const simulation = state.simulation;
     if (!simulation) throw new LaunchKernelError("state_conflict", "Simulate the action before approval");
-    if (simulation.hash !== hashObject(simulationCore(simulation))) {
+    const expectedHash = simulation.action === "starter_strategy"
+      ? hashStarterOrderProtocolObject(simulationCore(simulation))
+      : hashObject(simulationCore(simulation));
+    if (simulation.hash !== expectedHash) {
       throw new LaunchKernelError("state_conflict", "Persisted simulation hash does not match its exact effects");
     }
     if (this.now().getTime() >= new Date(simulation.expiresAt).getTime()) {

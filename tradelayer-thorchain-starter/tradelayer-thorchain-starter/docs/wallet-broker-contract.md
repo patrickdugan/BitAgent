@@ -33,7 +33,7 @@ process.
 | --- | --- | --- |
 | `POST /v1/wallet/connect` | `bitagent_wallet_connect_v1` | Connected network, opaque session ID, public address, confirmed sats, all four capabilities, timestamp |
 | `POST /v1/wallet/deposit-address` | `bitagent_wallet_deposit_address_v1` | Wallet-owned address and its exact scriptPubKey |
-| `POST /v1/wallet/fee-estimate` | `bitagent_wallet_fee_estimate_v1` | Strategy fee, exact sanitized unsigned Bitcoin withdrawal candidate, or exact reserve-vout0/tx11-vout1/change-vout2 candidate |
+| `POST /v1/wallet/fee-estimate` | `bitagent_wallet_fee_estimate_v1` | Exact sanitized starter-order carrier, Bitcoin withdrawal, or reserve-intake candidate |
 | `POST /v1/wallet/approvals` | `bitagent_wallet_approval_v1` | `pending` plus stable request ID, `rejected`, or `approved` plus an opaque one-time grant |
 | `POST /v1/wallet/executions` | `bitagent_wallet_execution_v1` | Exact action/simulation binding, full txid, public submission time, optional order ID |
 
@@ -125,6 +125,33 @@ separate read-only verification boundary that joins the submitted txid's vout
 0, plan hash, confirmation count, wallet session, and processed tx11 tlBTC
 credit before allowing a separately simulated tx5 strategy order. It never
 accepts the wallet's self-reported verification result.
+
+### Starter-order candidate and approval boundary
+
+For `starter_strategy`, BitAgent supplies a hash-bound
+`bitagent_starter_order_plan_v1` before requesting any fee. The plan binds the
+fresh quote, exact tlBTC/tlUSD properties and amounts, post-only price, complete
+`tl5...` payload, workflow, session, and output order. The wallet validates that
+payload through the authoritative tx5 encoding rules, selects one confirmed safe
+testnet4 input, and privately constructs an unsigned carrier with the exact data
+output at vout 0 and positive wallet-owned change at vout 1. Bitcoin principal
+does not move; the exact miner fee is the only Bitcoin debit.
+
+The public `bitagent_wallet_starter_order_candidate_v1` exposes only the input,
+data/change outputs, fee, unsigned txid, PSBT hash, expiry, and plan bindings.
+The wallet retains the raw PSBT. BitAgent revalidates the candidate and binds it
+into the displayed simulation; any payload, property, amount, quote, fee, output,
+session, or hash mismatch fails closed.
+
+Starter-order signing is independently default-disabled. It requires
+`BITAGENT_WALLET_TESTNET_STARTER_ORDER_EXECUTION_ENABLED=true`, a separate
+64-hex release digest, and fresh `bitagent_starter_order_operator_evidence_v1`
+for the exact plan both at approval and immediately before signing. The evidence
+must prove two independent fresh node snapshots, chain-derived tx5 activation,
+accepted code hash, intended properties, sufficient wallet tlBTC, fresh quote,
+and exact post-only order parity. A broadcast receipt is still only submission
+evidence; BitAgent must verify the resulting order through an independent
+TradeLayer source.
 
 ## Local configuration
 

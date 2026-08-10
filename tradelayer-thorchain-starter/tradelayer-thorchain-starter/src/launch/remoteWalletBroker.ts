@@ -19,6 +19,7 @@ import {
   boundedWalletText,
   canonicalWalletSats,
   validatedReserveIntakeCandidate,
+  validatedStarterOrderCandidate,
   validatedProviderBitcoinAddress,
   validatedWithdrawalCandidate,
   walletIsoTime,
@@ -106,13 +107,17 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
     if (input.action === "fund_starter_strategy" && !input.reservePlan) {
       throw new LaunchKernelError("validation_error", "Reserve intake requires an exact deterministic plan");
     }
+    if (input.action === "starter_strategy" && !input.starterOrderPlan) {
+      throw new LaunchKernelError("validation_error", "Starter strategy requires an exact deterministic order plan");
+    }
     const data = await this.http.call("/v1/wallet/fee-estimate", {
       schema: "bitagent_wallet_fee_estimate_v1",
       ...context,
       action: input.action,
       amountSats,
       destinationAddress,
-      reservePlan: input.reservePlan
+      reservePlan: input.reservePlan,
+      starterOrderPlan: input.starterOrderPlan
     });
     const networkFeeSats = canonicalWalletSats(data.networkFeeSats, "networkFeeSats");
     const reserveCandidate = input.action === "fund_starter_strategy"
@@ -135,14 +140,21 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
         networkFeeSats
       })
       : undefined;
-    if (input.action === "starter_strategy" && data.candidate !== undefined) {
-      throw new LaunchKernelError("state_conflict", "Strategy order fee response cannot contain a Bitcoin candidate");
-    }
+    const starterOrderCandidate = input.action === "starter_strategy"
+      ? validatedStarterOrderCandidate({
+        value: data.candidate,
+        plan: input.starterOrderPlan!,
+        ...context,
+        walletAddress: context.bitcoinAddress,
+        networkFeeSats
+      })
+      : undefined;
     return {
       networkFeeSats,
       source: boundedWalletText(data.source, "fee source"),
       candidate,
-      reserveCandidate
+      reserveCandidate,
+      starterOrderCandidate
     };
   }
 

@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import crypto from "node:crypto";
 import path from "node:path";
 import { externalRepos } from "../config.js";
 import { formatUnits, hashObject, opaqueId, parseDecimal } from "./canonical.js";
@@ -7,14 +8,36 @@ import { LaunchKernelError } from "./errors.js";
 import { verifyReserveIntakePlan, type ReserveIntakePlan } from "./reserveIntake.js";
 import type {
   QuoteSnapshot,
+  StarterOrderPlan,
   StarterStrategyParameters,
   TransactionSimulation,
   WalletReserveIntakeCandidate,
+  WalletStarterOrderCandidate,
   WalletWithdrawalCandidate
 } from "./types.js";
 
 const require = createRequire(import.meta.url);
 const encoder = require(path.join(externalRepos.tradelayer, "src", "txEncoder.js"));
+
+function asciiNormalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(asciiNormalize);
+  if (value && typeof value === "object") {
+    const output: Record<string, unknown> = {};
+    Object.keys(value as Record<string, unknown>)
+      .filter((key) => (value as Record<string, unknown>)[key] !== undefined)
+      .sort()
+      .forEach((key) => { output[key] = asciiNormalize((value as Record<string, unknown>)[key]); });
+    return output;
+  }
+  if (typeof value === "bigint") return value.toString();
+  return value;
+}
+
+export function hashStarterOrderProtocolObject(value: unknown): string {
+  return crypto.createHash("sha256")
+    .update(JSON.stringify(asciiNormalize(value)))
+    .digest("hex");
+}
 
 type StrategySimulationInput = {
   amountSats: string;
@@ -25,7 +48,119 @@ type StrategySimulationInput = {
   now: Date;
   offeredPropertyId?: number;
   desiredPropertyId?: number;
+  starterOrderPlan: StarterOrderPlan;
+  walletCandidate: WalletStarterOrderCandidate;
 };
+
+type StarterOrderPlanInput = {
+  workflowId: string;
+  walletSessionId: string;
+  walletAddress: string;
+  network: "bitcoin" | "bitcoin-testnet4";
+  amountSats: string;
+  quote: QuoteSnapshot;
+  offeredPropertyId?: number;
+  desiredPropertyId?: number;
+};
+
+function starterTerms(input: Pick<StarterOrderPlanInput,
+  "amountSats" | "quote" | "offeredPropertyId" | "desiredPropertyId">) {
+  const amountSats = BigInt(input.amountSats);
+  if (amountSats <= 0n) throw new Error("amountSats must be positive");
+  const priceCents = parseDecimal(input.quote.priceUsd, 2, "priceUsd");
+  const expectedTlUsdAtoms = amountSats * priceCents / 100n;
+  const strategy: StarterStrategyParameters = {
+    strategyId: "starter-tlbtc-tlusd-limit-v1",
+    amountSats: amountSats.toString(),
+    limitPriceUsd: input.quote.priceUsd,
+    expectedTlUsdAtoms: expectedTlUsdAtoms.toString(),
+    postOnly: true,
+    offeredPropertyId: input.offeredPropertyId || 1,
+    desiredPropertyId: input.desiredPropertyId || 2
+  };
+  const payload = String(encoder.encodeOnChainTokenForToken({
+    propertyIdOffered: strategy.offeredPropertyId,
+    propertyIdDesired: strategy.desiredPropertyId,
+    amountOffered: formatUnits(amountSats, 8),
+    amountExpected: formatUnits(expectedTlUsdAtoms, 8),
+    stop: false,
+    post: true
+  }));
+  if (!payload.startsWith("tl5")) throw new Error("TradeLayer encoder did not return a type-5 payload");
+  return { amountSats, expectedTlUsdAtoms, strategy, payload };
+}
+
+export function verifyStarterOrderPlan(plan: StarterOrderPlan): boolean {
+  try {
+    if (plan?.schema !== "bitagent_starter_order_plan_v1" || plan.network !== "bitcoin-testnet4") return false;
+    validateBitcoinAddress(plan.walletAddress, plan.network);
+    const terms = starterTerms({
+      amountSats: plan.strategy.amountSats,
+      quote: plan.quote,
+      offeredPropertyId: plan.strategy.offeredPropertyId,
+      desiredPropertyId: plan.strategy.desiredPropertyId
+    });
+    const { planHash: _planHash, ...core } = plan;
+    return plan.strategy.strategyId === "starter-tlbtc-tlusd-limit-v1"
+      && plan.strategy.postOnly === true
+      && plan.strategy.offeredPropertyId !== plan.strategy.desiredPropertyId
+      && hashObject(plan.strategy) === hashObject(terms.strategy)
+      && plan.tradeLayer.transactionType === 5
+      && plan.tradeLayer.payload === terms.payload
+      && plan.tradeLayer.payloadHex === Buffer.from(terms.payload, "utf8").toString("hex")
+      && plan.tradeLayer.payloadBytes === Buffer.byteLength(terms.payload, "utf8")
+      && plan.tradeLayer.payloadBytes > 0 && plan.tradeLayer.payloadBytes <= 80
+      && plan.requiredOutputOrder.length === 2
+      && plan.requiredOutputOrder[0].vout === 0
+      && plan.requiredOutputOrder[0].kind === "tradelayer_op_return"
+      && plan.requiredOutputOrder[0].payloadHex === plan.tradeLayer.payloadHex
+      && plan.requiredOutputOrder[1].vout === 1
+      && plan.requiredOutputOrder[1].kind === "wallet_change"
+      && Array.isArray(plan.preconditions) && plan.preconditions.length > 0
+      && Date.parse(plan.quote.expiresAt) > Date.parse(plan.quote.quotedAt)
+      && hashStarterOrderProtocolObject(core) === plan.planHash;
+  } catch {
+    return false;
+  }
+}
+
+export function buildStarterOrderPlan(input: StarterOrderPlanInput): StarterOrderPlan {
+  if (input.network !== "bitcoin-testnet4") {
+    throw new LaunchKernelError("validation_error", "Starter-order wallet candidates currently require Bitcoin testnet4");
+  }
+  const walletAddress = validateBitcoinAddress(input.walletAddress, input.network).address;
+  const terms = starterTerms(input);
+  const payloadHex = Buffer.from(terms.payload, "utf8").toString("hex");
+  const core = {
+    schema: "bitagent_starter_order_plan_v1" as const,
+    network: "bitcoin-testnet4" as const,
+    workflowId: input.workflowId,
+    walletSessionId: input.walletSessionId,
+    walletAddress,
+    quote: input.quote,
+    strategy: terms.strategy,
+    tradeLayer: {
+      transactionType: 5 as const,
+      payload: terms.payload,
+      payloadHex,
+      payloadBytes: Buffer.byteLength(terms.payload, "utf8")
+    },
+    requiredOutputOrder: [
+      { vout: 0 as const, kind: "tradelayer_op_return" as const, payloadHex },
+      { vout: 1 as const, kind: "wallet_change" as const }
+    ] as StarterOrderPlan["requiredOutputOrder"],
+    preconditions: [
+      "Independent TradeLayer nodes must prove tx5 activation, code identity, intended properties, and fresh state.",
+      "Verified tlBTC availability must cover the offered amount and the quote must remain fresh.",
+      "The wallet must approve this exact post-only payload, carrier input, fee, and wallet-owned change."
+    ]
+  };
+  const plan = { ...core, planHash: hashStarterOrderProtocolObject(core) };
+  if (!verifyStarterOrderPlan(plan)) {
+    throw new LaunchKernelError("validation_error", "Starter-order plan failed deterministic verification");
+  }
+  return plan;
+}
 
 export function simulateStarterStrategy(input: StrategySimulationInput): TransactionSimulation {
   try {
@@ -44,31 +179,35 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
       throw new LaunchKernelError("simulation_stale", "Strategy quote is already stale");
     }
 
-    const priceCents = parseDecimal(input.quote.priceUsd, 2, "priceUsd");
-    const expectedTlUsdAtoms = amountSats * priceCents / 100n;
-    const parameters: StarterStrategyParameters = {
-      strategyId: "starter-tlbtc-tlusd-limit-v1",
-      amountSats: amountSats.toString(),
-      limitPriceUsd: formatUnits(priceCents, 2),
-      expectedTlUsdAtoms: expectedTlUsdAtoms.toString(),
-      postOnly: true,
-      offeredPropertyId: input.offeredPropertyId || 1,
-      desiredPropertyId: input.desiredPropertyId || 2
-    };
-    const payload = encoder.encodeOnChainTokenForToken({
-      propertyIdOffered: parameters.offeredPropertyId,
-      propertyIdDesired: parameters.desiredPropertyId,
-      amountOffered: formatUnits(amountSats, 8),
-      amountExpected: formatUnits(expectedTlUsdAtoms, 8),
-      stop: false,
-      post: true
-    });
-    if (!String(payload).startsWith("tl5")) throw new Error("TradeLayer encoder did not return a type-5 payload");
+    const terms = starterTerms(input);
+    const expectedTlUsdAtoms = terms.expectedTlUsdAtoms;
+    const parameters = terms.strategy;
+    const payload = terms.payload;
+    const plan = input.starterOrderPlan;
+    const candidate = input.walletCandidate;
+    if (!verifyStarterOrderPlan(plan)
+      || plan.strategy.amountSats !== amountSats.toString()
+      || hashObject(plan.quote) !== hashObject(input.quote)
+      || hashObject(plan.strategy) !== hashObject(parameters)
+      || plan.tradeLayer.payload !== payload
+      || candidate.schema !== "bitagent_wallet_starter_order_candidate_v1"
+      || candidate.planHash !== plan.planHash
+      || candidate.dataOutput.payload !== payload
+      || candidate.dataOutput.payloadHex !== plan.tradeLayer.payloadHex
+      || candidate.feeSats !== networkFee.toString()
+      || candidate.signingPerformed !== false
+      || candidate.broadcastPerformed !== false
+      || Date.parse(candidate.expiresAt) <= input.now.getTime()) {
+      throw new LaunchKernelError("state_conflict", "Wallet starter-order candidate differs from the exact tx5 plan");
+    }
 
     const core = {
       action: "starter_strategy" as const,
       createdAt: input.now.toISOString(),
-      expiresAt: input.quote.expiresAt,
+      expiresAt: new Date(Math.min(
+        Date.parse(input.quote.expiresAt),
+        Date.parse(candidate.expiresAt)
+      )).toISOString(),
       effects: [
         {
           asset: "tlBTC" as const,
@@ -99,10 +238,12 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
       },
       balanceBeforeSats: balance.toString(),
       balanceAfterSats: (balance - networkFee).toString(),
-      payload: String(payload),
-      payloadHex: Buffer.from(String(payload), "utf8").toString("hex"),
+      payload,
+      payloadHex: plan.tradeLayer.payloadHex,
       quote: input.quote,
       strategy: parameters,
+      starterOrderPlan: plan,
+      walletCandidate: candidate,
       warnings: [
         "This is a post-only limit order; it may remain open and does not guarantee a fill.",
         "The tlUSD amount is conditional on a fill, not an immediate credit.",
@@ -110,7 +251,7 @@ export function simulateStarterStrategy(input: StrategySimulationInput): Transac
         "Only the exact displayed payload may be approved."
       ]
     };
-    const hash = hashObject(core);
+    const hash = hashStarterOrderProtocolObject(core);
     return { id: opaqueId("sim", core), hash, ...core };
   } catch (error) {
     if (error instanceof LaunchKernelError) throw error;

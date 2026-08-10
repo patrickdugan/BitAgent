@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ScriptedQuoteProvider } from "../src/launch/broker.js";
+import { ScriptedQuoteProvider, ScriptedWalletBroker } from "../src/launch/broker.js";
 import { encodeSegwitAddress } from "../src/launch/bitcoin.js";
 import { buildReserveIntakePlan, verifyReserveIntakePlan } from "../src/launch/reserveIntake.js";
 import {
   ScriptedStrategyFundingSource,
   verifyStrategyFundingEvidence
 } from "../src/launch/strategyFunding.js";
-import { simulateStarterStrategy } from "../src/launch/tradelayerTool.js";
+import { buildStarterOrderPlan, simulateStarterStrategy } from "../src/launch/tradelayerTool.js";
 import type { BitAgentWorkflowState } from "../src/launch/types.js";
 
 const OPERATOR = "04d7f4188a5cbc5335aee6600ad8e327730d73de961534e23b4b91b7d64b6ae4";
@@ -138,12 +138,30 @@ test("strategy funding evidence keeps wallet, reserve, and tlBTC amounts separat
 test("tx5 simulation charges wallet only the carrier fee and marks proceeds conditional", async () => {
   const now = new Date("2026-08-06T09:02:00.000Z");
   const quote = await new ScriptedQuoteProvider().getStarterStrategyQuote({ amountSats: "100000", now });
+  const workflow = state();
+  const starterOrderPlan = buildStarterOrderPlan({
+    workflowId: workflow.id,
+    walletSessionId: workflow.wallet.walletSessionId!,
+    walletAddress: workflow.wallet.bitcoinAddress!,
+    network: workflow.wallet.network,
+    amountSats: "100000",
+    quote
+  });
+  const fee = await new ScriptedWalletBroker({ strategyFeeSats: "900" }).estimateFee({
+    action: "starter_strategy",
+    amountSats: "100000",
+    starterOrderPlan,
+    state: workflow
+  });
+  assert.ok(fee.starterOrderCandidate);
   const simulation = simulateStarterStrategy({
     amountSats: "100000",
     balanceSats: "150000",
     tlBtcAvailableSats: "100000",
     networkFeeSats: "900",
     quote,
+    starterOrderPlan,
+    walletCandidate: fee.starterOrderCandidate!,
     now
   });
   assert.equal(simulation.balanceAfterSats, "149100");

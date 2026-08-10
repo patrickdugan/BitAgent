@@ -19,6 +19,11 @@ import {
   type ReserveOperatorEvidencePaths
 } from "./operatorEvidence.js";
 import {
+  defaultStarterOrderOperatorEvidencePaths,
+  readStarterOrderOperatorEvidence,
+  type StarterOrderOperatorEvidencePaths
+} from "./starterOrderOperatorEvidence.js";
+import {
   ReserveOperatorToolRegistry,
   reserveOperatorToolSchemas
 } from "./operatorTools.js";
@@ -90,6 +95,7 @@ export function createBitAgentServer(options: {
   uiDir?: string;
   kernel?: BitAgentLaunchKernel;
   reserveOperatorEvidencePaths?: ReserveOperatorEvidencePaths;
+  starterOrderOperatorEvidencePaths?: StarterOrderOperatorEvidencePaths;
   dagRuntimeManifestPath?: string;
   dagFailureTracePath?: string;
   dagProposalProvider?: DagProposalProvider;
@@ -100,6 +106,8 @@ export function createBitAgentServer(options: {
   const uiDir = options.uiDir || defaultUiDir;
   const evidencePaths = options.reserveOperatorEvidencePaths
     || defaultReserveOperatorEvidencePaths(path.resolve(moduleDir, "..", ".."));
+  const starterOrderEvidencePaths = options.starterOrderOperatorEvidencePaths
+    || defaultStarterOrderOperatorEvidencePaths(path.resolve(moduleDir, "..", ".."));
   const operatorTools = new ReserveOperatorToolRegistry(evidencePaths);
   const dagRuntimeManifestPath = options.dagRuntimeManifestPath || defaultDagRuntimeManifestPath;
   const dagFailureTracePath = options.dagFailureTracePath || defaultDagFailureTracePath;
@@ -115,6 +123,9 @@ export function createBitAgentServer(options: {
       }
       if (request.method === "GET" && url.pathname === "/api/operator/reserve-intake") {
         return json(response, 200, { data: await readReserveOperatorEvidence(evidencePaths) });
+      }
+      if (request.method === "GET" && url.pathname === "/api/operator/starter-order") {
+        return json(response, 200, { data: await readStarterOrderOperatorEvidence(starterOrderEvidencePaths) });
       }
       if (request.method === "GET" && url.pathname === "/api/dag-runtime") {
         return json(response, 200, { runtime: await readDagRuntimeManifest(dagRuntimeManifestPath) });

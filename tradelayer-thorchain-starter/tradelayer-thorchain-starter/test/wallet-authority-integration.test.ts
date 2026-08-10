@@ -9,8 +9,12 @@ import { externalRepos } from '../src/config.js';
 import { encodeSegwitAddress, validateBitcoinAddress } from '../src/launch/bitcoin.js';
 import { hashObject } from '../src/launch/canonical.js';
 import { RemoteWalletExecutionBroker } from '../src/launch/remoteWalletBroker.js';
-import { simulateBitcoinWithdrawal } from '../src/launch/tradelayerTool.js';
-import type { BitAgentWorkflowState, WalletApproval } from '../src/launch/types.js';
+import {
+  buildStarterOrderPlan,
+  simulateBitcoinWithdrawal,
+  simulateStarterStrategy,
+} from '../src/launch/tradelayerTool.js';
+import type { BitAgentWorkflowState, StarterOrderPlan, WalletApproval } from '../src/launch/types.js';
 
 const TOKEN = 'cross-repo-wallet-token-12345';
 const NOW = '2026-08-06T09:00:00.000Z';
@@ -62,6 +66,87 @@ function withdrawalCandidate(input: any) {
   };
 }
 
+function starterOrderCandidate(input: any) {
+  const plan = input.plan as StarterOrderPlan;
+  const feeSats = '600';
+  const core = {
+    schema: 'bitagent_wallet_starter_order_candidate_v1' as const,
+    workflowId: input.workflowId,
+    walletSessionId: input.walletSessionId,
+    network: 'bitcoin-testnet4' as const,
+    preparedAt: plan.quote.quotedAt,
+    expiresAt: plan.quote.expiresAt,
+    planHash: plan.planHash,
+    unsignedTxid: hashObject({ unsignedStarterOrder: plan.planHash }),
+    unsignedPsbtHash: hashObject(`private-starter-order-psbt-${plan.planHash}`),
+    inputUtxos: [{
+      txid: 'ce'.repeat(32),
+      vout: 0,
+      valueSats: '10000',
+      address: ADDRESS,
+      scriptPubKeyHex: SCRIPT,
+    }],
+    dataOutput: {
+      vout: 0 as const,
+      payload: plan.tradeLayer.payload,
+      payloadHex: plan.tradeLayer.payloadHex,
+      payloadBytes: plan.tradeLayer.payloadBytes,
+    },
+    changeOutput: {
+      vout: 1 as const,
+      address: ADDRESS,
+      scriptPubKeyHex: SCRIPT,
+      valueSats: '9400',
+    },
+    feeSats,
+    feeRateSatVb: 2,
+    signingPerformed: false as const,
+    broadcastPerformed: false as const,
+  };
+  const candidateHash = hashObject(core);
+  return {
+    candidateId: `starter_order_candidate_${candidateHash.slice(0, 32)}`,
+    candidateHash,
+    ...core,
+  };
+}
+
+function starterOrderPreflight(plan: StarterOrderPlan) {
+  return {
+    connectionStatus: 'connected',
+    schema: 'bitagent_starter_order_operator_evidence_v1',
+    safetyBoundary: 'read_only_no_sign_or_broadcast',
+    observedAt: NOW,
+    approvalAvailable: false,
+    errors: [],
+    preflight: {
+      schema: 'bitagent_tradelayer_starter_order_preflight_v1',
+      status: 'verified',
+      planHash: plan.planHash,
+      evidenceHash: 'd1'.repeat(32),
+      assessedAt: NOW,
+      maxAgeMs: 60000,
+      gates: {
+        independentNodeCount: true,
+        freshSnapshots: true,
+        tx5Active: true,
+        tx5ChainDerived: true,
+        tx5CodeHash: true,
+        intendedProperties: true,
+        walletTlBtcBalance: true,
+        quoteFresh: true,
+        postOnlyExact: true,
+      },
+    },
+    release: {
+      schema: 'bitagent.tradelayer.tx5-release.v1',
+      status: 'deployed',
+      releaseId: 'tradelayer_tx5_release_cross_repo_0001',
+      codeHash: 'd2'.repeat(32),
+    },
+  };
+}
+
 function workflow(wallet: BitAgentWorkflowState['wallet']): BitAgentWorkflowState {
   return {
     id: 'cross_repo_wallet_workflow',
@@ -101,6 +186,7 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
   const statePath = path.join(directory, 'authority.json');
   let now = new Date(NOW);
   let cancellationCount = 0;
+  let activeStarterPlan: StarterOrderPlan | undefined;
   const service = new BitagentWalletAuthorityService({
     brokerToken: TOKEN,
     statePath,
@@ -121,6 +207,7 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
       },
     },
     requireWithdrawalCandidate: true,
+    requireStarterOrderCandidate: true,
     withdrawalCandidateProvider: {
       async prepare(input: any) {
         return {
@@ -159,17 +246,65 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
       },
     },
     executionReleaseId: 'ef'.repeat(32),
+    starterOrderCandidateProvider: {
+      async prepare(input: any) {
+        return {
+          publicCandidate: starterOrderCandidate(input),
+          rawPsbt: `private-starter-order-psbt-${input.plan.planHash}`,
+        };
+      },
+      async cancel(candidate: any) {
+        const core = {
+          schema: 'bitagent_wallet_starter_order_candidate_cancellation_v1' as const,
+          candidateId: candidate.publicCandidate.candidateId,
+          candidateHash: candidate.publicCandidate.candidateHash,
+          cancelledAt: now.toISOString(),
+          inputOutpoints: candidate.publicCandidate.inputUtxos.map(({ txid, vout }: any) => ({ txid, vout })),
+          inputLockReleased: true as const,
+          signingPerformed: false as const,
+          broadcastPerformed: false as const,
+        };
+        return { ...core, receiptHash: hashObject(core) };
+      },
+    } as any,
+    starterOrderExecutionProvider: {
+      async execute(candidate: any) {
+        const core = {
+          schema: 'bitagent_wallet_starter_order_submission_v1' as const,
+          candidateId: candidate.publicCandidate.candidateId,
+          candidateHash: candidate.publicCandidate.candidateHash,
+          planHash: candidate.publicCandidate.planHash,
+          txid: candidate.publicCandidate.unsignedTxid,
+          submittedAt: now.toISOString(),
+          mempoolAccepted: true as const,
+          signingPerformed: true as const,
+          broadcastPerformed: true as const,
+        };
+        return { ...core, receiptHash: hashObject(core) };
+      },
+    },
+    starterOrderExecutionReleaseId: 'ed'.repeat(32),
   });
   const app = fastify({ logger: false, bodyLimit: 64 * 1024 });
-  app.register(createBitagentWalletBrokerRoutes(() => service), { prefix: '/v1/wallet/' });
+  app.register(createBitagentWalletBrokerRoutes(
+    () => service,
+    undefined,
+    async () => activeStarterPlan
+      ? starterOrderPreflight(activeStarterPlan)
+      : { connectionStatus: 'unavailable', preflight: null, release: null, errors: ['plan:missing'] },
+  ), { prefix: '/v1/wallet/' });
   app.register(createBitagentWalletOperatorRoutes(() => service, async () => ({
     connectionStatus: 'unavailable',
     preflight: { status: 'failed' },
     release: { status: 'candidate_not_deployed' },
-  })), { prefix: '/api/bitagent/wallet-authority/' });
+  }), async () => activeStarterPlan
+    ? starterOrderPreflight(activeStarterPlan)
+    : { connectionStatus: 'unavailable', preflight: null, release: null, errors: ['plan:missing'] }), {
+    prefix: '/api/bitagent/wallet-authority/',
+  });
 
   try {
-    const endpoint = await app.listen(0, '127.0.0.1');
+    const endpoint = await app.listen({ port: 0, host: '127.0.0.1' });
     const broker = new RemoteWalletExecutionBroker({ endpoint, authToken: TOKEN });
     const wallet = await broker.connect({
       mode: 'connect',
@@ -275,6 +410,94 @@ test('BitAgent client interoperates with durable TradeLayer wallet withdrawal ca
     assert.ok(Object.values(persisted.withdrawalCandidates).some((candidate: any) =>
       candidate.status === 'submitted'
       && candidate.submission.txid === approvedSimulation.walletCandidate?.unsignedTxid));
+
+    const quote = {
+      quoteId: 'quote_cross_repo_starter_0001',
+      source: 'cross-repo-independent-quote',
+      priceUsd: '50000.00',
+      quotedAt: now.toISOString(),
+      expiresAt: new Date(now.getTime() + 60000).toISOString(),
+    };
+    activeStarterPlan = buildStarterOrderPlan({
+      workflowId: state.id,
+      walletSessionId: wallet.walletSessionId!,
+      walletAddress: wallet.bitcoinAddress!,
+      network: wallet.network,
+      amountSats: '50000',
+      quote,
+    });
+    const directStarterFee = await app.inject({
+      method: 'POST',
+      url: '/v1/wallet/fee-estimate',
+      headers: { authorization: `Bearer ${TOKEN}` },
+      payload: {
+        schema: 'bitagent_wallet_fee_estimate_v1',
+        workflowId: state.id,
+        walletSessionId: wallet.walletSessionId,
+        network: wallet.network,
+        bitcoinAddress: wallet.bitcoinAddress,
+        action: 'starter_strategy',
+        amountSats: '50000',
+        starterOrderPlan: activeStarterPlan,
+      },
+    });
+    assert.equal(directStarterFee.statusCode, 200, directStarterFee.body);
+    const starterFee = await broker.estimateFee({
+      action: 'starter_strategy',
+      amountSats: '50000',
+      starterOrderPlan: activeStarterPlan,
+      state,
+    });
+    assert.equal(starterFee.networkFeeSats, '600');
+    assert.equal(starterFee.source, 'bitcoin-core-decoded-starter-order-psbt');
+    assert.equal(starterFee.starterOrderCandidate?.planHash, activeStarterPlan.planHash);
+    const starterSimulation = simulateStarterStrategy({
+      amountSats: '50000',
+      balanceSats: '250000',
+      tlBtcAvailableSats: '50000',
+      networkFeeSats: starterFee.networkFeeSats,
+      quote,
+      starterOrderPlan: activeStarterPlan,
+      walletCandidate: starterFee.starterOrderCandidate!,
+      now,
+    });
+    const starterApproval: WalletApproval = {
+      id: 'approval_cross_repo_starter_order',
+      action: 'starter_strategy',
+      simulationHash: starterSimulation.hash,
+      status: 'pending',
+      requestedAt: now.toISOString(),
+    };
+    const starterPending = await broker.authorize({
+      approval: starterApproval,
+      simulation: starterSimulation,
+      state,
+    });
+    assert.equal(starterPending.status, 'pending');
+    starterApproval.walletApprovalRequestId = starterPending.walletApprovalRequestId;
+    await service.resolveApproval(starterPending.walletApprovalRequestId!, 'approve', {
+      starterOrderPreflightEvidence: starterOrderPreflight(activeStarterPlan),
+    });
+    const starterApproved = await broker.authorize({
+      approval: starterApproval,
+      simulation: starterSimulation,
+      state,
+    });
+    assert.equal(starterApproved.status, 'approved');
+    if (starterApproved.status !== 'approved') throw new Error('Expected starter-order wallet approval');
+    starterApproval.status = 'approved';
+    starterApproval.walletApprovalToken = starterApproved.walletApprovalToken;
+    const starterExecution = await broker.execute({
+      approval: starterApproval,
+      simulation: starterSimulation,
+      state,
+      now,
+    });
+    assert.equal(starterExecution.status, 'submitted');
+    assert.equal(starterExecution.txid, starterFee.starterOrderCandidate?.unsignedTxid);
+    const finalState = service.listPublicState();
+    assert.equal(finalState.starterOrderCandidates[0].status, 'submitted');
+    assert.equal(finalState.starterOrderCandidates[0].candidate.planHash, activeStarterPlan.planHash);
   } finally {
     await app.close();
     rmSync(directory, { recursive: true, force: true });

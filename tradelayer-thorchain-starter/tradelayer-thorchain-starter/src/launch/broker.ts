@@ -82,17 +82,65 @@ export class ScriptedWalletBroker implements WalletExecutionBroker {
     return { address: validated.address, scriptPubKeyHex: validated.scriptPubKeyHex };
   }
 
-  async estimateFee(input: {
-    action: "fund_starter_strategy" | "starter_strategy" | "withdraw_bitcoin";
-    amountSats: string;
-  }) {
-    return {
-      networkFeeSats: input.action === "withdraw_bitcoin"
+  async estimateFee(
+    input: Parameters<WalletExecutionBroker["estimateFee"]>[0]
+  ): ReturnType<WalletExecutionBroker["estimateFee"]> {
+    const networkFeeSats = input.action === "withdraw_bitcoin"
         ? this.options.withdrawalFeeSats || "600"
         : input.action === "starter_strategy"
         ? this.options.strategyFeeSats || "900"
-        : this.options.strategyFeeSats || "900",
-      source: "scripted-evaluation"
+        : this.options.strategyFeeSats || "900";
+    let starterOrderCandidate;
+    if (input.action === "starter_strategy" && input.starterOrderPlan) {
+      const plan = input.starterOrderPlan;
+      const wallet = validateBitcoinAddress(plan.walletAddress, plan.network);
+      const fee = BigInt(networkFeeSats);
+      const change = 10_000n;
+      const candidateCore = {
+        schema: "bitagent_wallet_starter_order_candidate_v1" as const,
+        workflowId: plan.workflowId,
+        walletSessionId: plan.walletSessionId,
+        network: "bitcoin-testnet4" as const,
+        preparedAt: plan.quote.quotedAt,
+        expiresAt: plan.quote.expiresAt,
+        planHash: plan.planHash,
+        unsignedTxid: hashObject({ kind: "scripted-starter-order-tx", planHash: plan.planHash }),
+        unsignedPsbtHash: hashObject({ kind: "scripted-starter-order-psbt", planHash: plan.planHash }),
+        inputUtxos: [{
+          txid: hashObject({ kind: "scripted-starter-order-input", planHash: plan.planHash }),
+          vout: 0,
+          valueSats: (change + fee).toString(),
+          address: wallet.address,
+          scriptPubKeyHex: wallet.scriptPubKeyHex
+        }],
+        dataOutput: {
+          vout: 0 as const,
+          payload: plan.tradeLayer.payload,
+          payloadHex: plan.tradeLayer.payloadHex,
+          payloadBytes: plan.tradeLayer.payloadBytes
+        },
+        changeOutput: {
+          vout: 1 as const,
+          address: wallet.address,
+          scriptPubKeyHex: wallet.scriptPubKeyHex,
+          valueSats: change.toString()
+        },
+        feeSats: fee.toString(),
+        feeRateSatVb: 2,
+        signingPerformed: false as const,
+        broadcastPerformed: false as const
+      };
+      const candidateHash = hashObject(candidateCore);
+      starterOrderCandidate = {
+        candidateId: `starter_order_candidate_${candidateHash.slice(0, 32)}`,
+        candidateHash,
+        ...candidateCore
+      };
+    }
+    return {
+      networkFeeSats,
+      source: "scripted-evaluation",
+      starterOrderCandidate
     };
   }
 

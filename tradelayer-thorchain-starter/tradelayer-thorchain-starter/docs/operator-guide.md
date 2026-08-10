@@ -305,6 +305,7 @@ $env:BITAGENT_WALLET_BITCOIN_RPC_PORT="<testnet4 RPC port>"
 $env:BITAGENT_WALLET_BITCOIN_WALLET="utxoref-testnet"
 $env:BITAGENT_WALLET_TESTNET_STRATEGY_FEE_SATS="<reviewed candidate fee>"
 $env:BITAGENT_WALLET_TESTNET_MAX_RESERVE_FEE_SATS="3000"
+$env:BITAGENT_WALLET_TESTNET_MAX_STARTER_ORDER_FEE_SATS="3000"
 $env:BITAGENT_WALLET_TESTNET_MAX_WITHDRAWAL_FEE_SATS="3000"
 $env:BITAGENT_WALLET_TESTNET_FEE_RATE_SAT_VB="2"
 $env:BITAGENT_WALLET_CANDIDATE_TTL_MS="120000"
@@ -326,6 +327,21 @@ gate:
 $env:BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_ENABLED="true"
 $env:BITAGENT_WALLET_TESTNET_RESERVE_EXECUTION_RELEASE_ID="<reviewed 64-hex reserve release digest>"
 ```
+
+The tx5 starter order has a third independent release switch. Leave it off
+until the exact tx5 release is deployed and `GET /api/operator/starter-order`
+returns fresh, plan-bound evidence from two independent synchronized nodes:
+
+```powershell
+$env:BITAGENT_WALLET_TESTNET_STARTER_ORDER_EXECUTION_ENABLED="true"
+$env:BITAGENT_WALLET_TESTNET_STARTER_ORDER_EXECUTION_RELEASE_ID="<reviewed 64-hex tx5 release digest>"
+```
+
+The wallet constructs the exact tx5 OP_RETURN carrier privately, exposes only
+its public candidate and PSBT hash, and requires all tx5, property, tlBTC-balance,
+quote-freshness, and post-only parity gates immediately before signing. Neither
+the reserve nor withdrawal switch authorizes this action. The current checked-in
+tx5 release is `candidate_not_deployed`, so this switch must remain off.
 
 The execution provider refuses any network other than testnet4. It consumes
 the exact approval grant before signing, re-decodes and compares the finalized

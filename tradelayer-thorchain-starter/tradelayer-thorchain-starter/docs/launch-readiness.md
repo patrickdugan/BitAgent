@@ -1598,3 +1598,23 @@ Release-bound onboarding MVP audit (2026-08-09):
   deployment-enabled. The wallet still has no TradeLayer starter-order
   execution provider, while the live intake/DLC seams remain provisional. No
   test or demo moved funds, signed, submitted, or broadcast a transaction.
+
+Tx5 starter-order wallet candidate audit (2026-08-09):
+
+- implemented an exact, typed quote-to-tx5 plan and wallet-private testnet4 PSBT
+  candidate, plus approval, execution, verification handoff, cancellation,
+  expiry, idempotency, and interrupted-session recovery;
+- added fresh plan-bound independent-node preflight and a sanitized operator
+  evidence endpoint. Every tx5/property/balance/quote/post-only gate fails closed;
+- the isolated commit passes 197/197 release-aware tests, 24/24 scripted
+  end-to-end trajectories, 51/51 focused agent cases, TypeScript, build, and
+  the cross-repo BitAgent/wallet integration test. The broader working tree's
+  separate referral and compliance suites pass 38/38 and 18/18;
+- no signing, broadcast, or live wallet mutation occurred. Scripted MVP status
+  is ready; funded status is blocked. The tx5/tx11 release remains
+  `candidate_not_deployed`, independent on-chain verification is absent, and
+  the wallet's separate execution switches remain off by default;
+- remaining critical path: deploy the reviewed TradeLayer release, capture fresh
+  parity from two independent nodes, run a separately approved low-value
+  testnet4 tx5 carrier, verify the resulting order through the independent
+  TradeLayer source, then complete the already-gated PnL and withdrawal journey.

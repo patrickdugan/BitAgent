@@ -62,6 +62,10 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
       candidatePath: path.join(missingEvidenceRoot, "candidate.json"),
       preflightPath: path.join(missingEvidenceRoot, "preflight.json"),
       releasePath: path.join(missingEvidenceRoot, "release.json")
+    },
+    starterOrderOperatorEvidencePaths: {
+      preflightPath: path.join(missingEvidenceRoot, "starter-order-preflight.json"),
+      releasePath: path.join(missingEvidenceRoot, "starter-order-release.json")
     }
   });
   await new Promise<void>((resolve, reject) => {
@@ -119,6 +123,21 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
     };
     assert.equal(reserveResult.result.safetyBoundary, "read_only_no_sign_or_broadcast");
     assert.equal(reserveResult.result.approvalAvailable, false);
+
+    const starterOrderResponse = await fetch(`${origin}/api/operator/starter-order`);
+    assert.equal(starterOrderResponse.status, 200);
+    const starterOrderEnvelope = await starterOrderResponse.json() as { data: {
+      safetyBoundary: string;
+      approvalAvailable: boolean;
+      preflight: unknown;
+      release: unknown;
+      errors: string[];
+    } };
+    assert.equal(starterOrderEnvelope.data.safetyBoundary, "read_only_no_sign_or_broadcast");
+    assert.equal(starterOrderEnvelope.data.approvalAvailable, false);
+    assert.equal(starterOrderEnvelope.data.preflight, null);
+    assert.equal(starterOrderEnvelope.data.release, null);
+    assert.deepEqual(starterOrderEnvelope.data.errors, ["preflight:missing", "release:missing"]);
 
     const reserveWithModelPath = await fetch(
       `${origin}/api/tools/${encodeURIComponent("bitagent.operator.reserve_intake")}`,

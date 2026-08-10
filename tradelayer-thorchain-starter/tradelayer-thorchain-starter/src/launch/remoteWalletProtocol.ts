@@ -5,7 +5,9 @@ import { verifyReserveIntakePlan, type ReserveIntakePlan } from "./reserveIntake
 import type {
   BitAgentWorkflowState,
   LaunchErrorCode,
+  StarterOrderPlan,
   WalletReserveIntakeCandidate,
+  WalletStarterOrderCandidate,
   WalletWithdrawalCandidate
 } from "./types.js";
 
@@ -343,6 +345,117 @@ export function validatedReserveIntakeCandidate(input: {
   const candidateId = `reserve_candidate_${candidateHash.slice(0, 32)}`;
   if (candidate.candidateHash !== candidateHash || candidate.candidateId !== candidateId) {
     throw new LaunchKernelError("state_conflict", "Wallet reserve candidate hash is invalid");
+  }
+  return { candidateId, candidateHash, ...core };
+}
+
+export function validatedStarterOrderCandidate(input: {
+  value: unknown;
+  plan: StarterOrderPlan;
+  workflowId: string;
+  walletSessionId: string;
+  network: "bitcoin" | "bitcoin-testnet4";
+  walletAddress: string;
+  networkFeeSats: string;
+}): WalletStarterOrderCandidate {
+  const candidate = record(input.value, "starter-order candidate");
+  const plan = input.plan;
+  if (candidate.schema !== "bitagent_wallet_starter_order_candidate_v1"
+    || input.network !== "bitcoin-testnet4"
+    || candidate.network !== input.network
+    || candidate.workflowId !== input.workflowId
+    || candidate.walletSessionId !== input.walletSessionId
+    || candidate.planHash !== plan.planHash
+    || candidate.signingPerformed !== false
+    || candidate.broadcastPerformed !== false) {
+    throw new LaunchKernelError("state_conflict", "Wallet starter-order candidate authority binding is invalid");
+  }
+
+  const rawInputs = Array.isArray(candidate.inputUtxos) ? candidate.inputUtxos : [];
+  if (rawInputs.length !== 1) {
+    throw new LaunchKernelError("provider_unavailable", "Wallet starter-order candidate must expose one exact input");
+  }
+  const rawInput = record(rawInputs[0], "starter-order candidate input");
+  const connectedWallet = validatedProviderBitcoinAddress(input.walletAddress, input.network);
+  const inputAddress = validatedProviderBitcoinAddress(rawInput.address, input.network);
+  const parsedInput = {
+    txid: boundedWalletText(rawInput.txid, "starter-order input txid", TXID_PATTERN),
+    vout: Number(rawInput.vout),
+    valueSats: canonicalWalletSats(rawInput.valueSats, "starter-order input value"),
+    address: inputAddress.address,
+    scriptPubKeyHex: candidateScript(rawInput.scriptPubKeyHex, "starter-order input script")
+  };
+  if (!Number.isSafeInteger(parsedInput.vout) || parsedInput.vout < 0
+    || parsedInput.address !== connectedWallet.address
+    || parsedInput.scriptPubKeyHex !== inputAddress.scriptPubKeyHex) {
+    throw new LaunchKernelError("state_conflict", "Wallet starter-order candidate input is not the connected wallet input");
+  }
+
+  const rawData = record(candidate.dataOutput, "starter-order data output");
+  const dataOutput = {
+    vout: Number(rawData.vout) as 0,
+    payload: String(rawData.payload || ""),
+    payloadHex: String(rawData.payloadHex || "").toLowerCase(),
+    payloadBytes: Number(rawData.payloadBytes)
+  };
+  if (dataOutput.vout !== 0
+    || dataOutput.payload !== plan.tradeLayer.payload
+    || dataOutput.payloadHex !== plan.tradeLayer.payloadHex.toLowerCase()
+    || dataOutput.payloadBytes !== plan.tradeLayer.payloadBytes) {
+    throw new LaunchKernelError("state_conflict", "Wallet starter-order data output differs from the exact tx5 plan");
+  }
+
+  const rawChange = record(candidate.changeOutput, "starter-order change output");
+  const change = validatedProviderBitcoinAddress(rawChange.address, input.network);
+  const changeOutput = {
+    vout: Number(rawChange.vout) as 1,
+    address: change.address,
+    scriptPubKeyHex: candidateScript(rawChange.scriptPubKeyHex, "starter-order change script"),
+    valueSats: canonicalWalletSats(rawChange.valueSats, "starter-order change value")
+  };
+  if (changeOutput.vout !== 1
+    || changeOutput.address !== connectedWallet.address
+    || changeOutput.scriptPubKeyHex !== connectedWallet.scriptPubKeyHex
+    || BigInt(changeOutput.valueSats) < 546n) {
+    throw new LaunchKernelError("state_conflict", "Wallet starter-order change is not dust-safe wallet-owned change");
+  }
+
+  const preparedAt = walletIsoTime(candidate.preparedAt, "starter-order preparedAt");
+  const expiresAt = walletIsoTime(candidate.expiresAt, "starter-order expiresAt");
+  const feeRateSatVb = Number(candidate.feeRateSatVb);
+  const feeSats = canonicalWalletSats(candidate.feeSats, "starter-order fee");
+  if (preparedAt !== candidate.preparedAt || expiresAt !== candidate.expiresAt
+    || Date.parse(expiresAt) <= Date.parse(preparedAt)
+    || Date.parse(expiresAt) > Date.parse(plan.quote.expiresAt)
+    || !Number.isSafeInteger(feeRateSatVb) || feeRateSatVb < 1 || feeRateSatVb > 1000
+    || feeSats !== canonicalWalletSats(input.networkFeeSats, "networkFeeSats")
+    || BigInt(feeSats) <= 0n
+    || BigInt(parsedInput.valueSats) !== BigInt(changeOutput.valueSats) + BigInt(feeSats)) {
+    throw new LaunchKernelError("state_conflict", "Wallet starter-order candidate fee or arithmetic is invalid");
+  }
+
+  const core = {
+    schema: "bitagent_wallet_starter_order_candidate_v1" as const,
+    workflowId: input.workflowId,
+    walletSessionId: input.walletSessionId,
+    network: "bitcoin-testnet4" as const,
+    preparedAt,
+    expiresAt,
+    planHash: plan.planHash,
+    unsignedTxid: boundedWalletText(candidate.unsignedTxid, "starter-order unsigned txid", TXID_PATTERN),
+    unsignedPsbtHash: boundedWalletText(candidate.unsignedPsbtHash, "starter-order unsigned PSBT hash", TXID_PATTERN),
+    inputUtxos: [parsedInput],
+    dataOutput,
+    changeOutput,
+    feeSats,
+    feeRateSatVb,
+    signingPerformed: false as const,
+    broadcastPerformed: false as const
+  };
+  const candidateHash = hashObject(core);
+  const candidateId = `starter_order_candidate_${candidateHash.slice(0, 32)}`;
+  if (candidate.candidateHash !== candidateHash || candidate.candidateId !== candidateId) {
+    throw new LaunchKernelError("state_conflict", "Wallet starter-order candidate hash is invalid");
   }
   return { candidateId, candidateHash, ...core };
 }
