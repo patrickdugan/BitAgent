@@ -13,6 +13,24 @@ import {
   type Tx11ReleaseSourceCandidate
 } from "../src/launch/tradelayerReleaseSource.js";
 
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log(`Usage: npm run demo:onboard -- [options]
+
+Runs the read-only release-source gate before the onboarding demo. The demo
+obtains a fresh quote but never signs, broadcasts, or moves funds.
+
+Required environment:
+  DEST_BTC_ADDRESS or DEST_LTC_ADDRESS   destination address for the quote
+
+Optional environment:
+  NEAR_INTENTS_REFUND_ADDRESS             origin-wallet refund address for NEAR Intents
+  AMOUNT_IN_TOKEN_UNITS                   quote amount (default is demo-only)
+  SOURCE_ASSET, SOURCE_CHAIN, DEST_ASSET  supported quote overrides
+
+Use npm run preflight:launch:release for the release gate only.`);
+  process.exit(0);
+}
+
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
 const configRoot = path.join(root, "config");
