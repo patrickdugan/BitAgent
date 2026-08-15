@@ -51,7 +51,7 @@ Start the existing BitAgent launch kernel on the host at port 8787. The debug
 APK uses the Android-emulator host alias:
 
 ```powershell
-cd C:\projects\BitAgent\BitAgent\tradelayer-thorchain-starter\tradelayer-thorchain-starter
+cd C:\projects\BitAgent\BitAgent\apps\bitagent-launch-kernel
 npm run launch
 ```
 

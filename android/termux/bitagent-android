@@ -17,8 +17,8 @@ find_project_root() {
     fi
   fi
   for candidate in \
-    "$HOME/BitAgent/tradelayer-thorchain-starter/tradelayer-thorchain-starter" \
-    "$HOME/BitAgent/BitAgent/tradelayer-thorchain-starter/tradelayer-thorchain-starter"
+    "$HOME/BitAgent/apps/bitagent-launch-kernel" \
+    "$HOME/BitAgent/BitAgent/apps/bitagent-launch-kernel"
   do
     if [[ -f "$candidate/package.json" ]]; then
       printf '%s\n' "$candidate"

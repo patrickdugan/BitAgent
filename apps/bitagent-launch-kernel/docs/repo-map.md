@@ -348,7 +348,7 @@ not part of this user journey.
 
 ## Discovery
 
-- Starter repo: `C:\projects\BitAgent\BitAgent\tradelayer-thorchain-starter\tradelayer-thorchain-starter`
+- BitAgent launch kernel: `C:\projects\BitAgent\BitAgent\apps\bitagent-launch-kernel`
 - `UTXO-Ref`: `C:\projects\UTXORef\UTXO-Ref`
 - `tradelayer.js`: `C:\projects\tradelayer.js`
 - `tradelayer-wallet`: `C:\projects\TLWallet\tradelayer-wallet`

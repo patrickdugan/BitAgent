@@ -37,13 +37,13 @@ web content or from a model. There is still no JavaScript-to-native bridge.
    ```
 
 4. Put this BitAgent repository in Termux. The launcher recognizes either
-   `~/BitAgent/tradelayer-thorchain-starter/tradelayer-thorchain-starter` or
+   `~/BitAgent/apps/bitagent-launch-kernel` or
    the same path with an additional `BitAgent` component. For another location,
    set `BITAGENT_ANDROID_ROOT` in the Termux environment.
 5. Install the Node dependencies and reviewed launcher:
 
    ```bash
-   cd ~/BitAgent/tradelayer-thorchain-starter/tradelayer-thorchain-starter
+   cd ~/BitAgent/apps/bitagent-launch-kernel
    npm ci
    install -m 700 ~/BitAgent/android/termux/bitagent-android "$PREFIX/bin/bitagent-android"
    ```
