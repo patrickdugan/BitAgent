@@ -15,6 +15,7 @@ const skillsRoot = path.join(root, "skills");
 const skillNames = [
   "agent-financial-survival",
   "bitagent-compliance",
+  "bitagent-hermes-launch",
   "bitagent-marketing-coach",
   "tradelayer-collateral-lifecycle"
 ] as const;

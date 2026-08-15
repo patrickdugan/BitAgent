@@ -1,0 +1,48 @@
+{
+  "schema": "bitagent.skill_mcp12k_resource_manifest.v1",
+  "skill": "bitagent-hermes-launch",
+  "context": {
+    "mode": "mcp_intensive_12k",
+    "hardContextTokens": 12000,
+    "fixedOverheadMaxTokens": 2400,
+    "toolSchemaMaxTokens": 2000,
+    "workingPacketMaxTokens": 4000,
+    "toolResultReserveTokens": 1500,
+    "outputReserveTokens": 1024,
+    "safetyMarginTokens": 1076,
+    "externalSummaryMaxTokens": 6000,
+    "summarySliceMaxTokens": 800,
+    "targetActiveTools": 3,
+    "maxActiveTools": 3,
+    "maxToolRounds": 3,
+    "maxToolCalls": 6,
+    "maxResourceHandles": 5,
+    "maxFailureReplays": 1,
+    "rawResultsInline": false,
+    "rawTranscriptsInline": false
+  },
+  "authority": {
+    "candidateOnly": true,
+    "roleOwner": "deterministic_host",
+    "stateTruth": "deterministic_host_and_independent_observers",
+    "approval": false,
+    "signing": false,
+    "broadcast": false,
+    "execution": false,
+    "retry": false
+  },
+  "resources": [
+    { "id": "authority_contract", "path": "references/authority-contract.md", "kind": "contract" },
+    { "id": "runtime_policy", "path": "references/runtime-policy.md", "kind": "runtime_policy" },
+    { "id": "workflow_state", "uri": "mcp://bitagent/workflows/{workflowId}", "kind": "durable_state" },
+    { "id": "wallet_public_state", "uri": "mcp://bitagent/wallet-authority/{walletSessionId}", "kind": "public_evidence" },
+    { "id": "evidence_ledger", "uri": "mcp://bitagent/evidence/{sha256}", "kind": "external_hash_bound_artifact" }
+  ],
+  "phasePackets": [
+    { "phase": "resume", "role": "recovery_operator", "tools": ["bitagent.workflow.get", "bitagent.action.verify"], "resources": ["authority_contract", "workflow_state", "evidence_ledger"] },
+    { "phase": "deposit", "role": "intent_planner", "tools": ["bitagent.deposit.prepare", "bitagent.deposit.observe", "bitagent.workflow.get"], "resources": ["authority_contract", "workflow_state", "wallet_public_state"] },
+    { "phase": "strategy", "role": "utxo_tradelayer_specialist", "tools": ["bitagent.signal.simulate", "bitagent.strategy.simulate", "bitagent.workflow.get"], "resources": ["authority_contract", "runtime_policy", "workflow_state", "evidence_ledger"] },
+    { "phase": "approval_recovery", "role": "risk_approval_guard", "tools": ["bitagent.workflow.get", "bitagent.action.verify"], "resources": ["authority_contract", "workflow_state", "wallet_public_state"] },
+    { "phase": "withdrawal", "role": "intent_planner", "tools": ["bitagent.withdraw.simulate", "bitagent.workflow.get"], "resources": ["authority_contract", "workflow_state", "wallet_public_state", "evidence_ledger"] }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "BitAgent Hermes Launch"
+  short_description: "Run the bounded candidate-only launch workflow"
+  default_prompt: "Use $bitagent-hermes-launch to select the current BitAgent lifecycle phase, build a bounded 12k candidate packet, and stop at the exact wallet approval boundary."
