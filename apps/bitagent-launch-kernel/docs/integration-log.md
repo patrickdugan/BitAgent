@@ -2646,3 +2646,30 @@ Multi-turn K-factor benchmark completed (2026-08-11):
 - TypeScript still reports only the pre-existing compliance policy expiry
   error noted above. No base or candidate model outputs were generated, so the
   benchmark is runnable but no adapter-performance claim is made.
+
+MVP handoff and Hermes coordinator audit (2026-08-15):
+
+- added the repo-native `bitagent-hermes-launch` skill. It coordinates the
+  existing lifecycle, compliance, financial-survival, and mobile skills without
+  creating a second workflow. Its MCP-intensive packet contract is inclusive of
+  the 12k context limit, allows at most three active reviewed tools per round,
+  and keeps approval, signing, broadcast, execution, secrets, and raw wallet
+  material outside model authority;
+- added the repository-root operator README with local startup, public
+  submodule clone, safety boundary, local 3050 thermal envelope, and explicit
+  funded-launch prerequisites. The release remains a supervised
+  scripted/testnet candidate, not an autonomous or funded trading deployment;
+- `npm run test:skills` passed 18/18 and `npm run eval:launch` passed 51/51
+  with all eight evaluated dimensions at 1.0. These checks cover the new skill
+  and the focused intent/tool/approval/recovery/anti-secret boundary;
+- independent read-only release verification reported
+  `sourceVerified=false`, `deploymentVerified=false`, and `executable=false`.
+  The local source does not match the sealed tx11 manifest, so the release gate
+  deliberately fails closed. Detailed verification receipts remain local;
+  this repo must not rewrite the external source or manifest without a
+  separately reviewed release decision;
+- a read-only local testnet4 wallet inspection reached the configured CLI but
+  could not observe the local Core service. No signing, broadcast, wallet
+  mutation, key access, or secret output occurred. Restore the operator-owned
+  Core service and loopback RPC configuration before the next real testnet
+  rehearsal.
