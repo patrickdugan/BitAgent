@@ -1,0 +1,109 @@
+{
+  "schema": "bitagent.skill_mcp12k_resource_manifest.v1",
+  "skill": "bitagent-compliance",
+  "context": {
+    "mode": "mcp_intensive_12k",
+    "hardContextTokens": 12000,
+    "fixedOverheadMaxTokens": 2400,
+    "toolSchemaMaxTokens": 1800,
+    "workingPacketMaxTokens": 3900,
+    "toolResultReserveTokens": 1700,
+    "outputReserveTokens": 1100,
+    "safetyMarginTokens": 1100,
+    "targetActiveTools": 2,
+    "maxActiveTools": 2,
+    "maxToolRounds": 3,
+    "maxToolCalls": 4,
+    "rawResultsInline": false,
+    "rawTranscriptsInline": false
+  },
+  "authority": {
+    "candidateOnly": true,
+    "approval": false,
+    "signing": false,
+    "broadcast": false,
+    "execution": false,
+    "stateTruth": "signed_policy_and_deterministic_host"
+  },
+  "mcpStatus": "ready_deterministic_wrapper",
+  "wrapper": {
+    "source": "src/compliance/tools.ts#ComplianceToolRegistry",
+    "policyProviderOwner": "deterministic_host",
+    "rawContactsInArguments": false,
+    "messageHistoryInArguments": false,
+    "walletSecretsInArguments": false
+  },
+  "entrypoints": [
+    {
+      "id": "policy_lookup",
+      "source": "src/compliance/policy.ts#getJurisdictionPolicy",
+      "effect": "none"
+    },
+    {
+      "id": "evaluate",
+      "source": "src/compliance/policy.ts#evaluateComplianceDecision",
+      "effect": "none"
+    },
+    {
+      "id": "audit_verify",
+      "source": "src/compliance/audit.ts#verifyComplianceAuditLog",
+      "effect": "none"
+    }
+  ],
+  "tools": [
+    {
+      "id": "policy_lookup",
+      "name": "get_jurisdiction_policy",
+      "source": "src/compliance/tools.ts#complianceToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "evaluate",
+      "name": "bitagent.compliance.evaluate",
+      "source": "src/compliance/tools.ts#complianceToolSchemas",
+      "effect": "none"
+    }
+  ],
+  "phasePackets": [
+    {
+      "phase": "collect_minimum_facts",
+      "entrypoints": ["evaluate"],
+      "resources": ["policy_contract"]
+    },
+    {
+      "phase": "lookup_and_evaluate",
+      "tools": ["get_jurisdiction_policy", "bitagent.compliance.evaluate"],
+      "resources": ["policy_contract"]
+    },
+    {
+      "phase": "referral_or_outreach",
+      "tools": ["get_jurisdiction_policy", "bitagent.compliance.evaluate"],
+      "resources": ["policy_contract", "referral_controls", "enforcement_map"]
+    },
+    {
+      "phase": "audit_or_recover",
+      "entrypoints": ["audit_verify", "evaluate"],
+      "resources": ["policy_contract", "enforcement_map"]
+    }
+  ],
+  "resources": [
+    {
+      "id": "policy_contract",
+      "path": "skills/bitagent-compliance/references/policy-contract.md"
+    },
+    {
+      "id": "referral_controls",
+      "path": "skills/bitagent-compliance/references/referral-outreach-controls.md"
+    },
+    {
+      "id": "enforcement_map",
+      "path": "skills/bitagent-compliance/references/enforcement-map.md"
+    }
+  ],
+  "externalEvidence": [
+    "signed_jurisdiction_policy",
+    "verified_account_facts",
+    "human_authorization_receipt",
+    "compliance_audit_log"
+  ]
+}

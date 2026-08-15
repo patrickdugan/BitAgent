@@ -1,0 +1,4 @@
+interface:
+  display_name: "BitAgent Compliance"
+  short_description: "Policy-gate BitAgent products and referrals"
+  default_prompt: "Use $bitagent-compliance to obtain the authoritative jurisdiction policy and return a fail-closed compliance decision before trading, leverage, referral, outreach, or operator actions."

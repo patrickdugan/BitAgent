@@ -3,7 +3,8 @@ import test from "node:test";
 import { ScriptedWalletBroker } from "../src/launch/broker.js";
 import { validateBitcoinAddress } from "../src/launch/bitcoin.js";
 import { hashObject } from "../src/launch/canonical.js";
-import { createTestLaunchKernel } from "../src/launch/factory.js";
+import { createScriptedReferralLinkService, createTestLaunchKernel } from "../src/launch/factory.js";
+import { AcquisitionMode, InvitationActor } from "../src/referral/types.js";
 import type {
   BitAgentWorkflowState,
   StrategyFundingEvidence,
@@ -130,11 +131,16 @@ async function fundedKernel(referral = false) {
     reserveIntake: { operatorXonly: OPERATOR, guardianXonly: GUARDIAN, propertyId: 1 }
   });
   const workflowId = referral ? "reserve-kernel-referral" : "reserve-kernel-cancel";
+  const referralLink = referral
+    ? createScriptedReferralLinkService().issue({
+      referrerPrincipalId: "alice",
+      acquisitionMode: AcquisitionMode.HUMAN_MANUAL_SHARE,
+      invitationActor: InvitationActor.HUMAN
+    }).url
+    : undefined;
   await kernel.start({
     workflowId,
-    referralLink: referral
-      ? "https://bitagent.local/?ref=alice&campaign=reserve&workflow=strategy&strategy=starter-v1"
-      : undefined
+    referralLink
   });
   await kernel.connectWallet(workflowId, { mode: "create" });
   await kernel.prepareDeposit(workflowId);

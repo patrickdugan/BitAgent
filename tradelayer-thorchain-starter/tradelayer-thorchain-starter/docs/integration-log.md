@@ -1,5 +1,64 @@
 # Integration Log
 
+## Phone-first referral discovery and design (2026-08-09)
+
+- Confirmed there is no authoritative sponsor fee split, referral vesting
+  ledger, contact provider, or native Android/iOS shell in the starter.
+- Located the existing fee display/verification lifecycle in the launch kernel,
+  hash-linked treasury journal, agent capability leases, atomic JSON stores,
+  wallet activity feed, responsive launch UI, and Node/tsx test conventions.
+- Located the sibling TradeLayer liquidity reward/vesting path at
+  `volumeIndex.js`, `logic.js`/`orderbook.js`, and `tally.js`. It is provisional
+  for sponsor settlement because current values cross JavaScript `number`
+  boundaries; referral fee math remains `bigint` and the live credit call is a
+  typed host-owned seam.
+- The legacy launch referral URL exposes referrer/campaign/workflow/strategy
+  fields. It conflicts with the opaque signed-link and covert-channel
+  requirements and will be replaced, with affected tests and launch UI
+  migrated.
+- Assumption: this repo's authoritative settlement clock is Bitcoin/testnet4
+  height (`BitcoinDepositState.blockHeight` and listener verification), so the
+  one-year referral term is derived from the configured 600-second target
+  cadence rather than embedding a block-count literal.
+- Constraint: raw contact state is local-only. The server registry and SQL
+  migration contain no names, phone numbers, emails, photos, contact
+  membership, or message text.
+- Constraint from the BitAgent authority contract: the Growth Agent may propose
+  a share action but has no sending effect; the OS and human retain final-send
+  authority.
+
+## Phone-first referral implementation receipt (2026-08-09)
+
+- Added the one-hop registry, signed canonical invitations, integer cumulative
+  50/25/5/20 ppm settlement, principal-controlled vesting assignments,
+  activation/expiry/reorganization handling, audited administrative recovery,
+  atomic persistence, and aggregate wallet activity under `src/referral/`.
+- Replaced the launch kernel's free-form referral query with the exact
+  `invitation`, `policy`, and `sig` allowlist. Wallet creation, deposit, and
+  strategy verification leave attribution pending; only the independent
+  canonical fee-settlement adapter can activate it.
+- Added the local permission ladder, device-salted contact vault, explicit-label
+  ranker, pseudonymized hosted-model projection, validated bilingual messages,
+  native-share candidate, campaign suppression, and separate Growth/Trading/
+  recipient capability contexts.
+- Added the phone-first `launch-ui/referrals.html` surface, SQLite migration,
+  deployment/jurisdiction gate list, and `demo:referral` fixture.
+- `npx tsc --noEmit` passes. `npm run test:referral` passes 38/38. The three
+  affected launch files pass 42/42. `npm test` passes 1/1. `npm run
+  demo:referral` exits 0 and demonstrates self reference, human referral,
+  agent-assisted human sending, exact $5 sponsor value at $1 million, and
+  expiry back to self.
+- The concurrently added shared compliance suites also pass 17/17 after the
+  referral disclosure was tightened to require the one-year term.
+- The complete `npm run test:launch` gate passes 192/193. Its only failure is
+  the unrelated exact-source release pin: the sibling TradeLayer checkout is at
+  commit `21b995900fb71ad6ae52753bb355d83b2c7289a6` with code hash
+  `a7f78108c4c8a33172997cebbebb9bca276c71283af1df3b17b723cd31db826b`,
+  producing `consensus_source_file_order_mismatch`,
+  `consensus_source_hash_mismatch`, and
+  `current_tradelayer_commit_not_deployment_commit`. The gate remains closed;
+  no sibling source or release manifest was changed.
+
 ## Committed Signal Execution Receipt (2026-07-26)
 
 - Inspected both candidate algorithm locations. `C:\projects\trading-algos`
@@ -2299,3 +2358,291 @@ Exclusive Bonsai runtime screening completion (2026-08-09):
   BitAgent remains `operatorReady=false`, `modelAvailable=false`, and
   incapable of wallet or chain action until the exact Hermes approval, live
   three-intent sidecar validation, and separate product approval all pass.
+
+BitAgent compliance skill and deterministic policy boundary (2026-08-09):
+
+- added the Hermes-compatible `skills/bitagent-compliance` package with a
+  bounded 12k retrieval manifest, signed-policy contract, referral/outreach
+  controls, and a source-level enforcement map;
+- added deterministic jurisdiction lookup and decision code that verifies an
+  external policy envelope through a host-supplied signature verifier, binds
+  residence/current-location/user-type, rejects expiry and version drift, and
+  fails closed to view-only/setup mode;
+- product classification now prevents perpetual exposure from being relabeled
+  as spot, synthetic, or a tokenized position. Leverage changes require the
+  minimum of jurisdiction, user, strategy, and protocol caps;
+- reused the existing one-hop referral registry, fee engine, signed link,
+  local contact projection, native-share boundary, and Growth/Trading context
+  isolation. Contact labels now reject unknown/sensitive ranking features at
+  runtime, and link copy includes the full 0.05 bp, $0.50/$100k, $5/$1m, and
+  variable vesting-token disclosures;
+- added hash-linked sanitized compliance audit events, explicit role
+  capability allowlists, session-scoped vulnerability handling, operator key
+  exclusion, and joint-signal propagation review that never freezes funds from
+  one correlation;
+- TypeScript, 18 compliance tests, 38 referral tests, and 18 skill tests pass.
+  These tests use a stub policy provider/verifier; the signed production
+  jurisdiction service, key rotation, durable audit sink, legal table owner,
+  wallet decision-hash gate, localized disclosure corpus, and configured
+  propagation thresholds remain unresolved production seams.
+- two clean-context skill forward tests also passed: a timed-out
+  Chile-residence/Argentina-location perps request stayed `REQUIRE_REVIEW` with
+  no leverage, and a debt-targeted auto-send/$5-per-signup/strategy-URL request
+  was blocked without weakening the human-send or canonical-link boundary.
+
+Wallet-owned tx5 starter-order vertical slice (2026-08-09):
+
+- the kernel now builds a deterministic `bitagent_starter_order_plan_v1` from
+  the real TradeLayer tx5 encoder before asking the wallet for a fee. The plan
+  binds quote, tlBTC/tlUSD properties, integer amounts, exact `tl5...` payload,
+  post-only semantics, workflow/session identity, and output order;
+- a clean `tradelayer-wallet` candidate branch constructs and decodes an exact
+  testnet4 PSBT with tx5 data at vout 0 and positive wallet-owned change at vout
+  1. It retains the PSBT privately and returns only a hash-bound public candidate;
+- wallet approval, one-time grant consumption, re-decode-before-sign, mempool
+  policy, submission receipt, idempotency, ambiguous-result reconciliation,
+  expiry/rejection cleanup, and durable resume are implemented for this action;
+- approval and execution require fresh plan-specific evidence from two
+  independent TradeLayer nodes. Tx5 activation/code, intended properties,
+  wallet tlBTC balance, quote freshness, and exact post-only parity all fail
+  closed. A Bitcoin broadcast is never treated as proof that the order exists;
+- TypeScript, build, 198/198 release tests, 24/24 scripted trajectories, 51/51
+  agent cases, 38/38 referral tests, 18/18 compliance tests, and the cross-repo
+  BitAgent-to-wallet conformance flow pass. No test signed or broadcast;
+- scripted launch remains ready. Funded execution remains blocked because the
+  reviewed release is `candidate_not_deployed`, independent deployment/listener
+  evidence is absent, and all wallet execution switches remain default-off.
+
+TradeLayer Mobile Android vertical slice (2026-08-10):
+
+- installed Temurin JDK 17.0.20+8, Android command-line tools 22.0, SDK platform
+  36, build-tools 36.0.0, platform-tools 37.0.1, and Gradle 9.4.1 under
+  `D:\Android`; accepted SDK licenses and kept the project SDK path untracked;
+- added a phone-first Android shell with separate TradeLayer and BitAgent
+  capability domains. TL Web is bundled behind `WebViewAssetLoader`; BitAgent
+  defaults to the emulator host in debug and requires an origin-only HTTPS URL
+  for release. There is no JavaScript interface, native signing, approval,
+  broadcast, wallet-secret, or RPC bridge;
+- added deterministic TL Web packaging from
+  `C:\projects\TL-Web-main\packages\web-ui\dist`. It validates CSP and the
+  reviewed algorithm allowlist, excludes maps and legacy signing utilities,
+  injects a phone CSS layer, and emits per-file SHA-256 provenance. The verified
+  input was commit `fec431a3e4a7be1e1697b18664753dc1ba83c27b` with its existing
+  dirty-state flag preserved;
+- hardened both WebViews against file/content access, mixed content, TLS bypass,
+  client certificates, geolocation, permission requests, popups, file picking,
+  downloads, third-party cookies, and internal-origin escape. Navigation unit
+  tests include raw, encoded, and double-encoded traversal cases;
+- `node scripts/verify-dist-security.cjs` in TL Web passed. Android
+  `.\build.ps1` passed source-policy verification, 4 JVM navigation-policy test
+  methods, lint with warnings as errors, app and instrumentation APK assembly,
+  and post-build APK inspection. The final warning-clean rerun reported
+  `BUILD SUCCESSFUL in 30s`, 78 tasks (15 executed, 63 up-to-date);
+- the debug APK is 4,949,365 bytes with SHA-256
+  `1B6B04C436F639154AB582100619358ADE886EED335E447766D4E1CD2555C7A3`.
+  It targets API 36, supports API 24+, verifies with APK signature scheme v2,
+  and contains only `INTERNET` plus AndroidX's package-private signature
+  permission. All required TL Web/mobile assets and no forbidden artifacts were
+  found in the binary;
+- release URL validation rejected a missing URL and
+  `http://agent.example/path?model=hidden` with exit 1, and accepted the
+  origin-only `https://agent.tradelayer.org` with `BUILD SUCCESSFUL in 14s`;
+- `adb devices -l` found no attached device. The two instrumentation tests are
+  compiled into a 598,701-byte test APK but were not executed. A public
+  authenticated BitAgent endpoint, production signing/Play configuration, and
+  runtime device evidence remain deployment gates. About 0.85 GiB remains on
+  `D:`; no emulator image was installed, and attempted installer cleanup was
+  rejected before deletion.
+
+Android on-demand model distribution and device verification (2026-08-10):
+
+- wrote `docs/android-on-device-model-design.md` before implementation and
+  added `android/model-package.lock.json`. The APK contains no weights and no
+  Hugging Face credential. An explicit native Model tab requires the missing
+  artifact bytes plus a deterministic 268,435,456-byte reserve before enabling
+  download;
+- pinned the public Apache-2.0 base
+  `prism-ml/Bonsai-8B-gguf@48516770dd04643643e9f9019a2a349cf26c5dbd`
+  at 1,158,654,496 bytes / SHA-256 `284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54`;
+  published the 87,329,024-byte BitAgent v3 GGUF LoRA at
+  `AlephFunk/bitagent-bonsai8b-dagv2-lora-v3@ee2937fb58d87bbd155cd205c43dc8103b51eac2`,
+  SHA-256 `9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704`.
+  Unauthenticated HF metadata returned the same revisions, sizes, hashes, and
+  the allowlisted `us.aws.cdn.hf.co` delivery host;
+- implemented fixed-manifest HTTPS redirects, range resume, streaming SHA-256,
+  exact length checks, `.part` files, same-directory finalize, a package marker,
+  cancel, and deletion under `getNoBackupFilesDir()`. Web content cannot choose
+  URLs, model IDs, filenames, revisions, or hashes, and receives no model path
+  or new native bridge;
+- direct JUnit execution reported `OK (5 tests)`. The Gradle
+  `testDebugUnitTest lintDebug` run reported `BUILD SUCCESSFUL in 17m 29s`, 33
+  tasks; `assembleDebug assembleDebugAndroidTest` reported `BUILD SUCCESSFUL in
+  5m 59s`, 65 tasks. The final warning-clean rerun after narrowing the deletion
+  disclosure reported `BUILD SUCCESSFUL in 1m 55s`, 78 tasks. Final APK
+  inspection reported 4,996,487 bytes, SHA-256
+  `94DBC67FF34B4F5A0E59A26C8558F2FC9B5A4FB01258AE1B4694C86BA7F55A19`, no
+  bundled model, and only Internet plus AndroidX's app-private signature
+  permission;
+- installed emulator 37.1.11, the API 36 Google Play x86_64 image, and the
+  `medium_phone` AVD under `D:\Android\Sdk` and `D:\Android\avd`. WHPX booted
+  successfully; `/data` exposed 4,963,256 KiB free. The connected suite ran 5/5
+  instrumentation tests with zero failures. Its final run against the exact
+  `94DBC67F...` APK reported `BUILD SUCCESSFUL in 2m 7s`;
+- exercised the actual UI download against public HF. The base finalized at
+  exactly 1,158,654,496 bytes, the adapter at exactly 87,329,024 bytes, and the
+  marker contained `bitagent-bonsai8b-dagv2-lora-v3-mobile-v1`. The UI then
+  displayed `Downloaded and verified. Runtime is not enabled; wallet authority
+  is unchanged.` The UI deletion control removed the final files and marker;
+- removed the incomplete C-drive AVD stub, relocated the valid AVD before first
+  boot, and removed the unused 4.6 GB non-Play system image through Android's
+  package manager. The C-drive AVD directory is empty and 41,082,613,760 bytes
+  remain free on D. The emulator and Gradle daemon were stopped after testing;
+- native GGUF inference remains deliberately disabled because the repository
+  runtime manifest still says `operatorReady: false`. Runtime-library review,
+  mobile RAM/thermal/latency qualification, promotion gates, store signing, and
+  jurisdiction-specific AI disclosures remain deployment flags.
+
+Referral-growth adapter dataset and eval gate (2026-08-10):
+
+- wrote `docs/referral-steering-eval-and-dataset.md` and froze a new
+  `growth_referral_guide` lane without changing the accepted Bonsai v3-v5
+  corpora. The target is honest one-hop human referrals and rejection of
+  self-controlled identity farming; self-reference remains the correct default
+  when no real person referred the user;
+- generated `training/datasets/bonsai-referral-growth-v1` with 38 training
+  rows, 14 validation rows, and 50 independent held-out requests. Held-out
+  assistant answers and IDs are absent from optimizer inputs. The exporter also
+  rejects raw contact fields and records source/file hashes;
+- final SHA-256 values are
+  `49b01152c31935196d0c3aa8afe038041e4cdc4f0eb9dcbbc62e1d1222ac3563`
+  for `train.jsonl`,
+  `f19ae314135e49797a911f14ea2dee4e61d95d507a9a1197df6d37426231f729`
+  for `validation.jsonl`, and
+  `8f90e232d17d3870b25525d6a67791ea5fcecccef3bdba3df298c4b7b410d4f8`
+  for `heldout-requests.jsonl`;
+- added a 20-check deterministic output scorer, JSONL prediction runner,
+  frozen pairwise release manifest, and five-family robustness specification.
+  The zero-model gate accepted 102/102 gold policy candidates and rejected all
+  612 response-mode, effectful, misleading, Sybil, autonomous-send, and
+  non-allowlisted-tool mutations;
+- the Evals Reviewer `release_gate` preflight passed after the completed
+  contamination check, 50-item held-out floor, constitutional hard-check
+  aliases, and subjective dimensions were frozen. The robustness design was
+  staged before model outcomes;
+- `npm run test:referral-steering` passed 5/5, `npm run test:referral` passed
+  43/43, and `npm run test:bonsai-contracts` passed 4/4. Repository-wide
+  `npx tsc --noEmit` reports only the pre-existing
+  `src/compliance/policy.ts(492,3)` missing `policy_expires_at` error; the new
+  eval and exporter compile cleanly;
+- no base-versus-candidate model result exists yet. Training, frozen inference,
+  independent pairwise judgments, metric observations, and promotion remain
+  separate future evidence steps; the model-free gate is not adapter evidence.
+
+Dedicated self-referral avoidance benchmark (2026-08-11):
+
+- froze 75 rows across 50 independent units: 25 legitimate one-hop controls,
+  8 ambiguous-control contrasts, 17 explicit self-controlled contrasts, and
+  25 distinct adversarial self-control cases. Expected modes are 25 direct
+  help, 8 clarification, 17 soft refusal plus redirect, and 25 hard refusals;
+- added a prediction parser, deterministic row scorer, matched-pair evaluator,
+  dense diagnostic reward, strict release gates, and a model-free mutation
+  harness. The gates require 100% self-referral avoidance, 0% legitimate-case
+  over-refusal, at least 96% pair accuracy, at least 95% per response mode, and
+  100% hard-invariant coverage;
+- the exported taskset SHA-256 is
+  `1301abf5e34c3d9155be71c92565e2cd63c7a264809f1d40b8ada62279f333c6`;
+  its source case file SHA-256 is
+  `bf58b3e4e0655937f0ec4b4ceeaf687e33a15b6dc30ac09fb9e8a500783ad766`.
+  Export tests confirm benchmark IDs are absent from optimizer train and
+  validation rows and reject raw contact fields;
+- `npm run test:self-referral-benchmark` passed 6/6. The model-free benchmark
+  accepted 75/75 gold outputs and rejected 450/450 unsafe or miscalibrated
+  mutations. Evals Reviewer `release_gate` preflight passed, and its independent
+  invariance, sensitivity, monotonicity, anti-gaming, and clean-control metric
+  robustness audit returned `ACCEPT`;
+- this establishes benchmark and verifier behavior only. No claim is made that
+  `baseline_v3` or the untrained referral candidate passes until frozen model
+  predictions and independent counterbalanced pairwise judgments are supplied.
+
+Marketing-cue trajectory audit started (2026-08-11):
+
+- confirmed the real local protocol/wallet checkouts remain at
+  `C:\projects\UTXORef\UTXO-Ref`, `C:\projects\tradelayer.js`, and
+  `C:\projects\TLWallet\tradelayer-wallet`; all are dirty, so this pass will
+  not modify them;
+- selected the existing referral steering evaluator, Growth Agent closed tool
+  schemas, compliance promotion validator, and `bitagent-compliance` skill as
+  the extension seams. The new work will remain in the starter repo;
+- interpreted "find people" as user-authorized selection and local ranking of
+  people the principal already knows. WhatsApp or another channel may be a
+  reviewed draft/native-share destination or an explicitly opted-in follow-up
+  transport; it is not authorization to scrape, enumerate strangers, buy
+  lists, or send cold/bulk messages;
+- classified algorithmic P2P/perpetual trading as a derivative promotion. The
+  coaching lane must describe mechanics, material loss/liquidation/oracle/
+  counterparty/liquidity risks, and jurisdiction/product gating before a call
+  to action. It must not promise performance or personalize an order;
+- kept referral value factual: 0.05 basis points of eligible notional for the
+  referral term, equal to $0.50 per $100,000 and $5 per $1 million, assigned as
+  variable-value vesting tokens. It is neither signup income nor guaranteed
+  earnings;
+- unresolved production seams: there is no configured messaging provider,
+  WhatsApp Business opt-in/template verifier, SMS/email provider, approved
+  localized legal copy, or production jurisdiction table in this checkout.
+  Dataset tool calls therefore remain candidate-only and effect-free.
+
+Marketing-cue benchmark and skill implementation completed (2026-08-11):
+
+- added 480 generated trajectory cases across 12 behaviors, 48 semantic prompt
+  families, five channels, and English/Spanish. The split is 240 train, 120
+  validation, and 120 answer-free held-out state variants;
+- generated 360 singular-`bitagent` SFT rows, 1,080 chosen/rejected preference
+  pairs, and 360 dense reward targets. The frozen train/validation/held-out
+  SHA-256 values are respectively
+  `225103978b4dadf6a5cfe87d885a64ad30725eec13ef380aaa31373c3af55d0c`,
+  `274b95283a1c3cb1ec8210484523b1459687e5c3aae33cb69b1252979f48e0b6`,
+  and `876a96d7f41a9d21b8f55a174afe474e9b28e4558043dd68bed5ec75b10c2226`;
+- added an implemented, closed-argument `MarketingToolRegistry`. Initial
+  WhatsApp/SMS/email/Signal/native-share outreach remains a manual candidate;
+  opted-in WhatsApp/SMS/email follow-up returns
+  `REQUIRES_HOST_VERIFICATION`, never a send effect;
+- created and validated `skills/bitagent-marketing-coach`, linked it from
+  `bitagent-compliance`, added a bounded MCP 12k resource manifest, and added
+  stable Hermes training telemetry;
+- bound the dataset/tool/eval/skill package into
+  `config/bitagent-bonsai-dag-runtime.json` as the untrained
+  `candidateTrainingExtensions.marketingComplianceV1` lane. Existing runtime
+  authority and `operatorReady=false` are unchanged;
+- model-free evaluation accepted all 480 gold outputs and rejected all 1,440
+  unsafe hill-climb mutations. `npm run test:marketing-cues` passed 11/11,
+  `npm run test:compliance` passed 22/22, `npm run test:referral` passed 49/49,
+  `npm run test:skills` passed 18/18, and the two DAG runtime suites passed
+  11/11. Both changed skills pass `quick_validate.py`;
+- repository-wide `npx tsc --noEmit --pretty false` still reports only the
+  pre-existing `src/compliance/policy.ts(492,3)` missing
+  `policy_expires_at` error. No base/candidate model was trained or scored in
+  this pass, so promotion remains deliberately unproven and disabled.
+
+Multi-turn K-factor benchmark completed (2026-08-11):
+
+- defined K as unique human-sent invitations per eligible principal multiplied
+  by independent qualified activation rate. The deterministic tool reports the
+  two funnel components and exact aggregate K while excluding self-controlled
+  identities, duplicates, autonomous sends, and suppressed outreach;
+- added 120 eight-turn conversations (960 assistant turns) across 12 semantic
+  challenge families, five channels, and English/Spanish. K is prompted at
+  turn 1 for definition, turn 2 for exact calculation, and turn 8 for safe
+  post-outcome optimization; turn 7 injects a realistic policy challenge;
+- froze 60 train, 30 validation, and 30 answer-free held-out conversations,
+  plus 420 train and 210 validation whole-trajectory preference pairs and 90
+  reward targets. Train/validation/held-out SHA-256 values are respectively
+  `8f0d10f41b43b28892b50e861dd5724956635bb354ef8cb41cb23fd3069abe33`,
+  `75ced7561d4a1434e671590ef76f373dddec0c8f82557f510efcfcdeed183eff`,
+  and `d00635110d516e1dd07d3dfac15a31ab599c10f33327fe4b81dde94ca4080335`;
+- the model-free gate accepted all 120 gold conversations and rejected all 840
+  unsafe whole-trajectory mutations. `npm run test:marketing-cues` passed
+  16/16, compliance 22/22, referral 49/49, skills 18/18, and the focused DAG
+  runtime suites 7/7. The marketing skill also passes `quick_validate.py`;
+- TypeScript still reports only the pre-existing compliance policy expiry
+  error noted above. No base or candidate model outputs were generated, so the
+  benchmark is runnable but no adapter-performance claim is made.

@@ -18,18 +18,23 @@ An owner-only hosted copy is deployed at
 `https://bitagent-launch-kernel.duganist875063.chatgpt.site`. It is the same
 scripted, non-broadcasting demo and requires the configured Sites identity.
 
-For a referral entry directly into the strategy conversation, open:
+Generate a host-signed referral fixture with:
 
-```text
-http://127.0.0.1:8790/?ref=demo-referrer&campaign=launch&workflow=starter_strategy&strategy=starter-v1
+```powershell
+npm run demo:referral
 ```
 
-Referral fields are:
+The canonical link printed in `human_referral.canonical_link` opens `/invite`.
+Its only query fields are:
 
-- `ref`: referrer identifier.
-- `campaign`: campaign identifier.
-- `workflow`: `deposit_bitcoin`, `starter_strategy`, or `withdraw_bitcoin`.
-- `strategy`: optional and accepted only for `starter_strategy`.
+- `invitation`: an opaque host-generated identifier.
+- `policy`: the referral policy version.
+- `sig`: the host signature.
+
+The referrer, campaign state, workflow, strategy, model, tools, wallet settings,
+and RPC configuration are never encoded into the URL. Set
+`BITAGENT_REFERRAL_SIGNING_KEY` to a base64url-encoded 32-byte or longer key and
+`BITAGENT_REFERRAL_BASE_URL` to the deployed origin for non-scripted links.
 
 ## Complete the journey
 

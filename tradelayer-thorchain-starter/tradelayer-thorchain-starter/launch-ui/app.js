@@ -12,7 +12,7 @@ let dagRuntime = null;
 
 function referralKey(params) {
   const key = new URLSearchParams();
-  for (const name of ["ref", "campaign", "workflow", "strategy"]) {
+  for (const name of ["invitation", "policy", "sig"]) {
     if (params.has(name)) key.set(name, params.get(name));
   }
   return key.toString();
@@ -53,7 +53,7 @@ async function start() {
     dagRuntime = null;
   }
   const params = new URLSearchParams(location.search);
-  const hasReferral = params.has("ref") && params.has("campaign") && params.has("workflow");
+  const hasReferral = params.has("invitation") && params.has("policy") && params.has("sig");
   const activeReferralKey = hasReferral ? referralKey(params) : null;
   const storedReferralKey = localStorage.getItem("bitagent.referralKey");
   let workflowId = localStorage.getItem("bitagent.workflowId");
@@ -83,7 +83,7 @@ async function start() {
   if (activeReferralKey) localStorage.setItem("bitagent.referralKey", activeReferralKey);
   const intentCopy = {
     deposit_bitcoin: "I’ll help you receive a Bitcoin UTXO in your wallet.",
-    starter_strategy: "Your referral opens directly into the starter TradeLayer strategy.",
+    starter_strategy: "Your verified referral is attached to this BitAgent onboarding flow.",
     withdraw_bitcoin: "I’ll help you withdraw remaining Bitcoin to a normal address."
   };
   addMessage(intentCopy[state.currentIntent]);
@@ -165,7 +165,7 @@ function render() {
   ).join("");
 
   referral.innerHTML = state.referral
-    ? `Referral <strong>${escapeHtml(state.referral.campaignId)}</strong><br>
+    ? `Verified invitation <strong>${escapeHtml(state.referral.invitationId.slice(0, 8))}…</strong><br>
        Attribution: ${escapeHtml(state.referral.status)}`
     : "";
 

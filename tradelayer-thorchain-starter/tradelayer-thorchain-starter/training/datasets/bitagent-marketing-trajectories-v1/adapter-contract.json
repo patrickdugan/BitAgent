@@ -1,0 +1,31 @@
+{
+  "schema": "hermes.bitagent_singular_adapter_training_contract.v1",
+  "adapterIdentity": "bitagent",
+  "runtimeManifest": "config/bitagent-bonsai-dag-runtime.json",
+  "targetSpecialization": "marketing_compliance_coach",
+  "requiredSkills": [
+    "bitagent-compliance",
+    "bitagent-marketing-coach"
+  ],
+  "optimizerInputs": [
+    "train.jsonl",
+    "validation.jsonl",
+    "preference-train.jsonl",
+    "preference-validation.jsonl",
+    "reward-signals.jsonl"
+  ],
+  "excludedFromOptimizer": [
+    "heldout-requests.jsonl",
+    "eval/marketing-cue-eval-manifest.json"
+  ],
+  "authority": {
+    "candidateOnly": true,
+    "contactDiscovery": "user_selected_local_only",
+    "initialSend": false,
+    "walletApproval": false,
+    "signing": false,
+    "execution": false,
+    "beneficiarySelection": false
+  },
+  "promotionStatus": "untrained_candidate_requires_frozen_evaluation"
+}

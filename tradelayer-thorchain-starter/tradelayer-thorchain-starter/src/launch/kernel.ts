@@ -2,6 +2,7 @@ import { hashObject, opaqueId } from "./canonical.js";
 import { validateBitcoinAddress } from "./bitcoin.js";
 import { LaunchKernelError } from "./errors.js";
 import { parseReferralLink } from "./referral.js";
+import type { ReferralLinkService } from "../referral/links.js";
 import { assertVerifiedStrategyFunding } from "./strategyFunding.js";
 import { buildReserveIntakePlan } from "./reserveIntake.js";
 import {
@@ -31,6 +32,7 @@ type KernelOptions = {
   now?: () => Date;
   requiredConfirmations?: number;
   simulationTtlMs?: number;
+  referralLinkService?: ReferralLinkService;
   reserveIntake?: {
     operatorXonly: string;
     guardianXonly: string;
@@ -76,7 +78,9 @@ export class BitAgentLaunchKernel {
     network?: "bitcoin" | "bitcoin-testnet4";
   } = {}) {
     const now = this.now();
-    const referral = input.referralLink ? parseReferralLink(input.referralLink, now) : undefined;
+    const referral = input.referralLink
+      ? parseReferralLink(input.referralLink, now, this.options.referralLinkService)
+      : undefined;
     const intent = referral?.intendedWorkflow || input.intent || "deposit_bitcoin";
     const id = input.workflowId || opaqueId("workflow", {
       intent,
@@ -441,6 +445,8 @@ export class BitAgentLaunchKernel {
       const authorized = await this.options.walletBroker.authorize({ approval, simulation, state });
       if (authorized.status === "pending") {
         approval.walletApprovalRequestId = authorized.walletApprovalRequestId;
+        approval.complianceAuthorizationHash = authorized.complianceAuthorizationHash;
+        approval.complianceDecisionHash = authorized.complianceDecisionHash;
         state.recoveryInstructions = [
           "The exact action is pending approval in the connected wallet; no transaction was executed.",
           "Approve or reject it in the wallet, then retry this saved approval request."
@@ -461,10 +467,14 @@ export class BitAgentLaunchKernel {
       approval.resolvedAt = this.now().toISOString();
       approval.walletApprovalRequestId = authorized.walletApprovalRequestId;
       approval.walletApprovalToken = authorized.walletApprovalToken;
+      approval.complianceAuthorizationHash = authorized.complianceAuthorizationHash;
+      approval.complianceDecisionHash = authorized.complianceDecisionHash;
       state.stage = actionStage(simulation.action, "approved");
       this.event(state, "wallet.approval_approved", {
         approvalId: approval.id,
-        simulationHash: approval.simulationHash
+        simulationHash: approval.simulationHash,
+        complianceAuthorizationHash: approval.complianceAuthorizationHash || null,
+        complianceDecisionHash: approval.complianceDecisionHash || null
       });
       await this.persist(state);
       return clone(approval);
@@ -533,7 +543,9 @@ export class BitAgentLaunchKernel {
       executionId: execution.id,
       txid: execution.txid,
       orderId: execution.orderId || null,
-      simulationHash: simulation.hash
+      simulationHash: simulation.hash,
+      complianceAuthorizationHash: execution.complianceAuthorizationHash || null,
+      complianceDecisionHash: execution.complianceDecisionHash || null
     });
     await this.persist(state);
     return clone(execution);
@@ -564,15 +576,6 @@ export class BitAgentLaunchKernel {
         : simulation.action === "starter_strategy"
           ? ["The starter order is verified. Its UTXORef reserve remains separate from spendable wallet Bitcoin."]
           : ["The withdrawal is verified. Keep the txid for your records."];
-      if (simulation.action === "starter_strategy" && state.referral?.status === "pending") {
-        state.referral.status = "activated";
-        state.referral.activatedAt = this.now().toISOString();
-        this.event(state, "referral.activated", {
-          referrerId: state.referral.referrerId,
-          campaignId: state.referral.campaignId,
-          orderId: verification.orderId || null
-        });
-      }
     } else if (verification.status === "failed") {
       state.stage = "error";
       state.recoveryInstructions = [

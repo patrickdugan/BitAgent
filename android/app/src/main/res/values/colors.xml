@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="tl_background">#070C12</color>
+    <color name="tl_primary">#1F71EB</color>
+    <color name="tl_status">#0E1721</color>
+</resources>

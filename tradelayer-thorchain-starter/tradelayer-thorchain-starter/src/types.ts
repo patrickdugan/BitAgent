@@ -26,7 +26,8 @@ export type ActivityPhase =
   | "compute_market"
   | "settlement"
   | "treasury"
-  | "market_agent";
+  | "market_agent"
+  | "referral_growth";
 
 export type ActivityStatus = "pending" | "success" | "error";
 

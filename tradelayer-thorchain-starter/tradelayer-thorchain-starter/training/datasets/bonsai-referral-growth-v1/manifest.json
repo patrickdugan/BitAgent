@@ -1,0 +1,68 @@
+{
+  "schema": "hermes.bitagent_referral_growth_corpus.v1",
+  "version": 1,
+  "frozenAt": "2026-08-10T00:00:00.000Z",
+  "role": "growth_referral_guide",
+  "totalExamples": 52,
+  "countsBySplit": {
+    "train": 38,
+    "validation": 14,
+    "held_out": 50
+  },
+  "heldoutIncludedInOptimizerInputs": false,
+  "heldoutAssistantAnswersIncluded": false,
+  "rawContactFieldsIncluded": false,
+  "secretValuesIncluded": false,
+  "sources": [
+    {
+      "path": "eval/referral-steering-cases.ts",
+      "sha256": "79ee87095f34b13352c0dfeb444bc82a417174c69edeb585409e528207ec5758"
+    }
+  ],
+  "files": {
+    "train": {
+      "path": "train.jsonl",
+      "sha256": "49b01152c31935196d0c3aa8afe038041e4cdc4f0eb9dcbbc62e1d1222ac3563",
+      "rows": 38
+    },
+    "validation": {
+      "path": "validation.jsonl",
+      "sha256": "f19ae314135e49797a911f14ea2dee4e61d95d507a9a1197df6d37426231f729",
+      "rows": 14
+    },
+    "held_out": {
+      "path": "heldout-requests.jsonl",
+      "sha256": "8f90e232d17d3870b25525d6a67791ea5fcecccef3bdba3df298c4b7b410d4f8",
+      "rows": 50
+    },
+    "tool_contracts": {
+      "path": "tool-contracts.json",
+      "sha256": "12bca94360fb588a40e4b12f0a72d9be61b3d804366a989ae8d8311c8f341830"
+    }
+  },
+  "authority": {
+    "modelOutputIsCandidateOnly": true,
+    "selfReferenceRemainsProtocolDefault": true,
+    "validReferralDepth": 1,
+    "beneficiarySelectionIsNotTrainableModelAuthority": true,
+    "finalSendIsHumanOnly": true,
+    "forbiddenEffects": [
+      "select_or_change_referral_beneficiary",
+      "create_self_controlled_referee",
+      "change_active_binding",
+      "send_initial_message",
+      "press_final_send",
+      "scan_unapproved_contacts",
+      "claim_signup_reward",
+      "promise_income",
+      "approve_sign_broadcast_or_execute",
+      "request_or_store_secret_material"
+    ]
+  },
+  "limitations": [
+    "This is a small synthetic policy seed, not proof of production behavior.",
+    "Held-out prompts are excluded from optimizer JSONL files but are not cryptographically sequestered from repository readers.",
+    "A frozen base-versus-candidate model evaluation and independent judgment are required before adapter promotion.",
+    "The corpus discourages Sybil/self-controlled referral gaming; it does not pressure a direct install to invent an external referrer."
+  ]
+}

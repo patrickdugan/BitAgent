@@ -8,11 +8,14 @@ import { launchToolSchemas } from "../src/launch/tools.js";
 import { committedSignalToolSchemas } from "../src/signals/tools.js";
 import { financialSurvivalToolSchemas } from "../src/survival/tools.js";
 import { reserveOperatorToolSchemas } from "../src/launch/operatorTools.js";
+import { complianceToolSchemas } from "../src/compliance/tools.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const skillsRoot = path.join(root, "skills");
 const skillNames = [
   "agent-financial-survival",
+  "bitagent-compliance",
+  "bitagent-marketing-coach",
   "tradelayer-collateral-lifecycle"
 ] as const;
 
@@ -122,6 +125,17 @@ test("financial-survival short-context mode exposes only its deterministic wrapp
 
   const declaredTools = new Map((value.tools || []).map((tool) => [tool.name, tool]));
   assert.deepEqual([...declaredTools.keys()].sort(), Object.keys(financialSurvivalToolSchemas).sort());
+  for (const tool of declaredTools.values()) assert.equal(tool.effect, "none");
+  for (const packet of value.phasePackets) {
+    for (const tool of packet.tools || []) assert.ok(declaredTools.has(tool));
+  }
+});
+
+test("compliance short-context mode exposes only read-only deterministic policy tools", async () => {
+  const { value } = await loadManifest("bitagent-compliance");
+  assert.equal(value.mcpStatus, "ready_deterministic_wrapper");
+  const declaredTools = new Map((value.tools || []).map((tool) => [tool.name, tool]));
+  assert.deepEqual([...declaredTools.keys()].sort(), Object.keys(complianceToolSchemas).sort());
   for (const tool of declaredTools.values()) assert.equal(tool.effect, "none");
   for (const packet of value.phasePackets) {
     for (const tool of packet.tools || []) assert.ok(declaredTools.has(tool));

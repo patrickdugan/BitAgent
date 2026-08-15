@@ -1,0 +1,29 @@
+{
+  "schema": "tradelayer_android_toolchain_v1",
+  "installRoot": "D:\\Android",
+  "jdk": {
+    "distribution": "Eclipse Temurin",
+    "version": "17.0.20+8",
+    "url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20%2B8/OpenJDK17U-jdk_x64_windows_hotspot_17.0.20_8.zip",
+    "sha256": "418497be5cf585bdd2203d6486a565d66d3f5e992d5630d45104cb873fab8122"
+  },
+  "gradle": {
+    "version": "9.4.1",
+    "url": "https://services.gradle.org/distributions/gradle-9.4.1-bin.zip",
+    "sha256": "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
+  },
+  "androidCommandLineTools": {
+    "version": "22.0",
+    "archiveId": "15859902",
+    "url": "https://dl.google.com/android/repository/commandlinetools-win-15859902_latest.zip",
+    "sha1": "b9862337a13e2809a5159dc3a08d058091bd59f6"
+  },
+  "androidPackages": [
+    "platform-tools",
+    "platforms;android-36",
+    "build-tools;36.0.0"
+  ],
+  "androidGradlePlugin": "9.2.1",
+  "androidxActivity": "1.13.0",
+  "androidxWebkit": "1.16.0"
+}

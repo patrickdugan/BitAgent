@@ -1,0 +1,101 @@
+{
+  "schema": "bitagent.referral_disposition_dataset_manifest.v2",
+  "version": 2,
+  "frozen_at": "2026-08-11T17:00:00.000Z",
+  "source": {
+    "path": "eval/referral-steering-disposition-v2-cases.ts",
+    "sha256": "d10abf09f9ec59db9d7333b98a5c2eae5812672752e89f1e749cef2d59fbe615"
+  },
+  "renderer": {
+    "path": "src/referral/steeringDisposition.ts",
+    "sha256": "3ab28c6a386a63ddeba36d3a7d98b78856a9b9270182a7d6563c02b0fb0e6d2b"
+  },
+  "files": {
+    "train": {
+      "path": "training/datasets/bonsai-referral-disposition-v2/train.jsonl",
+      "rows": 64,
+      "sha256": "36a8cd950872d54f488e812fdb55a2cbf19b4339e124b815a4159bb6933a1a73"
+    },
+    "validation": {
+      "path": "training/datasets/bonsai-referral-disposition-v2/validation.jsonl",
+      "rows": 16,
+      "sha256": "1eb960b5c539df2027e6b66d74d57450e7e8d80e03af22d5fab416720ff9663a"
+    },
+    "preferences": {
+      "path": "training/datasets/bonsai-referral-disposition-v2/format-preferences.jsonl",
+      "rows": 4,
+      "sha256": "413b0b8391d5d90036df44c596f8feb604218f20864b77bb7acfe8a8fe895394"
+    },
+    "options": {
+      "path": "training/datasets/bonsai-referral-disposition-v2/options.json",
+      "rows": 4,
+      "sha256": "dc5c7842166c3532da35ef44dae4427091f46a48e30129bb9c9cd19b76b2a2db"
+    },
+    "development_requests": {
+      "path": "eval/benchmarks/self-referral-disposition-v2/development-requests.jsonl",
+      "rows": 24,
+      "sha256": "7379dda7b21031d94bd56d09d79bb8f91d8e82dfdfcb942ce49e82b76718d9ec"
+    },
+    "development_oracle": {
+      "path": "eval/benchmarks/self-referral-disposition-v2/development-oracle.jsonl",
+      "rows": 24,
+      "sha256": "42c8ba30694fc33d695c24e77fbf96f617a7bb032b72dd0cea19afe94a5a034e"
+    },
+    "heldout_requests": {
+      "path": "eval/benchmarks/self-referral-disposition-v2/heldout-requests.jsonl",
+      "rows": 62,
+      "sha256": "ea1f5bf922fc1a139153e18bab91b69feeabe8e56a480c329d58dced5939a035"
+    },
+    "heldout_oracle": {
+      "path": "eval/benchmarks/self-referral-disposition-v2/heldout-oracle.jsonl",
+      "rows": 62,
+      "sha256": "33cb5300899730b98ce88f51750c48c4b84438a9f03bec364a21bbf2ebaa6b95"
+    }
+  },
+  "split_counts": {
+    "train": 64,
+    "validation": 16,
+    "development": 24,
+    "held_out": 62
+  },
+  "mode_counts": {
+    "train": {
+      "DIRECT_HELP": 16,
+      "CLARIFY_INTENT": 16,
+      "SOFT_REFUSAL_REDIRECT": 16,
+      "HARD_REFUSAL": 16
+    },
+    "validation": {
+      "DIRECT_HELP": 4,
+      "CLARIFY_INTENT": 4,
+      "SOFT_REFUSAL_REDIRECT": 4,
+      "HARD_REFUSAL": 4
+    },
+    "development": {
+      "DIRECT_HELP": 6,
+      "CLARIFY_INTENT": 6,
+      "SOFT_REFUSAL_REDIRECT": 6,
+      "HARD_REFUSAL": 6
+    },
+    "held_out": {
+      "DIRECT_HELP": 20,
+      "CLARIFY_INTENT": 14,
+      "SOFT_REFUSAL_REDIRECT": 14,
+      "HARD_REFUSAL": 14
+    }
+  },
+  "isolation": {
+    "development_in_optimizer_inputs": false,
+    "heldout_in_optimizer_inputs": false,
+    "evaluation_oracles_uploaded_for_inference": false,
+    "v1_spent_heldout_rows_reused": false,
+    "raw_contact_fields_included": false
+  },
+  "model_contract": {
+    "candidate_only": true,
+    "enumerated_disposition_count": 4,
+    "free_form_generation": false,
+    "host_renders_message_and_tools": true,
+    "wallet_chain_contact_or_send_authority": false
+  }
+}

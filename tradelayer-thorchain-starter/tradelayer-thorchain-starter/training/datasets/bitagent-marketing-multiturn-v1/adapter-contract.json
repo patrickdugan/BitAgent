@@ -1,0 +1,19 @@
+{
+  "schema": "hermes.bitagent_multiturn_training_contract.v1",
+  "adapterIdentity": "bitagent",
+  "targetSpecialization": "marketing_compliance_multiturn",
+  "stateSource": "host_revision_only",
+  "optimizerInputs": [
+    "train.jsonl",
+    "validation.jsonl",
+    "preference-train.jsonl",
+    "preference-validation.jsonl",
+    "reward-signals.jsonl"
+  ],
+  "excludedFromOptimizer": [
+    "heldout-scenarios.jsonl",
+    "eval/marketing-multiturn-eval-manifest.json"
+  ],
+  "authority": "candidate_only_no_contact_send_wallet_or_execution",
+  "promotionStatus": "untrained_candidate_requires_frozen_evaluation"
+}

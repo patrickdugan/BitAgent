@@ -1,0 +1,41 @@
+{
+  "schema": "bitagent.android_model_package.v1",
+  "packageId": "bitagent-bonsai8b-dagv2-lora-v3-mobile-v1",
+  "autoDownload": false,
+  "runtimeOperatorReady": false,
+  "storage": {
+    "location": "app_private_no_backup",
+    "safetyReserveBytes": 268435456,
+    "totalArtifactBytes": 1245983520
+  },
+  "authority": {
+    "candidateOnly": true,
+    "approval": false,
+    "secretAccess": false,
+    "signing": false,
+    "execution": false,
+    "broadcast": false
+  },
+  "artifacts": [
+    {
+      "role": "base",
+      "repo": "prism-ml/Bonsai-8B-gguf",
+      "revision": "48516770dd04643643e9f9019a2a349cf26c5dbd",
+      "fileName": "Bonsai-8B-Q1_0.gguf",
+      "bytes": 1158654496,
+      "sha256": "284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54",
+      "license": "apache-2.0",
+      "url": "https://huggingface.co/prism-ml/Bonsai-8B-gguf/resolve/48516770dd04643643e9f9019a2a349cf26c5dbd/Bonsai-8B-Q1_0.gguf?download=true"
+    },
+    {
+      "role": "adapter",
+      "repo": "AlephFunk/bitagent-bonsai8b-dagv2-lora-v3",
+      "revision": "ee2937fb58d87bbd155cd205c43dc8103b51eac2",
+      "fileName": "bitagent-bonsai8b-dagv2-lora-v3-f16.gguf",
+      "bytes": 87329024,
+      "sha256": "9a11fe2cecf795f53dbea490b9897b28f3d3346a9f69a71ce28bbb195f7de704",
+      "license": "apache-2.0",
+      "url": "https://huggingface.co/AlephFunk/bitagent-bonsai8b-dagv2-lora-v3/resolve/ee2937fb58d87bbd155cd205c43dc8103b51eac2/bitagent-bonsai8b-dagv2-lora-v3-f16.gguf?download=true"
+    }
+  ]
+}

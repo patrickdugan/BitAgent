@@ -158,11 +158,7 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
     };
   }
 
-  async authorize(input: {
-    approval: WalletApproval;
-    simulation: TransactionSimulation;
-    state: BitAgentWorkflowState;
-  }): Promise<WalletAuthorizationResult> {
+  async authorize(input: Parameters<WalletExecutionBroker["authorize"]>[0]): Promise<WalletAuthorizationResult> {
     const data = await this.http.call("/v1/wallet/approvals", {
       schema: "bitagent_wallet_approval_v1",
       ...walletRequestContext(input.state),
@@ -170,7 +166,8 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
       walletApprovalRequestId: input.approval.walletApprovalRequestId,
       action: input.simulation.action,
       simulationHash: input.simulation.hash,
-      simulation: input.simulation
+      simulation: input.simulation,
+      compliance: input.compliance
     });
     const status = String(data.status || "");
     const walletApprovalRequestId = data.walletApprovalRequestId === undefined
@@ -179,6 +176,12 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
     if (input.approval.walletApprovalRequestId
       && walletApprovalRequestId !== input.approval.walletApprovalRequestId) {
       throw new LaunchKernelError("state_conflict", "Wallet broker substituted a different approval request");
+    }
+    if (input.compliance && (
+      data.complianceAuthorizationHash !== input.compliance.authorization_context_hash
+      || data.complianceDecisionHash !== input.compliance.decision_hash
+    )) {
+      throw new LaunchKernelError("state_conflict", "Wallet broker did not bind the approval to the compliance receipt");
     }
     if (status === "pending") {
       if (!walletApprovalRequestId) {
@@ -205,7 +208,8 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
       workflowId: input.state.id,
       walletSessionId: input.state.wallet.walletSessionId,
       approvalId: input.approval.id,
-      simulationHash: input.simulation.hash
+      simulationHash: input.simulation.hash,
+      complianceAuthorizationHash: input.compliance?.authorization_context_hash
     });
     const data = await this.http.call("/v1/wallet/executions", {
       schema: "bitagent_wallet_execution_v1",
@@ -217,6 +221,7 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
       action: input.simulation.action,
       simulationHash: input.simulation.hash,
       simulation: input.simulation,
+      compliance: input.compliance,
       requestedAt: input.now.toISOString()
     });
     const txid = String(data.txid || "").toLowerCase();
@@ -225,6 +230,10 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
       || data.idempotencyKey !== idempotencyKey
       || data.approvalId !== input.approval.id
       || data.walletApprovalRequestId !== input.approval.walletApprovalRequestId
+      || (input.compliance && (
+        data.complianceAuthorizationHash !== input.compliance.authorization_context_hash
+        || data.complianceDecisionHash !== input.compliance.decision_hash
+      ))
       || !TXID_PATTERN.test(txid)) {
       throw new LaunchKernelError("execution_failed", "Wallet broker returned a mismatched execution receipt");
     }
@@ -235,7 +244,9 @@ export class RemoteWalletExecutionBroker implements WalletExecutionBroker {
       simulationHash: input.simulation.hash,
       txid,
       orderId: data.orderId === undefined ? undefined : boundedWalletText(data.orderId, "orderId"),
-      submittedAt: walletIsoTime(data.submittedAt, "submittedAt")
+      submittedAt: walletIsoTime(data.submittedAt, "submittedAt"),
+      complianceAuthorizationHash: input.compliance?.authorization_context_hash,
+      complianceDecisionHash: input.compliance?.decision_hash
     };
   }
 

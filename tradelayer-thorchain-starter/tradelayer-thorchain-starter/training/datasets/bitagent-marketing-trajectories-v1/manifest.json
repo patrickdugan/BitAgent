@@ -1,0 +1,98 @@
+{
+  "schema": "hermes.bitagent_marketing_trajectory_corpus.v1",
+  "version": 1,
+  "frozenAt": "2026-08-11T00:00:00.000Z",
+  "role": "bitagent_adapter",
+  "specialization": "marketing_compliance_coach",
+  "countsBySplit": {
+    "train": 240,
+    "validation": 120,
+    "held_out": 120
+  },
+  "independentFamiliesBySplit": {
+    "train": 24,
+    "validation": 12,
+    "held_out": 12
+  },
+  "preferencePairs": {
+    "train": 720,
+    "validation": 360
+  },
+  "rewardSignals": 360,
+  "heldoutIncludedInOptimizerInputs": false,
+  "heldoutAssistantAnswersIncluded": false,
+  "rawContactFieldsIncluded": false,
+  "secretValuesIncluded": false,
+  "sources": [
+    {
+      "path": "eval/marketing-cue-trajectories.ts",
+      "sha256": "e8362c14ae20272c1e214d5dd63c1ee2d7c6e055203cd05c904d42610e50fd79"
+    },
+    {
+      "path": "eval/marketing-cue-harness.ts",
+      "sha256": "bcdb02cb6f79386e3488b50279343385ffeeb15cf842ff1d6ee1c53dd29da699"
+    },
+    {
+      "path": "src/referral/channelPolicy.ts",
+      "sha256": "3f835ed5c893312b01da427fdf1cc63e4fed05ea93df5ce5227eadf914e57d04"
+    },
+    {
+      "path": "src/referral/marketingTools.ts",
+      "sha256": "403ff556d74940ca05e009bf32b16b6215b5ef0a4e7c865fd37898d01818f55c"
+    },
+    {
+      "path": "src/compliance/marketing.ts",
+      "sha256": "f8db56c48eab6144b8992e2df4c242868fdfb3fd81127dd446dc533b6cfc81bf"
+    },
+    {
+      "path": "config/bitagent-bonsai-dag-runtime.json",
+      "sha256": "c51d04d8eedc2a7110005daf478a1c03afd2bedcf4d3133b6c23574f5b7a5821"
+    }
+  ],
+  "files": {
+    "train": {
+      "path": "train.jsonl",
+      "sha256": "225103978b4dadf6a5cfe87d885a64ad30725eec13ef380aaa31373c3af55d0c",
+      "rows": 240
+    },
+    "validation": {
+      "path": "validation.jsonl",
+      "sha256": "274b95283a1c3cb1ec8210484523b1459687e5c3aae33cb69b1252979f48e0b6",
+      "rows": 120
+    },
+    "held_out": {
+      "path": "heldout-requests.jsonl",
+      "sha256": "876a96d7f41a9d21b8f55a174afe474e9b28e4558043dd68bed5ec75b10c2226",
+      "rows": 120
+    },
+    "preference_train": {
+      "path": "preference-train.jsonl",
+      "sha256": "5b37674dc67db4332d7bddf0d4fd16ff49c252feda0ddba6e362037ae94e8d77",
+      "rows": 720
+    },
+    "preference_validation": {
+      "path": "preference-validation.jsonl",
+      "sha256": "825c30e7d044d0b3dd9c0c85892c0705a0f21dd7847f56278cfe621304a420b7",
+      "rows": 360
+    },
+    "reward_signals": {
+      "path": "reward-signals.jsonl",
+      "sha256": "77ead6e58a2a8bff41170ae59c18da7a6b41b12093be402e9d02a39700f48c81",
+      "rows": 360
+    },
+    "tool_contracts": {
+      "path": "tool-contracts.json",
+      "sha256": "985617e12fce749596abfc5b1c75da73b8dffda5fcc406690d5226eae491a466"
+    },
+    "adapter_contract": {
+      "path": "adapter-contract.json",
+      "sha256": "45eaa6513d9fb38958cea67a6b43b8ac802a7fc3e56125ee0f15c10d29ed8731"
+    }
+  },
+  "limitations": [
+    "Synthetic trajectories are training and evaluator inputs, not proof of adapter performance.",
+    "Channel/API calls remain candidate-only; no production messaging provider or opt-in verifier is configured.",
+    "Held-out answers are excluded from optimizer files but repository visibility is not cryptographic sequestering.",
+    "Jurisdiction-reviewed localized copy and independent base-versus-candidate evaluation are required before promotion."
+  ]
+}

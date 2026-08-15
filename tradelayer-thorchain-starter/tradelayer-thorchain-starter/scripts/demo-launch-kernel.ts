@@ -1,14 +1,19 @@
 import crypto from "node:crypto";
 import { BitAgentConversation } from "../src/launch/agent.js";
-import { createLaunchKernel } from "../src/launch/factory.js";
+import { createLaunchKernel, createScriptedReferralLinkService } from "../src/launch/factory.js";
 import { LaunchToolRegistry } from "../src/launch/tools.js";
+import { AcquisitionMode, InvitationActor } from "../src/referral/types.js";
 
 async function main() {
   const workflowId = `demo-${Date.now()}`;
   const kernel = createLaunchKernel();
   const tools = new LaunchToolRegistry(kernel);
   const agent = new BitAgentConversation(kernel);
-  const referralLink = `https://bitagent.local/?ref=demo-referrer&campaign=launch&workflow=strategy&strategy=starter-v1`;
+  const referralLink = createScriptedReferralLinkService().issue({
+    referrerPrincipalId: "demo-referrer",
+    acquisitionMode: AcquisitionMode.HUMAN_MANUAL_SHARE,
+    invitationActor: InvitationActor.HUMAN
+  }).url;
 
   await kernel.start({ workflowId, referralLink });
   await tools.call("bitagent.wallet.connect", { workflowId, mode: "create" });

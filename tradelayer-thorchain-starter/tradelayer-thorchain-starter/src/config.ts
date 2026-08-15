@@ -5,6 +5,7 @@ const projectRoot = process.cwd();
 export const runtimeDir = path.join(projectRoot, ".runtime");
 export const activityFeedPath = path.join(runtimeDir, "onboarding-activity.json");
 export const survivalJournalPath = path.join(runtimeDir, "financial-survival.jsonl");
+export const complianceAuditPath = path.join(runtimeDir, "compliance-audit.jsonl");
 export const testnetAgentRuntimeDir = path.join(runtimeDir, "testnet-agent");
 export const committedSignalRuntimeDir = path.join(runtimeDir, "committed-signals");
 

@@ -1,0 +1,122 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+
+readonly PORT="8787"
+readonly HOST="127.0.0.1"
+readonly STATE_DIR="$HOME/.cache/bitagent-android"
+readonly PID_FILE="$STATE_DIR/server.pid"
+readonly LOG_FILE="$STATE_DIR/server.log"
+
+find_project_root() {
+  local candidate
+  if [[ -n "${BITAGENT_ANDROID_ROOT:-}" ]]; then
+    candidate="$BITAGENT_ANDROID_ROOT"
+    if [[ -f "$candidate/package.json" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  fi
+  for candidate in \
+    "$HOME/BitAgent/tradelayer-thorchain-starter/tradelayer-thorchain-starter" \
+    "$HOME/BitAgent/BitAgent/tradelayer-thorchain-starter/tradelayer-thorchain-starter"
+  do
+    if [[ -f "$candidate/package.json" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+is_ready() {
+  python - "$HOST" "$PORT" <<'PY'
+import sys
+import urllib.request
+
+host, port = sys.argv[1:]
+try:
+    with urllib.request.urlopen(f"http://{host}:{port}/api/dag-runtime", timeout=2) as response:
+        raise SystemExit(0 if response.status == 200 else 1)
+except Exception:
+    raise SystemExit(1)
+PY
+}
+
+status() {
+  if is_ready; then
+    printf 'bitagent-ready http://%s:%s\n' "$HOST" "$PORT"
+    return 0
+  fi
+  printf 'bitagent-not-ready\n' >&2
+  return 1
+}
+
+start_server() {
+  local project_root pid attempt
+  if is_ready; then
+    status
+    return 0
+  fi
+  if ! project_root="$(find_project_root)"; then
+    printf '%s\n' \
+      'BitAgent source was not found. Set BITAGENT_ANDROID_ROOT to the launch package directory.' >&2
+    return 2
+  fi
+  if [[ ! -d "$project_root/node_modules" ]]; then
+    printf 'Dependencies are missing. Run npm ci in %s first.\n' "$project_root" >&2
+    return 3
+  fi
+
+  mkdir -p "$STATE_DIR"
+  chmod 700 "$STATE_DIR"
+  cd "$project_root"
+  nohup env BITAGENT_PORT="$PORT" npm run launch >"$LOG_FILE" 2>&1 &
+  pid="$!"
+  printf '%s\n' "$pid" >"$PID_FILE"
+  chmod 600 "$PID_FILE" "$LOG_FILE"
+
+  for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+    if is_ready; then
+      status
+      return 0
+    fi
+    if ! kill -0 "$pid" 2>/dev/null; then
+      break
+    fi
+    sleep 1
+  done
+  printf 'BitAgent did not become ready. Inspect %s\n' "$LOG_FILE" >&2
+  return 4
+}
+
+install_hermes_skill() {
+  local project_root repo_root source_dir destination
+  if ! project_root="$(find_project_root)"; then
+    printf '%s\n' \
+      'BitAgent source was not found. Set BITAGENT_ANDROID_ROOT to the launch package directory.' >&2
+    return 2
+  fi
+  repo_root="${BITAGENT_REPO_ROOT:-$(cd "$project_root/../.." && pwd)}"
+  source_dir="$repo_root/android/termux/hermes-skill"
+  destination="$HOME/.hermes/skills/bitagent-android"
+  if [[ ! -f "$source_dir/SKILL.md" || ! -f "$source_dir/scripts/bitagent_candidate.py" ]]; then
+    printf 'Reviewed Hermes skill files are missing under %s\n' "$source_dir" >&2
+    return 5
+  fi
+  mkdir -p "$destination/scripts"
+  cp "$source_dir/SKILL.md" "$destination/SKILL.md"
+  cp "$source_dir/scripts/bitagent_candidate.py" "$destination/scripts/bitagent_candidate.py"
+  chmod 600 "$destination/SKILL.md"
+  chmod 700 "$destination/scripts/bitagent_candidate.py"
+  printf 'bitagent-hermes-skill-ready %s\n' "$destination"
+}
+
+case "${1:-}" in
+  start) start_server ;;
+  status) status ;;
+  install-hermes-skill) install_hermes_skill ;;
+  *)
+    printf 'usage: bitagent-android {start|status|install-hermes-skill}\n' >&2
+    exit 64
+    ;;
+esac

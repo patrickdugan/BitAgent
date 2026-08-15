@@ -1,5 +1,126 @@
 # Repo Map
 
+## Marketing-cue evaluation and adapter-training seams (2026-08-11)
+
+- **Existing deterministic referral evaluator:**
+  `eval/referral-steering-cases.ts` and
+  `eval/referral-steering-harness.ts` define 102 frozen, single-turn cases and
+  a hard-invariant scorer. This is the correct policy baseline for one-hop
+  attribution, self-referral refusal, contact consent, human-only initial
+  sends, accurate economics, and Growth/Trading Agent separation.
+- **Existing optimizer-data exporter:**
+  `scripts/export-referral-growth-data.ts` writes the hashed
+  `training/datasets/bonsai-referral-growth-v1` SFT corpus. It proves held-out
+  exclusion and rejects raw contact fields, but its 52 optimizer examples are
+  a small seed rather than the requested broad marketing trajectory basin.
+- **Existing local contact and channel seam:**
+  `src/referral/contacts.ts`, `src/referral/growthAgent.ts`, and
+  `src/referral/messaging.ts` implement user-selected local contacts,
+  deterministic label ranking, draft-only outreach, and a native-share
+  candidate whose listed channels are SMS, email, WhatsApp, Signal, or another
+  user-selected target. No messaging connector is authorized to discover
+  strangers, scrape address books/messages, or perform an initial send.
+- **Existing promotion policy seam:**
+  `src/compliance/marketing.ts` enforces exact referral economics, variable
+  vesting-token value, evidence-bound comparative claims, financial-
+  vulnerability handling, and jurisdiction-aware perpetual promotion.
+  `src/compliance/policy.ts` remains the authority for product availability;
+  model coaching cannot infer or upgrade it.
+- **Existing skill seam:**
+  `skills/bitagent-compliance` is the mandatory fail-closed policy skill. A
+  narrow marketing-coach skill should call into that boundary and teach cue
+  detection, consent-safe channel planning, balanced P2P-derivative
+  explanation, and referral-income disclosure without gaining send, wallet,
+  beneficiary, or trading authority.
+- **Training/runtime boundary:**
+  `config/bitagent-bonsai-dag-runtime.json` and the existing promotion scripts
+  are the singular BitAgent adapter/runtime gate. Marketing examples,
+  preference pairs, and reward signals may train or rank a candidate, but
+  they must not create a second runtime authority or bypass the frozen
+  base-versus-candidate evaluation. The manifest's
+  `candidateTrainingExtensions.marketingComplianceV1` now binds the new
+  dataset, tool contract, eval manifest, and both compliance/coaching skills
+  while explicitly retaining untrained, candidate-only status.
+- **Missing before this pass:** a large state/channel/locale trajectory matrix,
+  explicit WhatsApp/API consent-state scoring, derivatives-coaching cues,
+  preference pairs for hill climbing, an adapter-facing reward-vector export,
+  and a triggerable marketing-coach skill with compact training status output.
+
+## Phone-first referral and growth architecture (2026-08-09)
+
+### Existing BitAgent seams
+
+- **Fee path:** `src/launch/tradelayerTool.ts` builds exact transaction
+  simulations and `src/launch/kernel.ts` persists displayed network/protocol
+  fees through approval, execution, and independent verification. The starter
+  has no authoritative post-trade fee-split ledger yet; referral settlement
+  must consume a new, typed, canonically settled trade event rather than infer
+  fees from a simulation or order proposal.
+- **Liquidity reward / vesting path:** the sibling TradeLayer checkout uses
+  `src/volumeIndex.js#calculateLiquidityReward(...)`, then
+  `src/logic.js`/`src/orderbook.js` and `src/tally.js#updateBalance(...)` to
+  assign the vesting-token property and maintain available/reserved/margin/
+  vesting balance buckets. Those call sites use JavaScript numbers and are not
+  safe as the sponsor-credit calculator. The BitAgent slice calculates atomic
+  values with `bigint` and hands integer token units to a typed, host-owned
+  vesting sink. A live sink requires an integer TradeLayer API or an
+  independently reviewed atomic conversion adapter.
+- **Treasury ledger:** `src/ledger/treasuryLedger.ts` is an append-only,
+  hash-linked, evidence-bound journal for agent treasury sats. It is not a
+  principal vesting ledger and must not be repurposed to make sponsor credits
+  agent-spendable.
+- **Agent identity and capabilities:** `src/sovereign/types.ts` separates an
+  `agentId` self-model from capability requests and leases;
+  `src/sovereign/capabilities.ts` binds allowed effects to a request
+  fingerprint and rejects broadcast delegation. Referral beneficiary
+  principals remain separate from source/preparing agents.
+- **Wallet authority:** `src/launch/types.ts#WalletExecutionBroker` and the
+  launch kernel enforce simulate -> display -> wallet approval -> execute ->
+  independent verify. Sponsor balances are dashboard data only and never
+  become wallet or agent operating authority.
+- **Tool interface:** `src/launch/tools.ts` exposes strict schemas with
+  `additionalProperties: false`; `src/launch/dagCandidate.ts` keeps the model
+  candidate-only. Growth tools copy this closed-schema pattern and omit any
+  initial-message send capability.
+- **Authorization:** wallet effects use exact approval hashes; sovereign
+  effects use capability leases. Contact selection, message preparation, and
+  final send require distinct human-provenance fields and do not reuse a
+  financial lease.
+- **Persistence:** `src/launch/store.ts` supplies in-memory and atomic JSON
+  repository contracts; `src/launch/atomicStatusFile.ts` supplies the hardened
+  atomic-replace helper. The untracked browser prototype under `web/` has a D1
+  workflow table, but it is not an authoritative protocol store. The referral
+  registry uses the existing atomic-file convention and provides a SQL
+  migration for a future service deployment.
+- **Wallet activity/UI:** `src/activityStore.ts` and
+  `src/adapters/walletAdapter.ts` expose a wallet-readable activity feed.
+  `launch-ui/` is the tracked responsive browser surface. The sibling Angular
+  wallet's best eventual insertion point remains its `BehaviorSubject`-based
+  runtime service and balance service.
+- **Mobile surface:** no Android or iOS project/manifest exists in this repo.
+  The local slice uses the browser Contact Picker when available, local-only
+  state, and `navigator.share`. Native Android 17, older Android `ACTION_PICK`,
+  optional disclosed `READ_CONTACTS`, and iOS limited-contact adapters remain
+  host-shell contracts; this repo must not fake platform permission grants.
+- **Tests:** TypeScript modules use Node's test runner through `tsx --test`.
+  Launch behavior is covered by trajectory-style integration tests, with
+  direct unit/control tests alongside them.
+
+### Referral integration decisions
+
+- Replace the legacy `ref`/`campaign`/`workflow`/`strategy` deep-link format in
+  `src/launch/referral.ts`. The canonical link contains only an opaque
+  invitation identifier, policy version, and host-generated signature.
+- Activate a binding only from an independently verified, settled,
+  fee-bearing trade event. Wallet creation, deposits, simulations, and link
+  state do not activate or accrue.
+- Extend the atomic repository convention with a one-hop referral registry,
+  accrual journal, vesting assignments, remainder state, invitations, and
+  recovery audit events. Raw contact fields never enter this store.
+- Add a narrow Growth Agent domain containing economics, approved feature
+  vectors, local campaign state, message drafts, and native-share proposals.
+  Trading contexts and transaction builders receive none of those fields.
+
 ## UTXORef reserve and tlBTC intake correction (2026-08-06)
 
 - Source-of-truth reserve template:
@@ -400,3 +521,23 @@ not part of this user journey.
 - The financial survival slice emits unsigned, policy-evaluated intents only. It does not sign or broadcast value transfers.
 - Testnet trading uses the real sibling-repo planner in dry-run mode. Its profit is projected, never booked as settled treasury.
 - Filecoin and Akash integrations prepare bounded orders only; mock provider costs are planning inputs rather than invoices.
+
+## Marketing Multi-turn Benchmark Seam
+
+- Consent-safe K-factor arithmetic and counting rules:
+  `src/referral/kFactor.ts`.
+- Closed candidate tool schema and deterministic local wrapper:
+  `src/referral/channelPolicy.ts` and `src/referral/marketingTools.ts`.
+- Eight-turn state snapshots, realistic user prompts, challenge families, and
+  gold responses: `eval/marketing-multiturn-scenarios.ts`.
+- Turn-level and trajectory-level hard scorer, unsafe mutations, and prediction
+  parser: `eval/marketing-multiturn-harness.ts`.
+- CLI runner and frozen release contract:
+  `eval/run-marketing-multiturn-evaluations.ts` and
+  `eval/marketing-multiturn-eval-manifest.json`.
+- Hash-bound SFT/preference/reward export:
+  `scripts/export-marketing-multiturn-data.ts` and
+  `training/datasets/bitagent-marketing-multiturn-v1/`.
+- The deterministic host owns aggregate state truth. The adapter receives a
+  revisioned snapshot and emits an effect-free candidate; it cannot observe or
+  manufacture invitations, activations, sends, wallet actions, or trades.

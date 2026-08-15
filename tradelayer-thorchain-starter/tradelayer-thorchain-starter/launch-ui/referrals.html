@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Private, human-controlled BitAgent referrals from a phone.">
+    <title>BitAgent Referrals</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="referral-page">
+    <div class="shell phone-shell">
+      <header class="topbar">
+        <a class="brand" href="/"><span class="brand-mark">B</span><span>BitAgent</span></a>
+        <span class="privacy-pill">Local contacts only</span>
+      </header>
+
+      <main class="referral-main">
+        <section class="referral-hero">
+          <p class="eyebrow">One-hop referrals · you send every message</p>
+          <h1>Invite people you actually know.</h1>
+          <p class="lede">BitAgent can rank contacts you select and draft honest messages. Names and contact details stay on this device. You review, edit, and send through your phone.</p>
+        </section>
+
+        <section class="referral-grid">
+          <article class="card earnings-card">
+            <div class="card-heading"><div><p class="eyebrow">Referral earnings</p><h2 id="fee-earned">$0.00</h2></div><span class="rate-badge">0.05 bp</span></div>
+            <p id="beneficiary-copy">Your agent currently receives your 0.05 bp sponsor credit.</p>
+            <div class="balance-grid">
+              <div><span>Fee value at accrual</span><strong id="accrual-value">$0.00</strong></div>
+              <div><span>Current token estimate</span><strong id="token-value">$0.00</strong></div>
+              <div><span>Vested tokens</span><strong id="vested-value">0</strong></div>
+              <div><span>Unvested tokens</span><strong id="unvested-value">0</strong></div>
+            </div>
+            <div id="term-progress" class="term-progress">The one-year term starts at the first eligible settled trade.</div>
+            <p class="fine-print">You receive 0.05 basis points of eligible trading by people you refer for one year. That equals $0.50 per $100,000 of eligible notional and $5 per $1 million. The credit is assigned as vesting tokens, so its later market value can move.</p>
+          </article>
+
+          <article class="card">
+            <p class="eyebrow">Choose a goal</p>
+            <div class="goal-buttons" role="group" aria-label="Referral goal">
+              <button type="button" data-goal="1">$1</button>
+              <button type="button" data-goal="5" class="active">$5</button>
+              <button type="button" data-goal="10">$10</button>
+            </div>
+            <h3 id="goal-title">$1,000,000 total eligible notional</h3>
+            <ul id="goal-examples" class="compact-list"></ul>
+            <p class="fine-print">This is a volume goal, not “$5 per referral.” Token-price changes do not change progress measured at fee accrual.</p>
+          </article>
+        </section>
+
+        <section class="card flow-card">
+          <div class="card-heading"><div><p class="eyebrow">1 · Permission ladder</p><h2>Select only what you want</h2></div><span id="permission-level" class="rate-badge">Level 0</span></div>
+          <p>Level 0 needs no contacts. Level 1 selects individuals. Level 2 selects several people for local ranking. Level 3 is an optional native-only scan after a field-by-field disclosure.</p>
+          <div class="permission-actions">
+            <button type="button" class="secondary" data-permission="0">No contacts</button>
+            <button type="button" class="secondary" data-permission="1">Pick one</button>
+            <button type="button" class="primary" data-permission="2">Pick several</button>
+            <button type="button" class="secondary" data-permission="3">Explain full scan</button>
+          </div>
+          <div id="permission-disclosure" class="local-notice">Only name, phone, and email are requested from records you select. Notes, photos, call logs, SMS, message history, and app notifications are never requested.</div>
+          <div class="manual-contact">
+            <label>Manual local fallback <input id="contact-name" autocomplete="off" placeholder="Name stays on this phone"></label>
+            <fieldset id="labels"><legend>Labels you choose</legend></fieldset>
+            <label>Relationship strength <select id="relationship"><option value="0">0 · weak</option><option value="1">1</option><option value="2">2</option><option value="3">3 · strong</option></select></label>
+            <button id="add-contact" type="button" class="secondary">Add local candidate</button>
+          </div>
+        </section>
+
+        <section class="card flow-card">
+          <div class="card-heading"><div><p class="eyebrow">2 · Local ranking</p><h2>You choose the recipients</h2></div><button id="rank" type="button" class="secondary">Rank locally</button></div>
+          <div id="candidate-list" class="candidate-list"><p class="muted">No contacts selected.</p></div>
+        </section>
+
+        <section class="card flow-card">
+          <p class="eyebrow">3 · Review the message</p>
+          <label class="wide-label">Trusted host-issued link
+            <input id="canonical-link" inputmode="url" placeholder="https://…/invite?invitation=…&policy=…&sig=…">
+          </label>
+          <div class="button-row">
+            <button id="copy-link" type="button" class="secondary">Copy link · Level 0</button>
+            <button id="draft-initial" type="button" class="primary">Draft initial message</button>
+            <button id="draft-details" type="button" class="secondary">Draft details after interest</button>
+          </div>
+          <label class="wide-label">Message you control
+            <textarea id="message-review" rows="8"></textarea>
+          </label>
+          <label class="inline-label"><input id="spanish" type="checkbox"> Spanish details disclosure</label>
+          <p class="draft-label">Agent-prepared messages show “Drafted with BitAgent.”</p>
+          <div class="button-row">
+            <button id="open-share" type="button" class="primary">Open native share sheet</button>
+            <button id="record-sent" type="button" class="secondary">I completed the send</button>
+          </div>
+          <div id="share-status" class="local-notice">Opening the share sheet does not mark a message sent. You choose the app and press its final send button.</div>
+        </section>
+
+        <section class="card flow-card">
+          <div class="card-heading"><div><p class="eyebrow">4 · Local campaign tracker</p><h2>One invite, one approved follow-up</h2></div><button id="delete-local" type="button" class="danger">Delete local contact data</button></div>
+          <div id="campaign-list" class="candidate-list"><p class="muted">Campaign state stays on this device.</p></div>
+        </section>
+      </main>
+
+      <footer><span>No automated sends · no global contact graph</span><span>Phone share contracts keep final control with you.</span></footer>
+    </div>
+    <script type="module" src="/referrals.js"></script>
+  </body>
+</html>

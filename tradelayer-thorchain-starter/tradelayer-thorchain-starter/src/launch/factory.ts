@@ -26,6 +26,12 @@ import {
 } from "../settlement/tradelayerOrderVerifier.js";
 import { BitcoinCliChainSource } from "../settlement/bitcoinCliChainSource.js";
 import type { BitcoinWithdrawalReadSource } from "../settlement/types.js";
+import { ReferralLinkService, referralSigningKeyFromEnvironment } from "../referral/links.js";
+import { FileComplianceAuditLog } from "../compliance/audit.js";
+import {
+  ComplianceGatedWalletBroker,
+  type WalletComplianceAuthority
+} from "../compliance/walletGate.js";
 
 export type ReserveIntakeConfiguration = {
   operatorXonly: string;
@@ -80,6 +86,24 @@ function withdrawalConfirmationTarget(configured?: number): number {
   return value;
 }
 
+export function createScriptedReferralLinkService() {
+  return new ReferralLinkService(Buffer.alloc(32, 0x52), "https://bitagent.local");
+}
+
+function configuredReferralLinkService(input: {
+  production: boolean;
+  provided?: ReferralLinkService;
+}) {
+  if (input.provided) return input.provided;
+  if (!process.env.BITAGENT_REFERRAL_SIGNING_KEY) {
+    return input.production ? undefined : createScriptedReferralLinkService();
+  }
+  return new ReferralLinkService(
+    referralSigningKeyFromEnvironment(),
+    process.env.BITAGENT_REFERRAL_BASE_URL || "https://bitagent.local"
+  );
+}
+
 function configuredWalletBroker(input: {
   production: boolean;
   provided?: WalletExecutionBroker;
@@ -114,10 +138,12 @@ export function createLaunchKernel(options: {
   bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
   withdrawalConfirmations?: number;
   reserveIntake?: ReserveIntakeConfiguration;
+  referralLinkService?: ReferralLinkService;
+  walletComplianceAuthority?: WalletComplianceAuthority;
 } = {}) {
   const production = options.production
     ?? String(process.env.BITAGENT_PRODUCTION || "false").toLowerCase() === "true";
-  const walletBroker = configuredWalletBroker({
+  const rawWalletBroker = configuredWalletBroker({
     production,
     provided: options.walletBroker,
     scripted: options.scriptedBroker
@@ -143,12 +169,24 @@ export function createLaunchKernel(options: {
       })
       : undefined
   );
-  if (production && walletBroker instanceof RemoteWalletExecutionBroker
+  if (production && rawWalletBroker instanceof RemoteWalletExecutionBroker
     && (!tradeLayerOrderSource || !bitcoinWithdrawalSource || !options.strategyFundingSource)) {
     throw new Error(
       "Remote production wallet execution requires independent strategy funding, TradeLayer order, and Bitcoin withdrawal sources"
     );
   }
+  if (production && rawWalletBroker instanceof RemoteWalletExecutionBroker
+    && !options.walletComplianceAuthority) {
+    throw new Error("Remote production wallet execution requires a fresh compliance authority");
+  }
+  const walletBroker = options.walletComplianceAuthority
+    ? new ComplianceGatedWalletBroker(
+      rawWalletBroker,
+      options.walletComplianceAuthority,
+      new FileComplianceAuditLog(),
+      options.now
+    )
+    : rawWalletBroker;
   return new BitAgentLaunchKernel({
     store: options.store || new FileWorkflowStore(path.join(runtimeDir, "bitagent-workflows.json")),
     quoteProvider: options.quoteProvider || new ScriptedQuoteProvider(),
@@ -163,7 +201,11 @@ export function createLaunchKernel(options: {
       )
       : walletBroker,
     now: options.now,
-    reserveIntake
+    reserveIntake,
+    referralLinkService: configuredReferralLinkService({
+      production,
+      provided: options.referralLinkService
+    })
   });
 }
 
@@ -177,6 +219,8 @@ export function createTestLaunchKernel(options: {
   bitcoinWithdrawalSource?: BitcoinWithdrawalReadSource;
   withdrawalConfirmations?: number;
   reserveIntake?: ReserveIntakeConfiguration;
+  referralLinkService?: ReferralLinkService;
+  walletComplianceAuthority?: WalletComplianceAuthority;
 } = {}) {
   return createLaunchKernel({
     store: options.store || new InMemoryWorkflowStore(),
@@ -187,6 +231,8 @@ export function createTestLaunchKernel(options: {
     bitcoinWithdrawalSource: options.bitcoinWithdrawalSource,
     withdrawalConfirmations: options.withdrawalConfirmations,
     reserveIntake: options.reserveIntake,
+    referralLinkService: options.referralLinkService || createScriptedReferralLinkService(),
+    walletComplianceAuthority: options.walletComplianceAuthority,
     now: options.now
   });
 }

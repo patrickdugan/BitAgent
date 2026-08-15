@@ -33,6 +33,22 @@
     "execution": false,
     "broadcast": false
   },
+  "candidateTrainingExtensions": {
+    "marketingComplianceV1": {
+      "status": "training_signal_frozen_candidate_untrained",
+      "datasetManifest": "training/datasets/bitagent-marketing-trajectories-v1/manifest.json",
+      "adapterContract": "training/datasets/bitagent-marketing-trajectories-v1/adapter-contract.json",
+      "toolContract": "training/datasets/bitagent-marketing-trajectories-v1/tool-contracts.json",
+      "evaluationManifest": "eval/marketing-cue-eval-manifest.json",
+      "multiTurnDatasetManifest": "training/datasets/bitagent-marketing-multiturn-v1/manifest.json",
+      "multiTurnEvaluationManifest": "eval/marketing-multiturn-eval-manifest.json",
+      "skills": [
+        "skills/bitagent-compliance/SKILL.md",
+        "skills/bitagent-marketing-coach/SKILL.md"
+      ],
+      "authority": "candidate_only_no_contact_send_wallet_or_execution"
+    }
+  },
   "promotion": {
     "operatorReady": false,
     "requiredGates": [

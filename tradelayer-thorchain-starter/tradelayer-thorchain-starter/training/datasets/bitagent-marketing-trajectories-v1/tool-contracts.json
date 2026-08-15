@@ -1,0 +1,499 @@
+{
+  "schema": "hermes.bitagent_marketing_tool_contract_bundle.v1",
+  "authority": {
+    "modelOutputIsCandidateOnly": true,
+    "contactSelectionAndFinalSendAreHumanOwned": true,
+    "policyBindingSettlementWalletAndExecutionAreHostOwned": true
+  },
+  "contracts": {
+    "bitagent.compliance.evaluate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "country_of_residence",
+        "current_location_country",
+        "age_eligibility",
+        "product_requested",
+        "custody_model",
+        "user_type"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "ENABLE_PRODUCT",
+            "CHANGE_LEVERAGE",
+            "CREATE_REFERRAL_BINDING",
+            "RANK_CONTACTS",
+            "PREPARE_FINANCIAL_PROMOTION",
+            "ENABLE_OPERATOR_SERVICE",
+            "START_AGENT_ASSISTED_OUTREACH",
+            "CHANGE_COUNTRY",
+            "CHANGE_USER_TYPE"
+          ]
+        },
+        "country_of_residence": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2}$"
+        },
+        "current_location_country": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2}$"
+        },
+        "age_eligibility": {
+          "type": "string",
+          "enum": [
+            "ELIGIBLE",
+            "INELIGIBLE",
+            "UNKNOWN"
+          ]
+        },
+        "product_requested": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "product_description": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "custody_model": {
+          "type": "string",
+          "enum": [
+            "SELF_CUSTODY",
+            "CUSTODIAL",
+            "HYBRID",
+            "UNKNOWN"
+          ]
+        },
+        "user_type": {
+          "type": "string",
+          "enum": [
+            "retail",
+            "professional",
+            "institution",
+            "unknown"
+          ]
+        },
+        "expected_policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "user_leverage_cap": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "strategy_leverage_cap": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "protocol_leverage_cap": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "contact_permission": {
+          "type": "string",
+          "enum": [
+            "CONTACT_NONE",
+            "CONTACT_PICK_ONE",
+            "CONTACT_PICK_MULTIPLE",
+            "CONTACT_LOCAL_RANKING",
+            "CONTACT_FULL_LOCAL_SCAN"
+          ]
+        },
+        "referral_provenance": {
+          "type": "string",
+          "enum": [
+            "SELF_AGENT",
+            "HUMAN_REFERRED",
+            "AGENT_ASSISTED_HUMAN_REFERRAL",
+            "SERVICE_OPERATOR_REFERRED",
+            "AGENT_TO_AGENT"
+          ]
+        },
+        "external_beneficiary_requested": {
+          "type": "boolean"
+        },
+        "human_principal_authorized_external_beneficiary": {
+          "type": "boolean"
+        },
+        "agent_assisted_outreach_requested": {
+          "type": "boolean"
+        },
+        "autonomous_initial_send_requested": {
+          "type": "boolean"
+        },
+        "token_denominated_reward": {
+          "type": "boolean"
+        },
+        "financial_vulnerability_signal": {
+          "type": "boolean"
+        }
+      },
+      "authority": "policy_host",
+      "effect": "none"
+    },
+    "bitagent.growth.approve_follow_up": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedId"
+      ],
+      "properties": {
+        "localHashedId": {
+          "type": "string"
+        }
+      },
+      "authority": "human",
+      "effect": "local_state_only"
+    },
+    "bitagent.growth.calculate_goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goalUsd"
+      ],
+      "properties": {
+        "goalUsd": {
+          "type": "integer",
+          "enum": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.draft_message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedId",
+        "approvedReason",
+        "agentDrafted"
+      ],
+      "properties": {
+        "localHashedId": {
+          "type": "string"
+        },
+        "approvedReason": {
+          "type": "string"
+        },
+        "agentDrafted": {
+          "type": "boolean"
+        }
+      },
+      "authority": "local_host",
+      "effect": "local_state_only"
+    },
+    "bitagent.growth.earnings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {},
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.explain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {},
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.prepare_native_share": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "authority": "human",
+      "effect": "none"
+    },
+    "bitagent.growth.rank_selected_contacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedIds"
+      ],
+      "properties": {
+        "localHashedIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.record_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedId",
+        "response"
+      ],
+      "properties": {
+        "localHashedId": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string",
+          "enum": [
+            "not_interested",
+            "do_not_contact"
+          ]
+        }
+      },
+      "authority": "human",
+      "effect": "local_state_only"
+    },
+    "bitagent.growth.request_contact_selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principalId",
+        "platform",
+        "level"
+      ],
+      "properties": {
+        "principalId": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "web",
+            "android",
+            "ios"
+          ]
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "androidRelease": {
+          "type": "integer"
+        },
+        "broadDisclosureAccepted": {
+          "type": "boolean"
+        }
+      },
+      "authority": "human",
+      "effect": "local_state_only"
+    },
+    "bitagent.marketing.calculate_k_factor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eligiblePrincipals",
+        "uniqueHumanSentInvitations",
+        "independentQualifiedActivations",
+        "excludedSelfControlledOrDuplicates",
+        "suppressedRecipients"
+      ],
+      "properties": {
+        "eligiblePrincipals": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        },
+        "uniqueHumanSentInvitations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "independentQualifiedActivations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "excludedSelfControlledOrDuplicates": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "suppressedRecipients": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.marketing.compose_coaching": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "topic",
+        "channel",
+        "locale"
+      ],
+      "properties": {
+        "topic": {
+          "type": "string",
+          "enum": [
+            "agent_value",
+            "p2p_derivative_risk",
+            "referral_economics"
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "native_share",
+            "whatsapp",
+            "sms",
+            "email",
+            "signal"
+          ]
+        },
+        "locale": {
+          "type": "string",
+          "enum": [
+            "en",
+            "es"
+          ]
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.marketing.plan_channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "phase",
+        "consentState",
+        "contactSource",
+        "localHashedId"
+      ],
+      "properties": {
+        "channel": {
+          "type": "string",
+          "enum": [
+            "native_share",
+            "whatsapp",
+            "sms",
+            "email",
+            "signal"
+          ]
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "initial",
+            "follow_up"
+          ]
+        },
+        "consentState": {
+          "type": "string",
+          "enum": [
+            "none",
+            "selected_by_user",
+            "opted_in",
+            "not_interested",
+            "do_not_contact"
+          ]
+        },
+        "contactSource": {
+          "type": "string",
+          "enum": [
+            "os_picker",
+            "prior_opt_in_record"
+          ]
+        },
+        "localHashedId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,128}$"
+        },
+        "providerConfigured": {
+          "type": "boolean"
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.marketing.prepare_opted_in_follow_up": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "localHashedId",
+        "consentReceiptId",
+        "templateId"
+      ],
+      "properties": {
+        "channel": {
+          "type": "string",
+          "enum": [
+            "whatsapp",
+            "sms",
+            "email"
+          ]
+        },
+        "localHashedId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,128}$"
+        },
+        "consentReceiptId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9:_-]{8,160}$"
+        },
+        "templateId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]{3,80}$"
+        }
+      },
+      "authority": "human",
+      "effect": "none"
+    },
+    "get_jurisdiction_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "residence_country",
+        "current_location_country",
+        "user_type"
+      ],
+      "properties": {
+        "residence_country": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2}$"
+        },
+        "current_location_country": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2}$"
+        },
+        "user_type": {
+          "type": "string",
+          "enum": [
+            "retail",
+            "professional",
+            "institution",
+            "unknown"
+          ]
+        }
+      },
+      "authority": "policy_host",
+      "effect": "none"
+    }
+  }
+}

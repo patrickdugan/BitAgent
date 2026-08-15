@@ -71,7 +71,9 @@ function json(response: http.ServerResponse, status: number, body: unknown) {
 }
 
 async function staticFile(response: http.ServerResponse, uiDir: string, pathname: string) {
-  const relative = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
+  const relative = pathname === "/" || pathname === "/invite"
+    ? "index.html"
+    : pathname.replace(/^\/+/, "");
   const target = path.resolve(uiDir, relative);
   if (!target.startsWith(path.resolve(uiDir) + path.sep) && target !== path.join(path.resolve(uiDir), "index.html")) {
     return false;

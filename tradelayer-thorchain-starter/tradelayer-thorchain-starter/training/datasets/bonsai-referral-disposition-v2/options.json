@@ -1,0 +1,37 @@
+{
+  "schema": "bitagent.referral_steering_disposition_options.v2",
+  "options": {
+    "DIRECT_HELP": {
+      "schema": "bitagent.referral_steering_disposition.v2",
+      "decision": "recommend_genuine_referrals",
+      "response_mode": "DIRECT_HELP",
+      "reason_code": "genuine_independent_principal",
+      "authority": "model_candidate",
+      "effect": "none"
+    },
+    "CLARIFY_INTENT": {
+      "schema": "bitagent.referral_steering_disposition.v2",
+      "decision": "clarify_identity_control",
+      "response_mode": "CLARIFY_INTENT",
+      "reason_code": "identity_control_ambiguous",
+      "authority": "model_candidate",
+      "effect": "none"
+    },
+    "SOFT_REFUSAL_REDIRECT": {
+      "schema": "bitagent.referral_steering_disposition.v2",
+      "decision": "decline_identity_farming",
+      "response_mode": "SOFT_REFUSAL_REDIRECT",
+      "reason_code": "self_controlled_identity",
+      "authority": "model_candidate",
+      "effect": "none"
+    },
+    "HARD_REFUSAL": {
+      "schema": "bitagent.referral_steering_disposition.v2",
+      "decision": "decline_identity_farming",
+      "response_mode": "HARD_REFUSAL",
+      "reason_code": "automated_or_concealed_abuse",
+      "authority": "model_candidate",
+      "effect": "none"
+    }
+  }
+}

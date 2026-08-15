@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tab_tradelayer" type="id" />
+    <item name="tab_bitagent" type="id" />
+    <item name="tab_model" type="id" />
+    <item name="tab_hermes" type="id" />
+    <item name="webview_tradelayer" type="id" />
+    <item name="webview_bitagent" type="id" />
+    <item name="model_surface" type="id" />
+    <item name="model_state" type="id" />
+    <item name="model_storage" type="id" />
+    <item name="model_progress" type="id" />
+    <item name="model_download" type="id" />
+    <item name="model_cancel" type="id" />
+    <item name="model_recheck" type="id" />
+    <item name="model_delete" type="id" />
+    <item name="hermes_surface" type="id" />
+    <item name="termux_state" type="id" />
+    <item name="termux_open" type="id" />
+    <item name="termux_grant_permission" type="id" />
+    <item name="hermes_copy_install" type="id" />
+    <item name="hermes_check" type="id" />
+    <item name="hermes_doctor" type="id" />
+    <item name="hermes_open" type="id" />
+    <item name="bitagent_skill_install" type="id" />
+    <item name="bitagent_local_start" type="id" />
+    <item name="bitagent_local_check" type="id" />
+    <item name="bitagent_local_connect" type="id" />
+</resources>

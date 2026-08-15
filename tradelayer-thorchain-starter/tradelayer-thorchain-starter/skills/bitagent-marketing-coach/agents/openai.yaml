@@ -1,0 +1,4 @@
+interface:
+  display_name: "BitAgent Marketing Coach"
+  short_description: "Coach consent-safe BitAgent financial outreach"
+  default_prompt: "Use $bitagent-marketing-coach to draft and evaluate a compliant, consent-based BitAgent outreach trajectory."

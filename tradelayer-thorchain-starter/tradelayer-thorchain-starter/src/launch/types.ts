@@ -1,4 +1,6 @@
 import type { ReserveIntakePlan } from "./reserveIntake.js";
+import type { ComplianceDecision, ProductCategory } from "../compliance/types.js";
+import type { TradeLayerProtocolPolicyReceipt } from "../compliance/tradelayerPolicy.js";
 
 export type SupportedIntent =
   | "deposit_bitcoin"
@@ -37,6 +39,7 @@ export type LaunchErrorCode =
   | "insufficient_funds"
   | "approval_required"
   | "approval_rejected"
+  | "compliance_required"
   | "simulation_stale"
   | "execution_failed"
   | "verification_failed"
@@ -47,10 +50,10 @@ export type LaunchErrorCode =
   | "provider_unavailable";
 
 export type ReferralAttribution = {
-  referrerId: string;
-  campaignId: string;
+  invitationId: string;
+  policyVersion: string;
+  signature: string;
   intendedWorkflow: SupportedIntent;
-  strategyTemplateId?: string;
   status: "pending" | "activated";
   capturedAt: string;
   activatedAt?: string;
@@ -299,11 +302,28 @@ export type WalletApproval = {
   resolvedAt?: string;
   walletApprovalRequestId?: string;
   walletApprovalToken?: string;
+  complianceAuthorizationHash?: string;
+  complianceDecisionHash?: string;
+};
+
+export type WalletComplianceReceipt = {
+  schema: "bitagent_wallet_compliance_receipt_v1";
+  effect: "authorize_wallet_action";
+  action: TransactionSimulation["action"];
+  product: ProductCategory;
+  simulation_hash: string;
+  decision: ComplianceDecision;
+  decision_hash: string;
+  protocol_policy: TradeLayerProtocolPolicyReceipt;
+  authorization_context_hash: string;
+  issued_at: string;
+  expires_at: string;
+  receipt_hash: string;
 };
 
 export type WalletAuthorizationResult =
-  | { status: "pending"; walletApprovalRequestId: string }
-  | { status: "approved"; walletApprovalToken: string; walletApprovalRequestId?: string }
+  | { status: "pending"; walletApprovalRequestId: string; complianceAuthorizationHash?: string; complianceDecisionHash?: string }
+  | { status: "approved"; walletApprovalToken: string; walletApprovalRequestId?: string; complianceAuthorizationHash?: string; complianceDecisionHash?: string }
   | { status: "rejected"; walletApprovalRequestId?: string };
 
 export type ActionExecution = {
@@ -315,6 +335,8 @@ export type ActionExecution = {
   orderId?: string;
   submittedAt: string;
   errorCode?: LaunchErrorCode;
+  complianceAuthorizationHash?: string;
+  complianceDecisionHash?: string;
 };
 
 export type ActionVerification = {
@@ -430,12 +452,14 @@ export interface WalletExecutionBroker {
     approval: WalletApproval;
     simulation: TransactionSimulation;
     state: BitAgentWorkflowState;
+    compliance?: WalletComplianceReceipt;
   }): Promise<WalletAuthorizationResult>;
   execute(input: {
     approval: WalletApproval;
     simulation: TransactionSimulation;
     state: BitAgentWorkflowState;
     now: Date;
+    compliance?: WalletComplianceReceipt;
   }): Promise<ActionExecution>;
   verify(input: {
     execution: ActionExecution;

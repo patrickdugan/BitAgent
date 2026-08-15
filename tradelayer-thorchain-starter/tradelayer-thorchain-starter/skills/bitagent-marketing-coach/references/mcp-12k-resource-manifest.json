@@ -1,0 +1,160 @@
+{
+  "schema": "bitagent.skill_mcp12k_resource_manifest.v1",
+  "skill": "bitagent-marketing-coach",
+  "context": {
+    "mode": "mcp_intensive_12k",
+    "hardContextTokens": 12000,
+    "fixedOverheadMaxTokens": 2200,
+    "toolSchemaMaxTokens": 1900,
+    "workingPacketMaxTokens": 4000,
+    "toolResultReserveTokens": 1700,
+    "outputReserveTokens": 1100,
+    "safetyMarginTokens": 1100,
+    "targetActiveTools": 2,
+    "maxActiveTools": 3,
+    "maxToolRounds": 3,
+    "maxToolCalls": 6,
+    "rawResultsInline": false,
+    "rawTranscriptsInline": false
+  },
+  "authority": {
+    "candidateOnly": true,
+    "approval": false,
+    "signing": false,
+    "broadcast": false,
+    "execution": false,
+    "stateTruth": "signed_policy_consent_receipts_and_deterministic_host"
+  },
+  "mcpStatus": "ready_candidate_tool_contracts",
+  "wrapper": {
+    "source": "src/referral/marketingTools.ts#MarketingToolRegistry",
+    "rawContactsInArguments": false,
+    "initialSendAvailable": false,
+    "providerExecutionAvailable": false
+  },
+  "phasePackets": [
+    {
+      "phase": "classify_and_gate",
+      "tools": ["get_jurisdiction_policy", "bitagent.compliance.evaluate", "bitagent.marketing.calculate_k_factor"],
+      "resources": ["channel_contract", "compliance_policy"]
+    },
+    {
+      "phase": "select_audience",
+      "tools": ["bitagent.growth.request_contact_selection", "bitagent.growth.rank_selected_contacts"],
+      "resources": ["channel_contract", "referral_controls"]
+    },
+    {
+      "phase": "coach_and_plan_channel",
+      "tools": ["bitagent.marketing.compose_coaching", "bitagent.marketing.plan_channel", "bitagent.marketing.prepare_opted_in_follow_up"],
+      "resources": ["channel_contract", "referral_controls"]
+    },
+    {
+      "phase": "train_or_evaluate",
+      "entrypoints": ["export_trajectories", "evaluate_marketing_cues"],
+      "resources": ["training_contract", "eval_manifest"]
+    },
+    {
+      "phase": "train_or_evaluate_multiturn",
+      "entrypoints": ["export_multiturn", "evaluate_marketing_multiturn"],
+      "resources": ["training_contract", "multiturn_eval_manifest"]
+    }
+  ],
+  "entrypoints": [
+    {
+      "id": "export_trajectories",
+      "source": "scripts/export-marketing-trajectory-data.ts#main",
+      "effect": "offline_dataset_write"
+    },
+    {
+      "id": "evaluate_marketing_cues",
+      "source": "eval/marketing-cue-harness.ts#evaluateMarketingCuePredictions",
+      "effect": "none"
+    },
+    {
+      "id": "export_multiturn",
+      "source": "scripts/export-marketing-multiturn-data.ts#main",
+      "effect": "offline_dataset_write"
+    },
+    {
+      "id": "evaluate_marketing_multiturn",
+      "source": "eval/marketing-multiturn-harness.ts#evaluateMarketingMultiTurnPredictions",
+      "effect": "none"
+    }
+  ],
+  "tools": [
+    {
+      "id": "policy_lookup",
+      "name": "get_jurisdiction_policy",
+      "source": "src/compliance/tools.ts#complianceToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "compliance_evaluate",
+      "name": "bitagent.compliance.evaluate",
+      "source": "src/compliance/tools.ts#complianceToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "select_contacts",
+      "name": "bitagent.growth.request_contact_selection",
+      "source": "src/referral/growthAgent.ts#growthAgentToolSchemas",
+      "effect": "local_state_only"
+    },
+    {
+      "id": "rank_contacts",
+      "name": "bitagent.growth.rank_selected_contacts",
+      "source": "src/referral/growthAgent.ts#growthAgentToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "compose_coaching",
+      "name": "bitagent.marketing.compose_coaching",
+      "source": "src/referral/channelPolicy.ts#marketingChannelToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "plan_channel",
+      "name": "bitagent.marketing.plan_channel",
+      "source": "src/referral/channelPolicy.ts#marketingChannelToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "prepare_follow_up",
+      "name": "bitagent.marketing.prepare_opted_in_follow_up",
+      "source": "src/referral/channelPolicy.ts#marketingChannelToolSchemas",
+      "effect": "none"
+    },
+    {
+      "id": "calculate_k_factor",
+      "name": "bitagent.marketing.calculate_k_factor",
+      "source": "src/referral/channelPolicy.ts#marketingChannelToolSchemas",
+      "effect": "none"
+    }
+  ],
+  "resources": [
+    {
+      "id": "channel_contract",
+      "path": "skills/bitagent-marketing-coach/references/channel-and-promotion-contract.md"
+    },
+    {
+      "id": "training_contract",
+      "path": "skills/bitagent-marketing-coach/references/training-and-eval-contract.md"
+    },
+    {
+      "id": "compliance_policy",
+      "path": "skills/bitagent-compliance/references/policy-contract.md"
+    },
+    {
+      "id": "referral_controls",
+      "path": "skills/bitagent-compliance/references/referral-outreach-controls.md"
+    },
+    {
+      "id": "eval_manifest",
+      "path": "eval/marketing-cue-eval-manifest.json"
+    },
+    {
+      "id": "multiturn_eval_manifest",
+      "path": "eval/marketing-multiturn-eval-manifest.json"
+    }
+  ]
+}

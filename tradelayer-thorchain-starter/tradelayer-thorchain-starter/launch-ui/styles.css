@@ -22,8 +22,10 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button, input { font: inherit; }
+button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
+
+.nav-link { color: var(--ink); text-decoration: none; }
 
 .shell { width: min(1380px, calc(100% - 40px)); margin: 0 auto; }
 
@@ -316,4 +318,55 @@ footer {
   .conversation { padding: 34px 0 40px; }
   .effects { grid-template-columns: 1fr; }
   footer { flex-direction: column; }
+}
+
+.phone-shell { width: min(960px, calc(100% - 28px)); }
+.referral-main { padding: 44px 0 20px; }
+.referral-hero { padding: 30px 0 46px; }
+.referral-hero h1 { margin: 8px 0 14px; max-width: 760px; font: 400 clamp(40px, 8vw, 76px)/0.98 Georgia, serif; letter-spacing: -0.045em; }
+.privacy-pill, .rate-badge { padding: 7px 10px; border-radius: 999px; background: rgba(215, 255, 63, 0.1); color: var(--acid); font-size: 12px; font-weight: 750; }
+.referral-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.referral-page .card { margin-bottom: 16px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.card-heading h2, .referral-page .card h2 { margin: 5px 0 12px; font: 400 28px/1.1 Georgia, serif; }
+.earnings-card h2 { font-size: 48px; }
+.balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 20px 0; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.balance-grid div { padding: 14px; background: #11120f; }
+.balance-grid span, .balance-grid strong { display: block; }
+.balance-grid span { color: var(--muted); font-size: 11px; }
+.balance-grid strong { margin-top: 5px; }
+.term-progress, .local-notice { padding: 13px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: #11120f; font-size: 13px; line-height: 1.5; }
+.fine-print, .muted, .draft-label { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.goal-buttons, .permission-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.goal-buttons button { padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); }
+.goal-buttons button.active { color: var(--black); border-color: var(--acid); background: var(--acid); }
+.compact-list { padding-left: 20px; color: var(--muted); line-height: 1.8; }
+.flow-card { margin-top: 16px; }
+.manual-contact { display: grid; gap: 13px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.manual-contact label, .wide-label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
+.manual-contact input, .wide-label input, textarea, select { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 9px; background: #11120f; color: var(--ink); }
+textarea { resize: vertical; line-height: 1.5; }
+fieldset { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; border: 0; padding: 0; color: var(--muted); font-size: 12px; }
+fieldset legend { margin-bottom: 8px; }
+fieldset label { display: flex !important; grid-template-columns: auto 1fr; align-items: center; }
+fieldset input, .inline-label input { width: auto; min-height: auto; }
+.candidate-list { display: grid; gap: 9px; }
+.candidate { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 15px; padding: 14px; text-align: left; border: 1px solid var(--line); border-radius: 11px; background: #11120f; color: var(--ink); }
+.candidate.selected { border-color: var(--acid); }
+.candidate span, .campaign-row span { display: grid; gap: 5px; }
+.candidate small, .campaign-row small { color: var(--muted); line-height: 1.4; }
+.candidate b { color: var(--acid); }
+.campaign-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.campaign-actions { display: flex !important; grid-auto-flow: column; gap: 7px !important; }
+.campaign-actions button { min-height: 34px; padding: 0 10px; font-size: 11px; }
+.inline-label { display: flex; align-items: center; gap: 8px; margin: 12px 0; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 700px) {
+  .referral-grid { grid-template-columns: 1fr; }
+  .referral-main { padding-top: 18px; }
+  .referral-hero { padding-top: 20px; }
+  .balance-grid, fieldset { grid-template-columns: 1fr; }
+  .campaign-row { align-items: flex-start; flex-direction: column; }
+  .campaign-actions { grid-auto-flow: row; width: 100%; }
+  .campaign-actions button { width: 100%; }
 }

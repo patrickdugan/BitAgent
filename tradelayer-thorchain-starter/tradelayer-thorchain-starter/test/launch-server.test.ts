@@ -5,9 +5,10 @@ import path from "node:path";
 import test from "node:test";
 import type { AddressInfo } from "node:net";
 import { ScriptedWalletBroker } from "../src/launch/broker.js";
-import { createTestLaunchKernel } from "../src/launch/factory.js";
+import { createScriptedReferralLinkService, createTestLaunchKernel } from "../src/launch/factory.js";
 import { createBitAgentServer } from "../src/launch/server.js";
 import type { DagProposalProvider } from "../src/launch/dagProposalProvider.js";
+import { AcquisitionMode, InvitationActor } from "../src/referral/types.js";
 
 class ScriptedDagProposalProvider implements DagProposalProvider {
   readonly source = "scripted_candidate_only_provider";
@@ -149,8 +150,11 @@ test("HTTP launch surface exposes typed tools, referral workflow state, and the 
     );
     assert.equal(reserveWithModelPath.status, 400);
 
-    const referralLink =
-      `${origin}/?ref=alice&campaign=launch&workflow=starter_strategy&strategy=starter-v1`;
+    const referralLink = createScriptedReferralLinkService().issue({
+      referrerPrincipalId: "alice",
+      acquisitionMode: AcquisitionMode.HUMAN_MANUAL_SHARE,
+      invitationActor: InvitationActor.HUMAN
+    }).url;
     const started = await fetch(`${origin}/api/workflows`, {
       method: "POST",
       headers: { "content-type": "application/json" },

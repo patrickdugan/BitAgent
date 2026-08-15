@@ -1,0 +1,16 @@
+/android/.gradle/
+/android/app/build/
+/android/build/
+/android/local.properties
+/android/.idea/
+*.iml
+
+# Local Codex session state and generated Python bytecode are not product source.
+/codex-chat-sessions/
+**/__pycache__/
+*.py[cod]
+
+# Never publish local environment credentials.
+.env
+.env.*
+!.env.example

@@ -10,7 +10,8 @@ import {
   type ScriptedBrokerOptions
 } from "../src/launch/broker.js";
 import { encodeSegwitAddress, validateBitcoinAddress } from "../src/launch/bitcoin.js";
-import { createLaunchKernel, createTestLaunchKernel } from "../src/launch/factory.js";
+import { createLaunchKernel, createScriptedReferralLinkService, createTestLaunchKernel } from "../src/launch/factory.js";
+import { AcquisitionMode, InvitationActor } from "../src/referral/types.js";
 import { LaunchKernelError } from "../src/launch/errors.js";
 import { FileWorkflowStore } from "../src/launch/store.js";
 import type { BitAgentLaunchKernel } from "../src/launch/kernel.js";
@@ -47,11 +48,16 @@ async function connectedKernel(options: {
     bitcoinWithdrawalSource: options.bitcoinWithdrawalSource
   });
   const workflowId = options.workflowId || `trajectory-${++workflowCounter}`;
+  const referralLink = options.referral
+    ? createScriptedReferralLinkService().issue({
+      referrerPrincipalId: "alice",
+      acquisitionMode: AcquisitionMode.HUMAN_MANUAL_SHARE,
+      invitationActor: InvitationActor.HUMAN
+    }).url
+    : undefined;
   await kernel.start({
     workflowId,
-    referralLink: options.referral
-      ? "https://bitagent.local/?ref=alice&campaign=kernel&workflow=strategy&strategy=starter-v1"
-      : undefined
+    referralLink
   });
   await kernel.connectWallet(workflowId, { mode: "create" });
   await kernel.prepareDeposit(workflowId);
@@ -215,7 +221,7 @@ test("trajectory 01: referral -> wallet -> deposit -> strategy -> withdrawal", a
   const { kernel, workflowId } = await connectedKernel({ confirmed: true, referral: true });
   const strategy = await simulateApproveExecuteVerify(kernel, workflowId);
   assert.equal(strategy.status, "verified");
-  assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+  assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
 
   await kernel.simulateWithdrawal(workflowId, {
     destinationAddress: address(),
@@ -494,7 +500,7 @@ test("trajectory 19: referral is not activated by wallet or deposit", async () =
   assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
 });
 
-test("trajectory 20: referral activates only on verified strategy", async () => {
+test("trajectory 20: verified strategy alone does not activate a referral term", async () => {
   const { kernel, workflowId } = await connectedKernel({ confirmed: true, referral: true });
   await kernel.simulateStrategy(workflowId, { amountSats: "100000" });
   await kernel.requestApproval(workflowId);
@@ -502,10 +508,10 @@ test("trajectory 20: referral activates only on verified strategy", async () => 
   await kernel.execute(workflowId);
   assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
   await kernel.verify(workflowId);
-  assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+  assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
 });
 
-test("independent TradeLayer verification replaces broker self-report before referral activation", async () => {
+test("independent TradeLayer verification replaces broker self-report but awaits fee settlement for referral activation", async () => {
   const tradeLayer = new LaunchTradeLayerSource();
   const { kernel, workflowId } = await connectedKernel({
     confirmed: true,
@@ -524,7 +530,7 @@ test("independent TradeLayer verification replaces broker self-report before ref
   assert.equal(verification.orderId, execution.txid);
   assert.equal(verification.evidence?.source, tradeLayer.source);
   assert.equal(verification.evidence?.openOrderMatched, true);
-  assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+  assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
 });
 
 test("stale independent TradeLayer state keeps strategy and referral pending", async () => {
@@ -572,7 +578,7 @@ test("temporarily unavailable independent verification persists a retryable pend
   tradeLayer.available = true;
   const resumed = await kernel.verify(workflowId);
   assert.equal(resumed.status, "verified");
-  assert.equal((await kernel.get(workflowId)).referral?.status, "activated");
+  assert.equal((await kernel.get(workflowId)).referral?.status, "pending");
 });
 
 test("independent Bitcoin verification replaces broker withdrawal self-report", async () => {

@@ -1,0 +1,3 @@
+[submodule "tradelayer-thorchain-starter/tradelayer-thorchain-starter/web"]
+	path = tradelayer-thorchain-starter/tradelayer-thorchain-starter/web
+	url = https://github.com/patrickdugan/BitAgent-web.git

@@ -1,0 +1,172 @@
+{
+  "schema": "hermes.bitagent_growth_tool_contract_bundle.v1",
+  "authority": {
+    "modelOutputIsCandidateOnly": true,
+    "humanOwnsContactAuthorizationAndFinalSend": true,
+    "hostOwnsBindingAndSettlement": true
+  },
+  "contracts": {
+    "bitagent.growth.approve_follow_up": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedId"
+      ],
+      "properties": {
+        "localHashedId": {
+          "type": "string"
+        }
+      },
+      "authority": "human",
+      "effect": "local_state_only"
+    },
+    "bitagent.growth.calculate_goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goalUsd"
+      ],
+      "properties": {
+        "goalUsd": {
+          "type": "integer",
+          "enum": [
+            1,
+            5,
+            10
+          ]
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.draft_message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedId",
+        "approvedReason",
+        "agentDrafted"
+      ],
+      "properties": {
+        "localHashedId": {
+          "type": "string"
+        },
+        "approvedReason": {
+          "type": "string"
+        },
+        "agentDrafted": {
+          "type": "boolean"
+        }
+      },
+      "authority": "local_host",
+      "effect": "local_state_only"
+    },
+    "bitagent.growth.earnings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {},
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.explain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {},
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.prepare_native_share": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "authority": "human",
+      "effect": "none"
+    },
+    "bitagent.growth.rank_selected_contacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedIds"
+      ],
+      "properties": {
+        "localHashedIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "authority": "local_host",
+      "effect": "none"
+    },
+    "bitagent.growth.record_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localHashedId",
+        "response"
+      ],
+      "properties": {
+        "localHashedId": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string",
+          "enum": [
+            "not_interested",
+            "do_not_contact"
+          ]
+        }
+      },
+      "authority": "human",
+      "effect": "local_state_only"
+    },
+    "bitagent.growth.request_contact_selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principalId",
+        "platform",
+        "level"
+      ],
+      "properties": {
+        "principalId": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "web",
+            "android",
+            "ios"
+          ]
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "androidRelease": {
+          "type": "integer"
+        },
+        "broadDisclosureAccepted": {
+          "type": "boolean"
+        }
+      },
+      "authority": "human",
+      "effect": "local_state_only"
+    }
+  }
+}
