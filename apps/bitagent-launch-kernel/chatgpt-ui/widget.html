@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BitAgent</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --ink: #161713; --muted: #5c5d55; --line: rgba(22, 23, 19, 0.16); --panel: rgba(22, 23, 19, 0.045);
+    --accent: #4d6a00; --lime: #b9e01f; --warn: #a83a17; --warn-bg: rgba(255, 113, 69, 0.13); --rest: rgba(22, 23, 19, 0.2);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #f4f1e8; --muted: #aaa99f; --line: rgba(244, 241, 232, 0.16); --panel: rgba(244, 241, 232, 0.06);
+      --accent: #d7ff3f; --lime: #d7ff3f; --warn: #ff8a66; --warn-bg: rgba(255, 113, 69, 0.14); --rest: rgba(244, 241, 232, 0.24);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #f4f1e8; --muted: #aaa99f; --line: rgba(244, 241, 232, 0.16); --panel: rgba(244, 241, 232, 0.06);
+    --accent: #d7ff3f; --lime: #d7ff3f; --warn: #ff8a66; --warn-bg: rgba(255, 113, 69, 0.14); --rest: rgba(244, 241, 232, 0.24);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; background: transparent; color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h2 { margin: 0; font-size: 17px; letter-spacing: -0.01em; }
+  h3 { margin: 0 0 2px; font-size: 14px; }
+  main > h3 { margin-top: 14px; }
+  p { margin: 6px 0; }
+  .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .pill { border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .pill.go { border-color: var(--accent); color: var(--accent); }
+  .pill.stop { border-color: var(--warn); color: var(--warn); }
+  .muted { color: var(--muted); }
+  ol.steps { list-style: none; margin: 12px 0 0; padding: 0; counter-reset: step; }
+  ol.steps > li { position: relative; padding: 0 0 14px 36px; counter-increment: step; }
+  ol.steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; color: var(--muted);
+  }
+  .cmd { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0; padding: 7px 8px 7px 10px; border-radius: 8px; background: var(--panel); }
+  code { flex: 1; min-width: 0; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; white-space: pre-wrap; }
+  button {
+    font: inherit; font-size: 12px; cursor: pointer; color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; white-space: nowrap;
+  }
+  button:hover { border-color: var(--ink); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .note { margin: 8px 0; padding: 8px 10px; border-radius: 8px; background: var(--panel); }
+  .warn { margin: 8px 0; padding: 8px 10px; border-radius: 8px; background: var(--warn-bg); border-left: 3px solid var(--warn); }
+  .bar { display: flex; height: 14px; margin: 12px 0 8px; border-radius: 7px; overflow: hidden; border: 1px solid var(--line); gap: 2px; }
+  .bar > span { min-width: 3px; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; }
+  .rows { margin: 0; padding: 0; list-style: none; }
+  .rows li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 5px 0; border-top: 1px solid var(--line); }
+  .rows li:first-child { border-top: 0; }
+  .rows strong { font-variant-numeric: tabular-nums; text-align: right; }
+  .rows .amount { text-align: right; white-space: nowrap; }
+  ul.plain { margin: 6px 0; padding-left: 18px; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 10px 6px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  th { border-top: 0; font-weight: 600; color: var(--muted); font-size: 12px; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main id="root" aria-live="polite"><p class="muted">Waiting for BitAgent…</p></main>
+<footer>Testnet rehearsal. ChatGPT cannot approve, sign, or move funds. BitAgent never asks for a seed phrase.</footer>
+<script>
+(() => {
+  const root = document.getElementById("root");
+
+  // Every value is inserted as text, never as markup.
+  function el(tag, className, ...children) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    for (const child of children.flat()) {
+      if (child === null || child === undefined || child === false) continue;
+      node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+    }
+    return node;
+  }
+  const words = (value) => String(value ?? "").replaceAll("_", " ");
+  const sats = (value) => `${BigInt(value).toLocaleString("en-US")} sats`;
+  const head = (title, pill, tone) => el("div", "head", el("h2", "", title), pill && el("span", `pill ${tone || ""}`, pill));
+
+  function copyButton(text, label = "Copy") {
+    const button = el("button", "", label);
+    button.type = "button";
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = "Copied";
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(button.previousSibling);
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+        button.textContent = "Selected";
+      }
+      setTimeout(() => { button.textContent = label; }, 1600);
+    });
+    return button;
+  }
+  const command = (text) => el("div", "cmd", el("code", "", text), copyButton(text));
+
+  function renderOverview(data) {
+    return [
+      head("BitAgent", words(data.stage)),
+      el("p", "", data.oneLine),
+      el("ol", "steps", data.journey.map((item) =>
+        el("li", "", el("h3", "", item.title), el("span", "muted", item.where)))),
+      el("div", "note", el("strong", "", "Starter strategy: "), data.starterStrategy)
+    ];
+  }
+
+  function renderSelfHost(data) {
+    const model = data.localModel;
+    return [
+      head(`Run BitAgent on ${data.platform === "macos" ? "macOS" : data.platform[0].toUpperCase() + data.platform.slice(1)}`, `${data.steps.length} steps`),
+      el("ol", "steps", data.steps.map((step) => el("li", "",
+        el("h3", "", step.title),
+        el("p", "", step.detail),
+        step.link && command(step.link),
+        (step.commands || []).map(command),
+        step.check && el("p", "muted", `You should see: ${step.check.replace(/^The (terminal|command) prints: /, "")}`),
+        step.stub && el("div", "warn", el("strong", "", "Not self-serve yet. "), step.stub)))),
+      model && model.status === "optional_download_available" && el("div", "note",
+        el("strong", "", "Optional on-device model. "),
+        `${(model.totalArtifactBytes / 1e9).toFixed(2)} GB, downloaded only when you tap Download model. `,
+        model.note,
+        el("ul", "plain", model.artifacts.map((artifact) =>
+          el("li", "", `${artifact.fileName} · SHA-256 `, el("code", "", artifact.sha256)))))
+    ];
+  }
+
+  const REASONS = {
+    financial_vulnerability_signal: "What you said suggests this money is under pressure.",
+    funds_borrowed_or_needed_soon: "This money is borrowed or needed for essentials soon.",
+    emergency_fund_below_minimum: "Your emergency savings are below the guardrail.",
+    high_interest_debt_declared: "You have high-interest debt.",
+    budget_below_fee_buffer: "The amount is too small to cover network fees."
+  };
+
+  function renderMoney(data) {
+    const nodes = [];
+    if (data.status === "needs_answers") {
+      nodes.push(head("Your money limits", `${data.questions.length} to go`),
+        el("p", "muted", "Next question"), el("div", "note", data.questions[0].ask));
+    } else if (data.status === "limits_recorded") {
+      const limits = data.limits;
+      const usd = data.approxUsd;
+      const parts = [
+        ["Starter strategy, at most", limits.strategyCapSats, "var(--lime)", usd && usd.strategyCap],
+        ["Stays spendable in your wallet", limits.keepSpendableSats, "var(--rest)", usd && usd.keepSpendable],
+        ["Set aside for network fees", limits.feeBufferSats, "var(--warn)", null]
+      ];
+      nodes.push(head("Your money limits", "Your own limits", "go"),
+        el("p", "", `Of the ${sats(limits.budgetSats)} you said you could lose entirely${usd ? ` (about $${usd.budget} at the price you gave)` : ""}:`));
+      const bar = el("div", "bar");
+      bar.setAttribute("role", "img");
+      bar.setAttribute("aria-label", parts.map(([label, value]) => `${label}: ${sats(value)}`).join("; "));
+      for (const [, value, color] of parts) {
+        const segment = el("span", "");
+        segment.style.flex = `${Number(value)} 1 0`;
+        segment.style.background = color;
+        bar.append(segment);
+      }
+      nodes.push(bar, el("ul", "rows", parts.map(([label, value, color, dollars]) => {
+        const swatch = el("span", "swatch");
+        swatch.style.background = color;
+        return el("li", "", el("span", "", swatch, label),
+          el("span", "amount", el("strong", "", sats(value)), dollars && el("span", "muted", ` ~$${dollars}`)));
+      })));
+      nodes.push(el("p", "muted", "These limits rehearse the habit on Bitcoin testnet4. This release cannot move real funds."));
+      nodes.push(handoff(data.handoff));
+    } else {
+      nodes.push(head("Your money limits", data.status === "hold_view_only" ? "On hold" : "Practice only", "stop"),
+        el("div", "warn", el("ul", "plain", data.reasonCodes.map((code) => el("li", "", REASONS[code] || words(code))))),
+        el("p", "", data.summary));
+    }
+    return nodes;
+  }
+
+  function handoff(data) {
+    return data && el("div", "note",
+      el("strong", "", "Next, on your own device. "),
+      `Open ${data.where} and say:`,
+      command(data.sayThis),
+      el("span", "muted", "Only your own wallet can approve it."));
+  }
+
+  const VERBS = { debit: "Send", credit: "Receive", lock: "Lock", unlock: "Unlock" };
+  const effectLabel = (effect) => effect.asset === "BTC_ORDER"
+    ? "Open limit orders"
+    : `${VERBS[effect.direction] || words(effect.direction)} ${effect.asset}${effect.condition === "on_fill" ? " (only if filled)" : ""}`;
+  function effectAmount(effect) {
+    if (effect.unit === "sats") return sats(effect.amount);
+    if (effect.unit !== "token_atoms") return effect.amount;
+    // TradeLayer token amounts carry 8 decimals.
+    const hundredths = BigInt(effect.amount) / 1_000_000n;
+    return `${(hundredths / 100n).toLocaleString("en-US")}.${String(hundredths % 100n).padStart(2, "0")} ${effect.asset}`;
+  }
+
+  function renderPractice(data) {
+    const simulation = data.simulation;
+    const nodes = [
+      head("Practice run", "Simulated"),
+      el("ul", "rows",
+        el("li", "", "Stage", el("strong", "", words(data.stage))),
+        el("li", "", "Pretend deposit", el("strong", "", data.deposit.amountSats ? sats(data.deposit.amountSats) : "none")),
+        el("li", "", "Pretend spendable balance", el("strong", "", sats(data.wallet.spendableSats))))
+    ];
+    if (simulation) {
+      nodes.push(
+        el("h3", "", simulation.action === "withdraw_bitcoin" ? "Simulated withdrawal" : "Simulated post-only tlBTC for tlUSD order"),
+        el("ul", "rows",
+          simulation.effects.map((effect) => el("li", "", effectLabel(effect), el("strong", "", effectAmount(effect)))),
+          el("li", "", "Network fee", el("strong", "", sats(simulation.fees.totalFeeSats))),
+          el("li", "", "Spendable after", el("strong", "", sats(simulation.balanceAfterSats)))),
+        simulation.destinationAddress && el("p", "muted", "To ", el("code", "", simulation.destinationAddress)),
+        el("ul", "plain muted", simulation.warnings.map((warning) => el("li", "", warning))),
+        handoff(data.handoff));
+    }
+    nodes.push(el("p", "muted", data.note));
+    return nodes;
+  }
+
+  function hostWould(row) {
+    if (row.status !== "replayed") return `Rejected: ${words(row.reasonCode)}`;
+    if (row.action === "hold") return "Hold";
+    const side = row.side === "buy_tlbtc" ? "buy" : "sell";
+    return row.action === "reduce_position" ? `Reduce position (${side})` : `Post ${side} limit at $${row.limitPriceUsd}`;
+  }
+
+  function renderStress(data) {
+    if (data.draftStatus !== "valid") {
+      return [head("Stress test", "Draft rejected", "stop"),
+        el("div", "warn", el("strong", "", `${words(data.reasonCode)}. `), data.message)];
+    }
+    const nodes = [head("Stress test", "Hypothetical"),
+      el("p", "", `${data.draft.mandateId}: ${data.draft.strategies.map((item) => `${item.strategyId} ${item.weightBps / 100}%`).join(", ")}`)];
+    if (data.scenarios.length) {
+      const table = el("table", "",
+        el("thead", "", el("tr", "", ["Scenario", "The host would", "Size", "Net delta after", "Risk flags"].map((title) => el("th", "", title)))),
+        el("tbody", "", data.scenarios.map((row) => el("tr", "",
+          el("td", "", row.label),
+          el("td", "", hostWould(row)),
+          el("td", "num", row.status === "replayed" && row.action !== "hold" ? sats(row.quantitySats) : "–"),
+          el("td", "num", row.status === "replayed" ? `${row.projectedNetDeltaBps} bps` : "–"),
+          el("td", "", row.status === "replayed" ? (row.riskFlags.map(words).join(", ") || "none") : row.message)))));
+      nodes.push(el("div", "scroll", table));
+    } else {
+      nodes.push(el("p", "muted", "The draft is valid. Add scenarios to see what the risk engine would do."));
+    }
+    nodes.push(el("p", "muted", "Scenario numbers were supplied in the conversation. This is not a backtest, a forecast, or market data."));
+    return nodes;
+  }
+
+  const RENDERERS = {
+    overview: renderOverview,
+    self_host_plan: renderSelfHost,
+    money_plan: renderMoney,
+    practice: renderPractice,
+    research_stress_test: renderStress,
+    error: (data) => [head("BitAgent", "Not done", "stop"), el("div", "warn", data.error.message)]
+  };
+
+  function render(data) {
+    const renderer = data && RENDERERS[data.kind];
+    if (!renderer) return;
+    try {
+      root.replaceChildren(...renderer(data).flat().filter(Boolean));
+    } catch {
+      root.replaceChildren(el("p", "muted", "This result is shown in the conversation."));
+    }
+  }
+
+  function applyTheme(theme) {
+    if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+  }
+
+  // MCP Apps bridge: JSON-RPC over postMessage with the host.
+  const pending = new Map();
+  let nextId = 1;
+  const post = (message) => window.parent.postMessage({ jsonrpc: "2.0", ...message }, "*");
+  const request = (method, params) => new Promise((resolve, reject) => {
+    const id = nextId++;
+    pending.set(id, { resolve, reject });
+    post({ id, method, params });
+  });
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const message = event.data;
+    if (!message || message.jsonrpc !== "2.0") return;
+    if (message.id !== undefined && pending.has(message.id)) {
+      const { resolve, reject } = pending.get(message.id);
+      pending.delete(message.id);
+      return message.error ? reject(message.error) : resolve(message.result);
+    }
+    if (message.method === "ui/notifications/tool-result") render(message.params?.structuredContent);
+    if (message.method === "ui/notifications/host-context-changed") applyTheme(message.params?.theme);
+  });
+
+  if (window.parent !== window) {
+    request("ui/initialize", {
+      appInfo: { name: "bitagent-journey", version: "0.1.0" },
+      appCapabilities: {},
+      protocolVersion: "2026-01-26"
+    }).then((result) => {
+      applyTheme(result?.hostContext?.theme);
+      post({ method: "ui/notifications/initialized", params: {} });
+    }).catch(() => {});
+  }
+
+  // ChatGPT compatibility surface, when present.
+  const legacy = () => {
+    applyTheme(window.openai?.theme);
+    render(window.openai?.toolOutput);
+  };
+  window.addEventListener("openai:set_globals", legacy);
+  legacy();
+
+  new ResizeObserver(() => {
+    const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    post({ method: "ui/notifications/size-changed", params: { width: document.documentElement.clientWidth, height } });
+    window.openai?.notifyIntrinsicHeight?.(height);
+  }).observe(document.documentElement);
+})();
+</script>
+</body>
+</html>

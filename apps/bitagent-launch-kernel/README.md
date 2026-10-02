@@ -59,6 +59,24 @@ testnet4 operator flow. See
 Owner-only hosted demo:
 [bitagent-launch-kernel.duganist875063.chatgpt.site](https://bitagent-launch-kernel.duganist875063.chatgpt.site).
 
+## ChatGPT plugin
+
+An MCP server lets ChatGPT onboard a new user: explain BitAgent, run the
+money-management dialogue, rehearse the journey with scripted testnet values,
+hand out the self-host download steps, and stress-test trading-system ideas
+against the real Strategy Covenant allocator. It exposes no approval, signing,
+or execution tool; every wallet action is handed off to the self-hosted
+BitAgent.
+
+```powershell
+npm run chatgpt:plugin
+npm run test:chatgpt
+```
+
+The endpoint is `http://127.0.0.1:8791/mcp`, with a local widget harness at
+`/preview`. See [docs/chatgpt-plugin.md](docs/chatgpt-plugin.md) for the tool
+list, how to connect it in ChatGPT Plugins, and the open seams.
+
 ## Committed algorithmic TradeLayer signals
 
 BitAgent also has a separate, fail-closed execution lane for signals produced
