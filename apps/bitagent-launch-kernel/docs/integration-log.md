@@ -2673,3 +2673,66 @@ MVP handoff and Hermes coordinator audit (2026-08-15):
   mutation, key access, or secret output occurred. Restore the operator-owned
   Core service and loopback RPC configuration before the next real testnet
   rehearsal.
+
+ChatGPT plugin onboarding surface (2026-10-01):
+
+- added `src/chatgpt/`, a dependency-free MCP server (Streamable HTTP at
+  `/mcp`, plus stdio) that ChatGPT can add under ChatGPT Plugins. Eight tools
+  cover the product overview, self-host download steps, the money-management
+  dialogue, a scripted practice sandbox, and Strategy Covenant research. No
+  tool approves, signs, executes, verifies, connects a wallet, or records a
+  model-supplied deposit; `request_approval` is also excluded, matching the
+  lifecycle skill's packet rule. See `docs/chatgpt-plugin.md`;
+- the research tool reuses `createStrategyCovenant`, `buildStrategyCandidate`,
+  and `verifyStrategyCandidate` unchanged and returns only a what-if table.
+  Assumption: with compliance state `UNKNOWN` on this surface, drafts are
+  capped at 1x gross leverage;
+- the money dialogue reuses `vulnerabilitySessionState` and
+  `containsSecretMaterial`. Assumption: the guardrail numbers in
+  `src/chatgpt/config.ts` (3 months emergency savings, 3000-sat fee buffer,
+  10% default / 25% maximum strategy share) are provisional product policy
+  awaiting an owner decision;
+- unresolved: no public clone URL for the reviewed `tradelayer.js` release is
+  recorded, so the self-host plan reports that step as not self-serve. The
+  launch kernel requires `UTXO-Ref` and `tradelayer.js` at import time, which
+  the root README quick start does not mention;
+- unresolved: the practice sandbox imports the launch kernel lazily and fails
+  closed with `practice_unavailable` on a host without the sibling repos. The
+  authoring checkout had no `tradelayer.js`, so the real scripted kernel path
+  was not exercised there; the sandbox was tested through a fake kernel port;
+- `npm run test:chatgpt` passed 11/11. `npx tsc --noEmit` still reports only
+  the pre-existing `src/compliance/policy.ts(492,3)` error. The widget was
+  exercised through the local `/preview` harness; no live ChatGPT connection
+  has been made, and the existing launch suites could not run on the authoring
+  checkout for the same missing-sibling reason.
+
+Control-capability harness, phases 0-3 (2026-10-01):
+
+- added `src/runcontract/` (run contract, evidence registry, envelope builder,
+  18-gate engine) and `src/bench/` (deterministic testnet4/TradeLayer world,
+  DAG v3 runner, reference policies, independent effect auditor, 42-scenario
+  seed set). Design and status are in `docs/research-architecture.md`,
+  sections 8 and 10. No model was run; nothing signs, broadcasts, or contacts
+  a node;
+- `covenantToRunContract` maps a `StrategyCovenant` to a run contract.
+  Assumption: a covenant caps tlUSD notional only, so the mapped contract
+  carries no tlBTC cap and tlBTC-spending actions stay default-denied until an
+  amendment supplies one;
+- stub: the envelope `payloadHash` hashes the canonical action terms and
+  stands in for the `tradelayer.js` / wallet builder output. The bench world's
+  property IDs, venue, prices, and fee are simulated placeholders;
+- stub: benchmark approvals are host-issued one-shot leases
+  (`delegated_within_contract`). The product path stays on per-action wallet
+  approval and `fundedExecutionAllowed` is unchanged;
+- unresolved: harness level H0 (literal-emitting raw tool calls), model-side
+  span extraction, `cancel` / `reduce_position` world effects, and the
+  strategy drift monitor are not built;
+- `npm run test:control-capability` passed 49/49 and
+  `npm run eval:control-capability:soundness` reported `sound: true`
+  (oracle 42/42; zero unauthorized effects at H3 from the adversarial and
+  random policies; 18/18 gate knockouts caught). The full suite still shows
+  the same 43 failures as before this work, none in the new files. `tsc
+  --noEmit` on the new files reports only the pre-existing
+  `src/compliance/policy.ts(492,3)` error. Run with a Node that is not on
+  PATH in this checkout's shell; `git` was not available, so nothing is
+  committed.
