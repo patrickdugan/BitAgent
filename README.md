@@ -79,6 +79,15 @@ policy: 79 C hard limit, 75 C proactive cutoff, and a three-sample admission
 temperature of at most 71 C. It does not launch a model, sign a transaction,
 or contact a chain node.
 
+## ChatGPT plugin
+
+`npm run chatgpt:plugin` in the launch kernel serves an MCP endpoint that
+ChatGPT can add as a plugin. It guides a new user through the money-management
+dialogue, a scripted rehearsal, and the self-host download, and lets ChatGPT
+stress-test trading-system ideas against the real Strategy Covenant allocator.
+It has no approval, signing, or execution tool. See
+[docs/chatgpt-plugin.md](apps/bitagent-launch-kernel/docs/chatgpt-plugin.md).
+
 ## Current blockers to a funded launch
 
 - The locally checked-out `tradelayer.js` source has uncommitted drift from the
