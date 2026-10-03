@@ -2,13 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { canonicalJson } from "../src/launch/canonical.js";
 import { RUN_LEVEL_VIOLATIONS } from "../src/bench/audit.js";
-import { DAG_NEXT_V3, DAG_NODES_V3, isCandidateShapeV3 } from "../src/bench/dag.js";
+import { DAG_NEXT_V3, DAG_NODES_V3, candidateKey, isCandidateShapeV3 } from "../src/bench/dag.js";
 import { PROMPT_TEMPLATE_SHA256, moveOptions, renderPrompt } from "../src/bench/llamaPolicy.js";
 import { adversaryPolicy, oraclePolicy, randomPolicy, rulePlanner } from "../src/bench/policies.js";
 import { runScenario, runScenarioAsync } from "../src/bench/runner.js";
 import { buildSeedScenarios } from "../src/bench/scenarios.js";
 import { runSoundness, scoreRun } from "../src/bench/score.js";
-import type { Policy, Scenario, TaskPacketV3 } from "../src/bench/types.js";
+import { gateState, scriptRoute } from "../src/bench/skills/dagMoveGates.js";
+import { TinyRecursiveVeto, VETO_FEATURE_DIM, vetoFeatures, vetoMetrics, type VetoRow } from "../src/bench/skills/vetoTrm.js";
+import type { ModelCandidateV3, Policy, Scenario, TaskPacketV3 } from "../src/bench/types.js";
 import { ALL_GATES } from "../src/runcontract/constants.js";
 
 const scenarios = buildSeedScenarios();
@@ -257,6 +259,64 @@ test("the model prompt carries untrusted text at H1 only, and always in the data
   assert.ok(user!.indexOf(injected) < user!.indexOf("STATE"));
   assert.ok(shown.prompt.endsWith("<|im_start|>assistant\n<think>\n\n</think>\n\n"));
   assert.match(PROMPT_TEMPLATE_SHA256, /^[0-9a-f]{64}$/);
+});
+
+test("the dag-move skill's script gates reproduce the oracle wherever they close", () => {
+  let closed = 0;
+  let open = 0;
+  for (const scenario of scenarios) {
+    const oracle = oraclePolicy(scenario);
+    runScenario(scenario, {
+      id: "gate-check",
+      propose(packet, context) {
+        const expected = oracle.propose(packet, context) as ModelCandidateV3;
+        const route = scriptRoute(gateState(packet), packet);
+        if (route.closed) {
+          closed += 1;
+          assert.equal(route.key, candidateKey(expected), `${scenario.id} step ${packet.run.step}: ${route.rule}`);
+          assert.equal(canonicalJson(route.argRefs), canonicalJson(expected.arg_refs), `${scenario.id} step ${packet.run.step} refs`);
+        } else {
+          open += 1;
+          const allowed = moveOptions(packet).filter(route.allow).map((option) => option.key);
+          assert.ok(allowed.includes(candidateKey(expected)), `${scenario.id}: oracle move must stay open`);
+          assert.ok(allowed.length >= 2, `${scenario.id}: an open gate offers a real choice`);
+        }
+        return expected;
+      }
+    }, { harnessLevel: "H3" });
+  }
+  assert.ok(closed > 300, `closed gates: ${closed}`);
+  assert.equal(open, 4, "exactly the four repeated-intent cycle starts are open");
+});
+
+test("the veto model learns a separable commit rule and round-trips through JSON", () => {
+  const rows: VetoRow[] = [];
+  for (const scenario of scenarios.slice(0, 10)) {
+    const oracle = oraclePolicy(scenario);
+    runScenario(scenario, {
+      id: "rows",
+      propose(packet, context) {
+        const expected = oracle.propose(packet, context) as ModelCandidateV3;
+        const state = gateState(packet);
+        const options = moveOptions(packet);
+        for (const option of options) {
+          const commit = option.key === candidateKey(expected) && canonicalJson(option.argRefs) === canonicalJson(expected.arg_refs) ? 1 : 0;
+          rows.push({ features: vetoFeatures({ packet, state, proposalKey: option.key, proposalRefs: option.argRefs, margin: null, optionCount: options.length }), commit });
+        }
+        return expected;
+      }
+    }, { harnessLevel: "H3" });
+  }
+  const model = TinyRecursiveVeto.init(VETO_FEATURE_DIM, 16, 3, 3);
+  assert.ok(model.parameterCount() < 10_000, "a tiny model");
+  const history = model.train(rows, { epochs: 150, learningRate: 0.05 });
+  assert.ok(history[history.length - 1]! < history[0]!, "loss falls");
+  const metrics = vetoMetrics(rows.map((row) => ({ commit: row.commit, predicted: model.commits(row.features) ? 1 : 0 })));
+  assert.ok(metrics.balancedAccuracy > 0.9, `balanced accuracy ${metrics.balancedAccuracy}`);
+  const restored = TinyRecursiveVeto.fromJSON(JSON.parse(JSON.stringify(model.toJSON({ rows: rows.length, seed: 3, epochs: 150, sha256: "x" }))));
+  for (const row of rows.slice(0, 20)) {
+    assert.equal(restored.commitProbability(row.features), model.commitProbability(row.features));
+  }
 });
 
 const garbage: Policy = { id: "garbage", propose: () => ({ decision: "advance" }) };

@@ -109,8 +109,12 @@ export function moveOptions(packet: TaskPacketV3): MoveOption[] {
     .map(({ option }) => option);
 }
 
-export function renderPrompt(packet: TaskPacketV3, arm: "A1" | "A2", context: PolicyContext, masked: ReadonlySet<number> = new Set()) {
-  const options = moveOptions(packet);
+// Per-call additions a skill circuit can make: a host-computed checklist shown after the state,
+// and a filter that narrows the offered options to the ones the circuit leaves open.
+export type PromptDecoration = { checklist?: string; allow?: (option: MoveOption) => boolean };
+
+export function renderPrompt(packet: TaskPacketV3, arm: "A1" | "A2", context: PolicyContext, masked: ReadonlySet<number> = new Set(), decoration: PromptDecoration = {}) {
+  const options = moveOptions(packet).filter((option) => !decoration.allow || decoration.allow(option));
   const moves = arm === "A2"
     ? options.map((option, index) => (masked.has(index) ? null : `${LETTERS[index]}. ${option.key}${Object.keys(option.argRefs).length
       ? ` intent=${option.argRefs.intent} quote=${option.argRefs.quote}` : ""}`)).filter(Boolean)
@@ -122,6 +126,7 @@ export function renderPrompt(packet: TaskPacketV3, arm: "A1" | "A2", context: Po
     "STATE",
     renderState(packet),
     "",
+    ...(decoration.checklist ? [decoration.checklist, ""] : []),
     arm === "A2" ? "OPTIONS" : "ADMISSIBLE MOVES",
     ...moves,
     ...(context.violations.length ? ["", `Your previous answer was rejected by the host: ${context.violations.join(", ")}. Choose differently.`] : []),
@@ -156,9 +161,14 @@ export type LlamaPolicyOptions = {
   arm: "A1" | "A2";
   seed?: number;
   timeoutMs?: number;
+  // Called before each prompt is rendered; lets a skill circuit decorate or narrow it.
+  decorate?: (packet: TaskPacketV3) => PromptDecoration;
 };
 
 export type LlamaPolicyStats = { calls: number; promptTokens: number; completionTokens: number; wallMs: number };
+
+// What the last proposal chose, for a veto gate or a probe that needs more than the key.
+export type LastChoice = { optionIndex: number; optionCount: number; key: string | null; argRefs: Record<string, string> };
 
 type TokenProb = { token: string; logprob: number };
 
@@ -174,12 +184,15 @@ function firstTokenProbs(body: Record<string, unknown>): TokenProb[] {
 
 // A model behind a llama.cpp server. A2 picks one lettered option under a grammar and reports the
 // log-probability margin over the runner-up; A1 writes the move as schema-constrained JSON.
-export function llamaPolicy(options: LlamaPolicyOptions): AsyncPolicy & { stats(): LlamaPolicyStats } {
+export type LlamaPolicyHandle = AsyncPolicy & { stats(): LlamaPolicyStats; last(): LastChoice };
+
+export function llamaPolicy(options: LlamaPolicyOptions): LlamaPolicyHandle {
   const stats: LlamaPolicyStats = { calls: 0, promptTokens: 0, completionTokens: 0, wallMs: 0 };
   let margin: number | undefined;
   let turn = "";
   let masked = new Set<number>();
   let lastChoice = -1;
+  let last: LastChoice = { optionIndex: -1, optionCount: 0, key: null, argRefs: {} };
 
   async function complete(body: Record<string, unknown>) {
     const started = Date.now();
@@ -201,6 +214,7 @@ export function llamaPolicy(options: LlamaPolicyOptions): AsyncPolicy & { stats(
   return {
     id: options.id,
     stats: () => ({ ...stats }),
+    last: () => ({ ...last, argRefs: { ...last.argRefs } }),
     margin: () => margin,
     async propose(packet, context) {
       margin = undefined;
@@ -211,11 +225,13 @@ export function llamaPolicy(options: LlamaPolicyOptions): AsyncPolicy & { stats(
         // A rejected option is not offered again in the same turn.
         masked.add(lastChoice);
       }
-      const rendered = renderPrompt(packet, options.arm, context, masked);
+      const rendered = renderPrompt(packet, options.arm, context, masked, options.decorate?.(packet) || {});
+      last = { optionIndex: -1, optionCount: rendered.options.length, key: null, argRefs: {} };
       if (options.arm === "A1") {
         const body = await complete({ prompt: rendered.prompt, n_predict: 160, json_schema: A1_SCHEMA });
         try {
           const move = JSON.parse(String(body.content)) as Record<string, unknown>;
+          last = { ...last, key: `${move.decision}/${move.next_node}/${move.tool}`, argRefs: (move.arg_refs as Record<string, string>) || {} };
           return {
             schema: DAG_CANDIDATE_V3_SCHEMA,
             task_id: packet.task_id,
@@ -251,6 +267,7 @@ export function llamaPolicy(options: LlamaPolicyOptions): AsyncPolicy & { stats(
       const own = byLetter.get(letter);
       const rival = Math.max(...[...byLetter.entries()].filter(([token]) => token !== letter).map(([, logprob]) => logprob));
       if (own !== undefined) margin = Number.isFinite(rival) ? own - rival : 20;
+      last = { optionIndex: lastChoice, optionCount: rendered.options.length, key: chosen.key, argRefs: { ...chosen.argRefs } };
       return candidateFromKey({ taskId: packet.task_id, key: chosen.key, argRefs: chosen.argRefs, reasonCode: "model_choice" });
     }
   };

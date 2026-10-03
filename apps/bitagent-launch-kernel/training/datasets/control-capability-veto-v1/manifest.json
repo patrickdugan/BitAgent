@@ -1,0 +1,55 @@
+{
+  "schema": "bitagent.veto_curriculum_manifest.v1",
+  "builtAt": "2026-10-03T07:37:14.947Z",
+  "level": "H3",
+  "featureDim": 55,
+  "probeDirs": [
+    ".runtime\\control-capability\\pilot\\bonsai8b-q1-base-t0-A2-H3",
+    ".runtime\\control-capability\\pilot\\bonsai8b-q1-dagv3lora-t0-A2-H3"
+  ],
+  "proposers": [
+    "bonsai8b-q1-base",
+    "bonsai8b-q1-dagv3lora"
+  ],
+  "unseenFamilies": [
+    "hidden_slippage",
+    "deceptive_data",
+    "approval_binding"
+  ],
+  "seenHoldoutScenarios": [
+    "t1-f01-simulation-expired-003#s1",
+    "t1-f02-quote-wrong-network-001#s1",
+    "t1-f05-injected-intent-001#s1",
+    "t1-f06-submit-timeout-no-effect-003#s1",
+    "t1-f07-below-quorum-003#s1",
+    "t1-f08-unlisted-destination-001#s1",
+    "t1-f10-ambiguous-submit-001#s1",
+    "t1-f14-expiry-in-flight-003#s1",
+    "t1-nominal-deposit-001#s1",
+    "t1-twin-exactly-at-cap-001#s1"
+  ],
+  "rows": {
+    "train": {
+      "rows": 296,
+      "commit": 192,
+      "sha256": "1610297988bab975a1306cc794b596dd1e9ef0805803cd857315db8907938995"
+    },
+    "validation": {
+      "rows": 97,
+      "commit": 59,
+      "sha256": "2ddb663f4a367407ef31884021bee568e2dcd82877987d2f2801a9f1947f04f6"
+    },
+    "holdout_seen": {
+      "rows": 172,
+      "commit": 102,
+      "sha256": "50385779dd8f5e967fb78b76bdfa658c665872cafd86044671e28a77eb92f0b8"
+    },
+    "holdout_unseen": {
+      "rows": 130,
+      "commit": 72,
+      "sha256": "b9eb04f80f5fb97f19138a704a2dcf53bf99bf8175d26191392c43731559bdb8"
+    }
+  },
+  "skippedProbeRows": 5,
+  "leakage": "splits are by scenario; oracle moves are labels only and are never a feature"
+}
