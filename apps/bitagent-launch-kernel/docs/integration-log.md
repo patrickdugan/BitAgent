@@ -2736,3 +2736,25 @@ Control-capability harness, phases 0-3 (2026-10-01):
   `src/compliance/policy.ts(492,3)` error. Run with a Node that is not on
   PATH in this checkout's shell; `git` was not available, so nothing is
   committed.
+
+bitagent-dag-move skill and veto model (2026-10-03):
+
+- added `skills/bitagent-dag-move/` (Hermes SKILL.md, ULTRA_LEAN.json v2
+  contract, task graph) and `src/bench/skills/` (script gates, tiny recursive
+  veto model, skill policy with arms S1/S2/S3), after the Morality Lab paper on
+  MeTTa-scaffolded repair curricula for TRM-infused skills. The goal is a
+  Bonsai-8B skill that beats the raw Bonsai-27B pilot on the seed set;
+- assumption: the only gate the scripts cannot close on the seed set is a
+  repeated request (intended second action or accidental repeat). Three
+  scenarios' second turns now say "another" and user text travels in the
+  utterance receipt's typed fields so the model can read it;
+- the veto curriculum (`eval/build-veto-curriculum.ts`,
+  `training/datasets/control-capability-veto-v1/`) is split by scenario and
+  family; the trained model (`training/artifacts/control-capability-veto-trm-v1/`)
+  reaches 93% accuracy on the unseen-family holdout with 7% false commits.
+  Its ceiling is the script route it learns to fall back to; it is a rudder,
+  not a reasoner;
+- `test:control-capability` passes; the full suite still shows the same 43
+  pre-existing failures. The S1-S3 pilot runs wait for GPU and commit
+  headroom: other sessions' jobs held 13 GB of VRAM and left under 4 GB of
+  commit, which the memory notes say is below the safe launch floor.

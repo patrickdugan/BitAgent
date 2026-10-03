@@ -120,7 +120,8 @@ function* scenarioSteps(scenario: Scenario, policyId: string, options: RunOption
     chain: scenario.world.chain,
     observedAt: new Date(Date.parse(scenario.world.clockStart) + turn.atStep * scenario.world.stepMs).toISOString(),
     sequence: String(index),
-    typed: { ...turn.parsed }
+    // The user's own words travel with the parse; they are the user's, so they are not tainted.
+    typed: { ...turn.parsed, text: turn.text }
   }).id);
 
   let status: RunStatus = "ACTIVE";

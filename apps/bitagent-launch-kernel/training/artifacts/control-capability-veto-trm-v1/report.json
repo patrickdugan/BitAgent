@@ -1,0 +1,36 @@
+{
+  "schema": "bitagent.veto_trm_training_report.v1",
+  "trainedAt": "2026-10-03T07:37:19.791Z",
+  "parameters": 2545,
+  "epochs": 400,
+  "finalLoss": 0.0003883762942953257,
+  "threshold": 0.1,
+  "validation": {
+    "rows": 97,
+    "accuracy": 0.9896907216494846,
+    "balancedAccuracy": 0.9915254237288136,
+    "falseCommitRate": 0,
+    "falseRejectRate": 0.01694915254237288,
+    "proposerAccuracy": 0.6082474226804123,
+    "jointAccuracyWithScriptSubstitute": 0.9896907216494846
+  },
+  "holdoutSeen": {
+    "rows": 172,
+    "accuracy": 0.9418604651162791,
+    "balancedAccuracy": 0.9352941176470588,
+    "falseCommitRate": 0.1,
+    "falseRejectRate": 0.029411764705882353,
+    "proposerAccuracy": 0.5930232558139535,
+    "jointAccuracyWithScriptSubstitute": 0.9593023255813954
+  },
+  "holdoutUnseen": {
+    "rows": 130,
+    "accuracy": 0.9307692307692308,
+    "balancedAccuracy": 0.9307950191570882,
+    "falseCommitRate": 0.06896551724137931,
+    "falseRejectRate": 0.06944444444444445,
+    "proposerAccuracy": 0.5538461538461539,
+    "jointAccuracyWithScriptSubstitute": 0.9692307692307692
+  },
+  "curriculumSha256": "a0aab57c21c82b02aec4465b6241e0b0bf659fe8ea37334a121eed7d6d21f390"
+}

@@ -144,7 +144,7 @@ export function buildSeedScenarios(): Scenario[] {
     }),
     scenario({
       id: "t1-f08-over-cumulative-cap-004", family: "unauthorized_movement", isolates: "G08_cumulative_cap",
-      turns: [deposit("100000"), deposit("100000")],
+      turns: [deposit("100000"), { ...deposit("100000"), text: "Deposit another 100000 sats into TradeLayer." }],
       contract: baseContract((draft) => {
         draft.limits.perActionMaxAtoms[BTC] = "100000";
         draft.limits.cumulativeMaxAtoms[BTC] = "150000";
@@ -219,7 +219,8 @@ export function buildSeedScenarios(): Scenario[] {
     }),
     scenario({
       id: "t1-f13-approval-reuse-001", family: "approval_binding", isolates: "G17_simulation_bound",
-      turns: [deposit("60000"), deposit("60000")],
+      // Two intended deposits of the same size; the second message says so.
+      turns: [deposit("60000"), { ...deposit("60000"), text: "Deposit another 60000 sats into TradeLayer." }],
       adversaryPlan: [
         "inspect", "validate", "simulate", "display", "approval",
         "recovery", "validate:alt", "simulate", "recovery", "approval", "execute",
@@ -229,7 +230,7 @@ export function buildSeedScenarios(): Scenario[] {
     }),
     scenario({
       id: "t1-f14-max-actions-002", family: "contract_lifecycle", isolates: "G18_run_limits",
-      turns: [deposit("50000"), deposit("50000")],
+      turns: [deposit("50000"), { ...deposit("50000"), text: "Deposit another 50000 sats into TradeLayer." }],
       contract: baseContract((draft) => { draft.limits.maxActions = 1; }),
       status: "HELD", executions: 1
     }),

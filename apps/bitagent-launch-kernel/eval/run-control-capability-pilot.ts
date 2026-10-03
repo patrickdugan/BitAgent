@@ -2,12 +2,46 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { canonicalJson } from "../src/launch/canonical.js";
 import { candidateKey, isCandidateShapeV3 } from "../src/bench/dag.js";
-import { PROMPT_TEMPLATE_SHA256, PROMPT_TEMPLATE_VERSION, llamaPolicy, moveOptions } from "../src/bench/llamaPolicy.js";
+import { PROMPT_TEMPLATE_SHA256, PROMPT_TEMPLATE_VERSION, llamaPolicy, moveOptions, type LlamaPolicyHandle } from "../src/bench/llamaPolicy.js";
 import { oraclePolicy, randomPolicy } from "../src/bench/policies.js";
 import { runScenario, runScenarioAsync } from "../src/bench/runner.js";
 import { buildSeedScenarios } from "../src/bench/scenarios.js";
 import { scoreRun, summarize, type RunScore } from "../src/bench/score.js";
-import type { HarnessLevel, ModelCandidateV3, RunResult, Scenario } from "../src/bench/types.js";
+import { skillPolicy, type SkillArm, type SkillPolicy } from "../src/bench/skills/dagMovePolicy.js";
+import { TinyRecursiveVeto, type VetoModelJson } from "../src/bench/skills/vetoTrm.js";
+import type { AsyncPolicy, HarnessLevel, ModelCandidateV3, RunResult, Scenario } from "../src/bench/types.js";
+
+type PilotArm = "A1" | "A2" | SkillArm;
+type PilotPolicy = AsyncPolicy & { stats(): Record<string, number>; probeExtras(): Record<string, unknown> };
+
+// A1/A2 call the model directly; S1-S3 wrap it in the bitagent-dag-move skill circuit.
+function buildPolicy(input: { modelId: string; url: string; arm: PilotArm; trm?: TinyRecursiveVeto }): PilotPolicy {
+  if (input.arm === "A1" || input.arm === "A2") {
+    const llm = llamaPolicy({ id: input.modelId, baseUrl: input.url, arm: input.arm });
+    return {
+      ...llm,
+      stats: () => ({ ...llm.stats() }),
+      probeExtras: () => ({ modelRefs: llm.last().argRefs, optionIndex: llm.last().optionIndex, source: "model" })
+    };
+  }
+  const skill: SkillPolicy = skillPolicy({
+    id: input.modelId,
+    arm: input.arm,
+    trm: input.trm,
+    makeLlm: (decorate) => llamaPolicy({ id: input.modelId, baseUrl: input.url, arm: "A2", decorate })
+  });
+  return {
+    ...skill,
+    stats: () => ({ ...skill.llm.stats(), ...skill.stats() }),
+    probeExtras: () => {
+      const last = skill.last();
+      return {
+        modelRefs: last.argRefs, optionIndex: last.optionIndex, source: last.source, rule: last.rule,
+        problem: last.state.problem, commitProbability: last.commitProbability
+      };
+    }
+  };
+}
 
 function argument(name: string, fallback?: string) {
   const prefix = `--${name}=`;
@@ -76,11 +110,13 @@ type Probe = {
   step: number;
   node: string;
   oracleKey: string;
+  oracleRefs: Record<string, string>;
   oracleClass: string;
   modelKey: string | null;
   match: boolean;
   margin: number | null;
   optionCount: number;
+  [extra: string]: unknown;
 };
 
 function moveClass(key: string) {
@@ -94,7 +130,7 @@ function moveClass(key: string) {
 // T0: one packet, one decision. The oracle drives the run; at every packet it meets, the model is
 // asked for its own move, which is scored and then discarded.
 async function probeDecisions(input: {
-  scenarios: Scenario[]; level: HarnessLevel; policy: ReturnType<typeof llamaPolicy>; output: string;
+  scenarios: Scenario[]; level: HarnessLevel; policy: PilotPolicy; output: string;
 }) {
   const probes: Probe[] = [];
   for (const [index, scenario] of input.scenarios.entries()) {
@@ -111,12 +147,14 @@ async function probeDecisions(input: {
           step: packet.run.step,
           node: packet.current_node,
           oracleKey: candidateKey(expected),
+          oracleRefs: expected.arg_refs,
           oracleClass: moveClass(candidateKey(expected)),
           modelKey: chosen ? candidateKey(chosen) : null,
           match: chosen !== null && candidateKey(chosen) === candidateKey(expected)
             && canonicalJson(chosen.arg_refs) === canonicalJson(expected.arg_refs),
           margin: input.policy.margin?.() ?? null,
-          optionCount: moveOptions(packet).length
+          optionCount: moveOptions(packet).length,
+          ...input.policy.probeExtras()
         };
         probes.push(probe);
         await fs.appendFile(path.join(input.output, "probes.jsonl"), `${canonicalJson(probe)}\n`, "utf8");
@@ -149,11 +187,16 @@ async function main() {
   const url = argument("url", "http://127.0.0.1:8093");
   const modelId = argument("model-id");
   const mode = argument("mode", "t1") as "t0" | "t1";
-  const arm = argument("arm", "A2") as "A1" | "A2";
+  const arm = argument("arm", "A2") as PilotArm;
   const level = argument("level", "H3") as HarnessLevel;
   const loraScale = Number(argument("lora-scale", "0"));
   const only = argument("only", "");
   const limit = Number(argument("limit", "0"));
+  const trmPath = argument("trm", "");
+  const trm = trmPath
+    ? TinyRecursiveVeto.fromJSON(JSON.parse(await fs.readFile(trmPath, "utf8")) as VetoModelJson)
+    : undefined;
+  if (arm === "S3" && !trm) throw new Error("--trm=<model.json> is required for arm S3");
   const scenarios = buildSeedScenarios()
     .filter((scenario) => !only || scenario.templateId.includes(only))
     .slice(0, limit > 0 ? limit : undefined);
@@ -177,12 +220,13 @@ async function main() {
     harnessLevel: level,
     promptTemplate: { version: PROMPT_TEMPLATE_VERSION, sha256: PROMPT_TEMPLATE_SHA256 },
     decoding: { temperature: 0, seed: 1, thinking: "off" },
+    ...(trmPath ? { vetoModel: trmPath } : {}),
     scenarioCount: scenarios.length
   };
 
   if (mode === "t0") {
     await fs.writeFile(path.join(output, "probes.jsonl"), "", "utf8");
-    const policy = llamaPolicy({ id: modelId, baseUrl: url, arm });
+    const policy = buildPolicy({ modelId, url, arm, trm });
     const started = Date.now();
     const decisions = await probeDecisions({ scenarios, level, policy, output });
     const summary = {
@@ -200,10 +244,11 @@ async function main() {
   await fs.writeFile(path.join(output, "traces.jsonl"), "", "utf8");
 
   const rows: Row[] = [];
-  const policy = llamaPolicy({ id: modelId, baseUrl: url, arm });
+  const policy = buildPolicy({ modelId, url, arm, trm });
   const started = Date.now();
   for (const [index, scenario] of scenarios.entries()) {
-    const result = await runScenarioAsync(scenario, policy, { harnessLevel: level, arm, experimentId: "control-capability-v1-pilot" });
+    const traceArm = arm === "A1" || arm === "A2" ? arm : "A2";
+    const result = await runScenarioAsync(scenario, policy, { harnessLevel: level, arm: traceArm, experimentId: "control-capability-v1-pilot" });
     const scored = row(scenario, result);
     rows.push(scored);
     await fs.appendFile(path.join(output, "runs.jsonl"), `${canonicalJson(scored)}\n`, "utf8");
@@ -220,12 +265,16 @@ async function main() {
     ...header,
     fallback: false,
     model: aggregate(rows),
+    skill: arm.startsWith("S") ? {
+      turns: stats.turns, scriptMoves: stats.scriptMoves, modelConsults: stats.modelConsults,
+      vetoes: stats.vetoes, fallbacks: stats.fallbacks
+    } : null,
     references: {
       M0: reference((scenario) => runScenario(scenario, oraclePolicy(scenario), { harnessLevel: level }), 1),
       Mrand: reference((scenario, seed) => runScenario(scenario, randomPolicy(seed + 1, seed % 3 === 1 ? 40 : 8, seed % 3 === 2), { harnessLevel: level }), 12)
     },
     cost: {
-      ...stats,
+      calls: stats.calls, promptTokens: stats.promptTokens, completionTokens: stats.completionTokens, wallMs: stats.wallMs,
       wallSeconds: Math.round((Date.now() - started) / 1000),
       promptTokensPerCall: Math.round(stats.promptTokens / Math.max(1, stats.calls)),
       note: "CPU-only llama.cpp on a machine shared with other jobs; wall time is not a throughput measurement."

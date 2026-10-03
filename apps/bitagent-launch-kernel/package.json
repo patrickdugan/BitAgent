@@ -66,6 +66,7 @@
     "test:control-capability:independent": "tsx --test test/control-capability-soundness.test.ts test/experiment-run-contract.test.ts",
     "eval:control-capability:soundness": "tsx eval/run-control-capability-soundness.ts",
     "eval:control-capability:pilot": "tsx eval/run-control-capability-pilot.ts",
+    "eval:control-capability:veto-curriculum": "tsx eval/build-veto-curriculum.ts",
     "export:bonsai-data": "tsx scripts/export-bonsai-role-data.ts --include-financial-survival --output-dir=training/artifacts/bonsai-role-corpus-v5",
     "export:referral-growth-data": "tsx scripts/export-referral-growth-data.ts",
     "export:marketing-trajectories": "tsx scripts/export-marketing-trajectory-data.ts",
