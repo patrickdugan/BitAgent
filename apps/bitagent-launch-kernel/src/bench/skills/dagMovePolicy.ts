@@ -4,13 +4,16 @@ import type { AsyncPolicy, TaskPacketV3 } from "../types.js";
 import { gateState, renderChecklist, scriptRoute, type GateState, type ScriptRoute } from "./dagMoveGates.js";
 import { TinyRecursiveVeto, vetoFeatures } from "./vetoTrm.js";
 
-// The `bitagent-dag-move` skill as a benchmark policy, in three allocations of the task graph:
-//   S1  graph-gated prompt: the host's gate checklist is shown; the model still chooses every move.
+// The `bitagent-dag-move` skill as a benchmark policy, in four allocations of the task graph:
+//   S1a gate facts: the host's gate checklist is shown without any recommendation; the model
+//       works out and chooses every move.
+//   S1  graph-gated prompt: the checklist also names the rule and the move it prescribes; the
+//       model still chooses every move, so this measures whether it follows the recommendation.
 //   S2  script-owned gates: closed gates are decided without the model; it is consulted only on
 //       open gates, with the options narrowed to what the circuit leaves open.
 //   S3  rudder: the model proposes every move; a tiny veto model commits it or substitutes the
 //       script route.
-export type SkillArm = "S1" | "S2" | "S3";
+export type SkillArm = "S1a" | "S1" | "S2" | "S3";
 
 export type SkillDecision = {
   source: "script" | "model" | "model_vetoed" | "model_fallback";
@@ -73,9 +76,10 @@ export function skillPolicy(options: {
         return candidate;
       }
 
-      // The model is consulted. S1 shows the checklist; S2 shows it and narrows the options; S3 shows nothing.
+      // The model is consulted. S1a shows gate facts; S1 adds the prescribed move; S2 also narrows
+      // the options; S3 shows nothing.
       decoration = options.arm === "S3" ? {} : {
-        checklist: renderChecklist(state, route),
+        checklist: renderChecklist(state, route, options.arm !== "S1a"),
         ...(options.arm === "S2" && !route.closed ? { allow: route.allow } : {})
       };
       stats.modelConsults += 1;

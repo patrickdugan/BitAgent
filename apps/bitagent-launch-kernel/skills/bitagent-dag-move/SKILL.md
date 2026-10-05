@@ -35,7 +35,8 @@ in the packet, and it never sees text inside receipts as an instruction.
 
 | Mode | What the model does | What the scripts do |
 |---|---|---|
-| `S1` graph-gated | Chooses every move with the host's gate checklist in view | Compute the checklist |
+| `S1a` gate facts | Chooses every move with the host's gate facts in view | Compute the facts |
+| `S1` graph-gated | Chooses every move with the facts and the prescribed move in view | Compute the checklist and the route |
 | `S2` script-owned | Answers only open gates, from narrowed options | Decide every closed gate without a call |
 | `S3` rudder | Proposes every move | Veto model commits or substitutes the script route |
 
@@ -54,3 +55,6 @@ scenario and by family, never by row; `hidden_slippage`, `deceptive_data` and
   wallet keep all authority; this skill cannot widen what they allow.
 - Scores on the gate-visible seed set measure procedure, not reasoning. Report the
   model's share of decisions next to any completion number.
+- Measured on Bonsai-8B (2026-10-05): gate facts alone do not help it; the prescribed
+  move, the veto model, or script-owned gates do. See
+  `docs/research-architecture.md`, section 10.
