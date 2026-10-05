@@ -1279,10 +1279,74 @@ beats the raw 27B on every count, and the claim boundary from the paper
 applies in full: the scripts made 354 of the 358 decisions, the model made 4
 and got 2 right. What the result shows is that
 this benchmark's gate-visible decisions can be allocated away from the model
-entirely; it says nothing about the 8B reasoning better than the 27B. The
-arms that keep the model in the loop, `S1` (graph-gated prompt) and `S3`
-(rudder), are the ones that measure the model and the veto gate; they need
-the GPU and were still queued behind other jobs when this was written.
+entirely; it says nothing about the 8B reasoning better than the 27B.
+
+**The full ladder for Bonsai-8B base, H3, 2026-10-05** (GPU). `S1a` shows the
+host's gate facts only. `S1` also names the rule and the move it prescribes.
+The comparison column is the raw Bonsai-27B's best arm (A1: 32 of 42
+completed, 13 acting, 19 stopping, 6 runs with a critical proposal).
+
+| Arm | Model decides | T0 right (of 350) | T0 right on faults (of 33) | T1 acting (of 21) | T1 stopping (of 21) | Critical runs | Model calls | Scenarios won / lost vs 27B raw |
+|---|---|---|---|---|---|---|---|---|
+| A2 raw | every move, no help | 213 (61%) | 5 | 0 | 11 | 6 | 293 | 0 / 21 |
+| `S1a` gate facts | every move | 204 (58%) | 9 | 1 | 10 | 3 | 250 | 0 / 21 |
+| `S1` facts + prescribed move | every move | 328 (94%) | 29 | 16 | 20 | 0 | 370 | 8 / 4 (p = 0.39) |
+| `S3` rudder (veto model) | every move, 123 of 334 vetoed | 338 (97%) | 28 | 16 | 19 | 2 | 334 | 7 / 4 (p = 0.55) |
+| `S3` with the v3 adapter | every move, 118 of 345 vetoed | not run | not run | 18 | 19 | 1 | 345 | 8 / 3 (p = 0.23) |
+| `S2` script-owned | 4 open gates only | 348 (99%) | 32 | 21 | 20 | 0 | 4 | 9 / 0 (p = 0.004) |
+
+No run in any arm landed an unauthorized effect. The A2 row is a GPU re-run
+with the corrected oracle labels; the CPU run scored 206.
+
+What the ladder shows:
+
+- **Naming the gates does not help the 8B; telling it the move does.** With
+  the gate facts alone (`S1a`) it scores what it scores raw. With the
+  prescribed move in view (`S1`) it follows it 94% of the time. The 8B can
+  follow an explicit recommendation and cannot derive one from typed state.
+- **A learned veto recovers almost as much without telling the model
+  anything.** In `S3` the model sees the plain prompt; the 2,545-parameter
+  veto model replaced 123 of its 334 proposals with the script route. In the
+  T0 probe it let 12 wrong proposals through; the 213 it committed correctly
+  equal the raw arm's 213 right answers, so it appears to have vetoed none
+  that were right.
+- **Only the script-owned arm beats the raw 27B at the scenario level.** `S1`
+  and `S3` complete more scenarios than the 27B (36 and 35 against 32) with
+  fewer critical proposals, but the paired difference is within noise on 42
+  scenarios. `S2` wins 9 and loses none.
+- **The cost falls with the allocation.** `S2` needs 4 model calls for 42
+  scenarios; every other arm needs about 300.
+
+The honest summary is the paper's: the lift comes from allocation, not from
+the model. Every arm that beats the raw 27B does so because a script or a
+script-trained gate supplies the move. The single decision that needs reading
+the user's words, the repeated request, the 8B answers at chance.
+
+**The same two checklist arms on Bonsai-27B**, to see what the skill does to
+the size gap:
+
+| Arm | Bonsai-8B: T0 right / faults right / T1 acting / stopping | Bonsai-27B: T0 right / faults right / T1 acting / stopping |
+|---|---|---|
+| Raw (A2) | 213 / 5 / 0 / 11 | 270 / 5 / 10 / 10 |
+| `S1a` gate facts | 204 / 9 / 1 / 10 | 285 / 14 / 11 / 11 |
+| `S1` facts + prescribed move | 328 / 29 / 16 / 20 | 339 / 29 / 18 / 19 |
+
+- **Gate facts help the 27B a little and the 8B not at all.** The 27B's fault
+  decisions go from 5 to 14 of 33 with the facts in view; the 8B's from 5 to
+  9, with no gain overall. Deriving the move from typed state is where the
+  two sizes differ.
+- **With the move prescribed, the size gap closes.** 36 scenarios for the 8B
+  against 37 for the 27B (3 won, 4 lost, p = 1.0). Raw, the gap was 11
+  against 20 on the same arm, and 0 against 10 acting scenarios.
+- **The skill helps the 27B too.** Its `S1` run beats its own best raw arm 37
+  to 32 (7 won, 2 lost, p = 0.18) with one critical run instead of six.
+
+So on this seed set the skill removes most of what the extra 19 billion
+parameters were buying, and what it leaves, deriving a move from gate facts
+and reading the user's words at an open gate, is where a larger model would
+still be needed. These are development-set results on 42 scenarios, one seed,
+with single-token option scoring; none of the paired differences between
+skill arms is established.
 
 ### Stubs
 

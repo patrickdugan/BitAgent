@@ -2758,3 +2758,22 @@ bitagent-dag-move skill and veto model (2026-10-03):
   pre-existing failures. The S1-S3 pilot runs wait for GPU and commit
   headroom: other sessions' jobs held 13 GB of VRAM and left under 4 GB of
   commit, which the memory notes say is below the safe launch floor.
+
+bitagent-dag-move skill ladder results (2026-10-05):
+
+- ran the skill arms on the GPU for Bonsai-8B and, for two arms, Bonsai-27B,
+  on the 42-scenario seed set at H3. Bonsai-8B completes 11 scenarios raw, 11
+  with gate facts only (S1a), 36 with the prescribed move shown (S1), 35 with
+  the veto model as rudder (S3), and 41 with script-owned gates (S2), against
+  32 for the raw Bonsai-27B's best arm. No arm landed an unauthorized effect;
+- finding: gate facts alone do not help the 8B, and with the move prescribed
+  the 8B matches the 27B (36 against 37). The lift is allocation, not model
+  reasoning; only S2 beats the raw 27B beyond noise (9 scenarios won, 0 lost);
+- unresolved: the open repeated-request gate is answered at chance by the 8B
+  and one answer flipped between probe and free run on an identical packet;
+  single-token option scoring is unstable at near-zero margin. The veto model
+  used in S3 was trained on probes without recorded argument references; the
+  refreshed probes now record them but the model was not retrained, to keep
+  the reported runs consistent;
+- the server and run chains were launched detached and stopped afterwards;
+  nothing of this work remains on the GPU.

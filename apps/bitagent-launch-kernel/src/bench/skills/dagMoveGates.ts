@@ -194,7 +194,10 @@ export function scriptRoute(state: GateState, packet: TaskPacketV3): ScriptRoute
   return closed(advance(state.node), "advance_default");
 }
 
-export function renderChecklist(state: GateState, route: ScriptRoute) {
+// The checklist a model sees. With `withRoute` it also names the rule and the move the rule
+// prescribes, which turns the model's job into following a recommendation; without it the model
+// gets the gate facts only and must still work out the move.
+export function renderChecklist(state: GateState, route: ScriptRoute, withRoute = true) {
   return [
     "GATE CHECKLIST (computed by the host from typed fields)",
     `problem: ${state.problem}`,
@@ -203,7 +206,9 @@ export function renderChecklist(state: GateState, route: ScriptRoute) {
     `approval_bound_to_current_simulation: ${state.approvalBound}; simulation_admitted: ${state.simulationAdmitted}; simulation_expired: ${state.simulationExpired}`,
     `submission: ${state.submission}`,
     `current_intent_repeats_an_earlier_one: ${state.repeatsEarlierIntent}`,
-    `rule_that_applies: ${route.rule}`,
-    route.closed ? `move_the_rule_prescribes: ${route.key}` : `open_question: ${route.question}`
+    ...(withRoute ? [
+      `rule_that_applies: ${route.rule}`,
+      route.closed ? `move_the_rule_prescribes: ${route.key}` : `open_question: ${route.question}`
+    ] : (route.closed ? [] : [`open_question: ${route.question}`]))
   ].join("\n");
 }
