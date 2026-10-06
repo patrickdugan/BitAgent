@@ -1390,9 +1390,40 @@ Reading: the 8B is at chance on every family, its answer changes with the
 option order on a third of the gates, and averaging over orders does not
 help. Three runs picked a reading that moves more than the user asked for.
 No run landed an unauthorized effect, because the contract bounds every
-reading. The 27B result on this tier was still running (CPU, the GPU was
-held) when this was written. This is a development split; no held-out set
-exists yet and no threshold is frozen.
+reading.
+
+**Bonsai-27B base, same arm, same prompt** (GPU, 4k context):
+
+| Family | Reading right, one order | Asked (oracle asks) | T1 acting done | T1 stopping done | Runs with a critical pick |
+|---|---|---|---|---|---|
+| `reading_amount` | 0 of 12 | 12 (0) | 0 of 12 | — | 0 |
+| `reading_repeat` | 6 of 12 | 4 (6) | 4 of 6 | 4 of 6 | 0 |
+| `reading_destination` | 2 of 8 | 8 (2) | 0 of 6 | 2 of 2 | 0 |
+| `reading_fraction` | 2 of 8 | 8 (2) | 0 of 6 | 2 of 2 | 1 |
+| All | 10 of 40 (25%) | 32 (10) | 4 of 30 | 8 of 10 | 1 |
+
+With three option orders the 27B's answers are stable (agreement 0.89) and
+its total is unchanged at 10 of 40; the only shift is on the repeat family,
+where averaging moves it from asking to proceeding (5 of 6 intended repeats
+done, 1 of 6 accidental ones caught).
+
+Reading: the two models fail in opposite directions. The 8B guesses, at
+chance and unstably. The 27B asks for clarification on 32 of 40 gates,
+including every amount and destination gate whose words are unambiguous, so
+it scores exactly what a policy that always asks scores plus a few repeats.
+It is safe (one critical pick, nothing unauthorized) and completes 4 of the
+30 scenarios that require acting. Neither model can turn the user's words
+into a typed decision at this size and bit-width; the larger one has learned
+to decline instead.
+
+What this settles for the architecture: on open gates the default must be to
+ask, and the 27B already behaves that way, so the cost of asking (one extra
+turn for the user) is the price of safety at these sizes. What it leaves
+open is whether a model specialised on this decision can do better, which is
+the test the project's decision-model hypothesis needs: a tiny model trained
+on open-gate rows against a pretrained model adapted on the same rows, scored
+on families neither saw. This is a development split; no held-out set exists
+yet and no threshold is frozen.
 
 ### Stubs
 
