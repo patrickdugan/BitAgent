@@ -68,6 +68,8 @@ export function rulePlanner(packet: TaskPacketV3): ModelCandidateV3 {
     case "observe":
       return make(advanceKey("inspect"), "source_contract_required");
     case "inspect": {
+      // An unresolved reading is a question for whoever can read the user's words; the planner asks.
+      if (packet.intent_id === null) return make(CLARIFY_KEY, "reading_unresolved_clarify");
       const preflight = cycle.preflight;
       if (!preflight || preflight.error) {
         return cycle.refresh_count < MAX_REFRESH
@@ -122,16 +124,34 @@ export function rulePlanner(packet: TaskPacketV3): ModelCandidateV3 {
   }
 }
 
-// M0: the rule planner plus the scenario's decision points, for choices only the scenario author knows.
+// M0: the rule planner plus the scenario's decision points, for choices only the scenario author
+// knows. On an ambiguous turn it recognises the true reading by its typed fields, which the
+// scenario holds as `parsed`, or asks when the scenario says the words do not settle it.
 export function oraclePolicy(scenario: Scenario): Policy {
   const overrides = new Map(scenario.oracle.decisionPoints.map((point) => [point.trigger, point.preferred]));
   return {
     id: "M0",
     propose(packet) {
       const key = overrides.get(`${packet.run.intent_index}@${packet.current_node}`);
-      return key
-        ? candidateFromKey({ taskId: packet.task_id, key, reasonCode: "scenario_decision_point" })
-        : rulePlanner(packet);
+      if (key) return candidateFromKey({ taskId: packet.task_id, key, reasonCode: "scenario_decision_point" });
+      if (packet.intent_id === null && packet.current_node === "inspect") {
+        const turn = scenario.user.turns[packet.run.intent_index];
+        const trueId = turn && (turn.oracle || "parsed") === "parsed"
+          ? packet.intent_candidates.find((id) => {
+            const typed = packet.receipts.find((receipt) => receipt.id === id)?.typed || {};
+            return Object.entries(turn.parsed).every(([field, value]) => typed[field] === value);
+          })
+          : undefined;
+        const quote = trueId ? packet.cycle.quotes[trueId] : undefined;
+        if (trueId && quote) {
+          return candidateFromKey({
+            taskId: packet.task_id, key: advanceKey("validate"), reasonCode: "true_reading",
+            argRefs: { intent: trueId, quote }, evidenceIds: [trueId]
+          });
+        }
+        return candidateFromKey({ taskId: packet.task_id, key: CLARIFY_KEY, reasonCode: "reading_unresolved_clarify" });
+      }
+      return rulePlanner(packet);
     }
   };
 }
@@ -210,11 +230,17 @@ export function adversaryPolicy(scenario: Scenario): Policy {
       && typeof receipt.typed.amountAtoms === "string");
     const quotes = packet.receipts.filter((receipt) => receipt.kind === "quote");
     let intent = packet.intent_id;
+    // On an ambiguous turn the adversary takes the reading that moves the most value.
+    if (!intent && packet.intent_candidates.length > 0) {
+      const amount = (id: string) => BigInt(String(packet.receipts.find((receipt) => receipt.id === id)?.typed.amountAtoms ?? "0"));
+      intent = [...packet.intent_candidates].sort((a, b) => (amount(b) > amount(a) ? 1 : amount(b) < amount(a) ? -1 : 0))[0]!;
+    }
     if (selector === "attack") intent = intentLike.find((receipt) => receipt.trust !== "host_verified")?.id || intent;
     if (selector === "alt") {
       intent = intentLike.find((receipt) => receipt.kind === "user_utterance" && receipt.id !== packet.intent_id)?.id || intent;
     }
-    const quote = selector === "stale" ? quotes[0]?.id : packet.cycle.quote_id || quotes[quotes.length - 1]?.id;
+    const own = intent ? packet.cycle.quotes[intent] : undefined;
+    const quote = selector === "stale" ? quotes[0]?.id : own || packet.cycle.quote_id || quotes[quotes.length - 1]?.id;
     return { intent: intent || "missing", quote: quote || "missing" };
   };
 

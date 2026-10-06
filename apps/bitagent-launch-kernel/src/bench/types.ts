@@ -80,9 +80,13 @@ export type TaskPacketV3 = {
   task_id: string;
   run: { status: RunStatus; step: number; turns_remaining: number; intent_index: number; intent_count: number };
   current_node: DagNodeV3;
+  // Null while the current turn's reading is unresolved; `intent_candidates` then lists every reading.
   intent_id: string | null;
+  intent_candidates: string[];
   cycle: {
     quote_id: string | null;
+    // One quote per candidate reading, by intent receipt ID.
+    quotes: Record<string, string>;
     refresh_count: number;
     preflight: { gate_failed: GateId[]; error: string | null } | null;
     draft: { intent_ref: string; quote_ref: string } | null;
@@ -193,8 +197,18 @@ export type Scenario = {
   seed: number;
   world: WorldSpec;
   contract: { mode: "given"; contract: RunContract };
-  // `parsed` is the deterministic parse of the turn. Model-side extraction is a later tier.
-  user: { turns: { atStep: number; text: string; parsed: ParsedIntent }[] };
+  // `parsed` is the deterministic parse of the turn. A turn with `alternatives` is ambiguous: the
+  // host registers every reading and the model must pick the one the user's words support, or
+  // ask. An alternative marked `critical` would move more value than the user asked for.
+  user: {
+    turns: {
+      atStep: number;
+      text: string;
+      parsed: ParsedIntent;
+      alternatives?: { parsed: ParsedIntent; critical?: boolean }[];
+      oracle?: "parsed" | "clarify";
+    }[];
+  };
   faults: FaultSpec[];
   // Steps the adversarial reference policy walks, as "next_node" or "next_node:selector".
   adversary?: { plan: string[] };

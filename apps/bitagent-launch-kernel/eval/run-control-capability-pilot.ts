@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import path from "node:path";
 import { canonicalJson } from "../src/launch/canonical.js";
 import { candidateKey, isCandidateShapeV3 } from "../src/bench/dag.js";
@@ -6,6 +6,7 @@ import { PROMPT_TEMPLATE_SHA256, PROMPT_TEMPLATE_VERSION, llamaPolicy, moveOptio
 import { oraclePolicy, randomPolicy } from "../src/bench/policies.js";
 import { runScenario, runScenarioAsync } from "../src/bench/runner.js";
 import { buildSeedScenarios } from "../src/bench/scenarios.js";
+import { buildOpenGateScenarios } from "../src/bench/scenariosOpenGate.js";
 import { scoreRun, summarize, type RunScore } from "../src/bench/score.js";
 import { skillPolicy, type SkillArm, type SkillPolicy } from "../src/bench/skills/dagMovePolicy.js";
 import { TinyRecursiveVeto, type VetoModelJson } from "../src/bench/skills/vetoTrm.js";
@@ -15,20 +16,20 @@ type PilotArm = "A1" | "A2" | SkillArm;
 type PilotPolicy = AsyncPolicy & { stats(): Record<string, number>; probeExtras(): Record<string, unknown> };
 
 // A1/A2 call the model directly; S1-S3 wrap it in the bitagent-dag-move skill circuit.
-function buildPolicy(input: { modelId: string; url: string; arm: PilotArm; trm?: TinyRecursiveVeto }): PilotPolicy {
+function buildPolicy(input: { modelId: string; url: string; arm: PilotArm; trm?: TinyRecursiveVeto; permutations: number }): PilotPolicy {
   if (input.arm === "A1" || input.arm === "A2") {
-    const llm = llamaPolicy({ id: input.modelId, baseUrl: input.url, arm: input.arm });
+    const llm = llamaPolicy({ id: input.modelId, baseUrl: input.url, arm: input.arm, permutations: input.permutations });
     return {
       ...llm,
       stats: () => ({ ...llm.stats() }),
-      probeExtras: () => ({ modelRefs: llm.last().argRefs, optionIndex: llm.last().optionIndex, source: "model" })
+      probeExtras: () => ({ modelRefs: llm.last().argRefs, optionIndex: llm.last().optionIndex, agreement: llm.last().agreement ?? null, source: "model" })
     };
   }
   const skill: SkillPolicy = skillPolicy({
     id: input.modelId,
     arm: input.arm,
     trm: input.trm,
-    makeLlm: (decorate) => llamaPolicy({ id: input.modelId, baseUrl: input.url, arm: "A2", decorate })
+    makeLlm: (decorate) => llamaPolicy({ id: input.modelId, baseUrl: input.url, arm: "A2", decorate, permutations: input.permutations })
   });
   return {
     ...skill,
@@ -37,7 +38,7 @@ function buildPolicy(input: { modelId: string; url: string; arm: PilotArm; trm?:
       const last = skill.last();
       return {
         modelRefs: last.argRefs, optionIndex: last.optionIndex, source: last.source, rule: last.rule,
-        problem: last.state.problem, commitProbability: last.commitProbability
+        problem: last.state.problem, commitProbability: last.commitProbability, agreement: skill.llm.last().agreement ?? null
       };
     }
   };
@@ -197,7 +198,9 @@ async function main() {
     ? TinyRecursiveVeto.fromJSON(JSON.parse(await fs.readFile(trmPath, "utf8")) as VetoModelJson)
     : undefined;
   if (arm === "S3" && !trm) throw new Error("--trm=<model.json> is required for arm S3");
-  const scenarios = buildSeedScenarios()
+  const set = argument("set", "seed") as "seed" | "open-gate";
+  const permutations = Number(argument("permutations", "1"));
+  const scenarios = (set === "open-gate" ? buildOpenGateScenarios() : buildSeedScenarios())
     .filter((scenario) => !only || scenario.templateId.includes(only))
     .slice(0, limit > 0 ? limit : undefined);
 
@@ -209,7 +212,7 @@ async function main() {
   if (!adapters.ok && loraScale !== 0) throw new Error(`could not set LoRA scale: ${adapters.status}`);
   const props = await (await fetch(`${url}/props`)).json() as Record<string, unknown>;
 
-  const output = path.join(process.cwd(), ".runtime", "control-capability", "pilot", `${modelId}-${mode}-${arm}-${level}`);
+  const output = path.join(process.cwd(), ".runtime", "control-capability", "pilot", `${set === "open-gate" ? "opengate-" : ""}${modelId}-${mode}-${arm}-${level}${permutations > 1 ? `-p${permutations}` : ""}`);
   await fs.mkdir(output, { recursive: true });
   const header = {
     generatedAt: new Date().toISOString(),
@@ -219,14 +222,15 @@ async function main() {
     arm,
     harnessLevel: level,
     promptTemplate: { version: PROMPT_TEMPLATE_VERSION, sha256: PROMPT_TEMPLATE_SHA256 },
-    decoding: { temperature: 0, seed: 1, thinking: "off" },
+    decoding: { temperature: 0, seed: 1, thinking: "off", optionOrders: permutations },
     ...(trmPath ? { vetoModel: trmPath } : {}),
+    scenarioSet: set,
     scenarioCount: scenarios.length
   };
 
   if (mode === "t0") {
     await fs.writeFile(path.join(output, "probes.jsonl"), "", "utf8");
-    const policy = buildPolicy({ modelId, url, arm, trm });
+    const policy = buildPolicy({ modelId, url, arm, trm, permutations });
     const started = Date.now();
     const decisions = await probeDecisions({ scenarios, level, policy, output });
     const summary = {
@@ -244,7 +248,7 @@ async function main() {
   await fs.writeFile(path.join(output, "traces.jsonl"), "", "utf8");
 
   const rows: Row[] = [];
-  const policy = buildPolicy({ modelId, url, arm, trm });
+  const policy = buildPolicy({ modelId, url, arm, trm, permutations });
   const started = Date.now();
   for (const [index, scenario] of scenarios.entries()) {
     const traceArm = arm === "A1" || arm === "A2" ? arm : "A2";

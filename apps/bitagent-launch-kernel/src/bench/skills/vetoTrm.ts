@@ -69,7 +69,7 @@ export const VETO_FEATURE_DIM = vetoFeatures({
   packet: { run: { intent_index: 0, step: 0 } } as TaskPacketV3,
   state: {
     node: "observe", problem: "none", failedGates: [], gateClass: "none", refreshCount: 0, refreshBudgetLeft: true,
-    intentCandidates: [], quoteId: null, repeatsEarlierIntent: false, approvalBound: false,
+    intentCandidates: [], quoteId: null, repeatsEarlierIntent: false, unresolvedReading: false, approvalBound: false,
     simulationAdmitted: false, simulationExpired: false, submission: "none"
   },
   proposalKey: null, proposalRefs: {}, margin: null, optionCount: 1

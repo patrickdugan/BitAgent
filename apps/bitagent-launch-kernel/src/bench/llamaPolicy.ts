@@ -61,9 +61,12 @@ function visibleReceipts(packet: TaskPacketV3) {
   for (const receipt of packet.receipts) {
     if (OBSERVATION_KINDS.has(receipt.kind)) latest.set(`${receipt.kind}:${receipt.typed.sourceId ?? ""}`, receipt);
   }
-  const quote = packet.receipts.find((receipt) => receipt.id === packet.cycle.quote_id);
-  if (quote) latest.set("quote:", quote);
-  else latest.delete("quote:");
+  latest.delete("quote:");
+  // The current quote, or one per candidate reading while the turn is unresolved.
+  const quoteIds = new Set([packet.cycle.quote_id, ...Object.values(packet.cycle.quotes)].filter(Boolean) as string[]);
+  for (const receipt of packet.receipts) {
+    if (receipt.kind === "quote" && quoteIds.has(receipt.id)) latest.set(`quote:${receipt.id}`, receipt);
+  }
   const keep = new Set([...latest.values()].map((receipt) => receipt.id));
   return packet.receipts.filter((receipt) => !OBSERVATION_KINDS.has(receipt.kind) || keep.has(receipt.id));
 }
@@ -78,8 +81,10 @@ function renderState(packet: TaskPacketV3) {
     : "not run";
   return [
     `current_node: ${packet.current_node}`,
-    `current_intent: ${packet.intent_id} (${packet.run.intent_index + 1} of ${packet.run.intent_count})`,
-    `current_quote: ${cycle.quote_id || "none"}`,
+    packet.intent_id
+      ? `current_intent: ${packet.intent_id} (${packet.run.intent_index + 1} of ${packet.run.intent_count})`
+      : `current_intent: unresolved; the user's message admits these readings: ${packet.intent_candidates.join(", ")} (${packet.run.intent_index + 1} of ${packet.run.intent_count})`,
+    `current_quote: ${cycle.quote_id || (Object.keys(cycle.quotes).length ? "one per reading: " + Object.entries(cycle.quotes).map(([intent, quote]) => `${intent}->${quote}`).join(", ") : "none")}`,
     `refresh_count: ${cycle.refresh_count}`,
     `preflight: ${preflight}`,
     `draft: ${cycle.draft ? `intent=${cycle.draft.intent_ref} quote=${cycle.draft.quote_ref}` : "none"}`,
@@ -97,26 +102,34 @@ export type MoveOption = { key: string; argRefs: Record<string, string> };
 // The closed option set for arm A2: every admissible move, with one validate option per visible
 // intent-like receipt so that choosing whose request to act on remains the model's decision.
 // The order is a per-packet shuffle, so a model that always answers the same letter scores at chance.
-export function moveOptions(packet: TaskPacketV3): MoveOption[] {
-  const quote = packet.cycle.quote_id || [...packet.receipts].reverse().find((receipt) => receipt.kind === "quote")?.id;
+// `permutation` selects one of several deterministic orders, so a choice can be averaged over
+// orders and a model's letter preference cancels out.
+export function moveOptions(packet: TaskPacketV3, permutation = 0): MoveOption[] {
+  const fallback = packet.cycle.quote_id || [...packet.receipts].reverse().find((receipt) => receipt.kind === "quote")?.id;
   return packet.admissible.flatMap((key): MoveOption[] => {
     if (key !== VALIDATE_KEY) return [{ key, argRefs: {} }];
-    if (!quote) return [];
-    return packet.receipts.filter(isIntentLike).map((intent) => ({ key, argRefs: { intent: intent.id, quote } }));
+    return packet.receipts.filter(isIntentLike).flatMap((intent) => {
+      const quote = packet.cycle.quotes[intent.id] || fallback;
+      return quote ? [{ key, argRefs: { intent: intent.id, quote } }] : [];
+    });
   }).slice(0, LETTERS.length)
-    .map((option) => ({ option, order: hashObject({ task: packet.task_id, option }) }))
+    .map((option) => ({ option, order: hashObject({ task: packet.task_id, option, permutation }) }))
     .sort((left, right) => left.order.localeCompare(right.order))
     .map(({ option }) => option);
+}
+
+export function optionIdentity(option: MoveOption) {
+  return hashObject({ key: option.key, argRefs: option.argRefs });
 }
 
 // Per-call additions a skill circuit can make: a host-computed checklist shown after the state,
 // and a filter that narrows the offered options to the ones the circuit leaves open.
 export type PromptDecoration = { checklist?: string; allow?: (option: MoveOption) => boolean };
 
-export function renderPrompt(packet: TaskPacketV3, arm: "A1" | "A2", context: PolicyContext, masked: ReadonlySet<number> = new Set(), decoration: PromptDecoration = {}) {
-  const options = moveOptions(packet).filter((option) => !decoration.allow || decoration.allow(option));
+export function renderPrompt(packet: TaskPacketV3, arm: "A1" | "A2", context: PolicyContext, masked: ReadonlySet<string> = new Set(), decoration: PromptDecoration = {}, permutation = 0) {
+  const options = moveOptions(packet, permutation).filter((option) => !decoration.allow || decoration.allow(option));
   const moves = arm === "A2"
-    ? options.map((option, index) => (masked.has(index) ? null : `${LETTERS[index]}. ${option.key}${Object.keys(option.argRefs).length
+    ? options.map((option, index) => (masked.has(optionIdentity(option)) ? null : `${LETTERS[index]}. ${option.key}${Object.keys(option.argRefs).length
       ? ` intent=${option.argRefs.intent} quote=${option.argRefs.quote}` : ""}`)).filter(Boolean)
     : packet.admissible.map((key) => `- ${key}`);
   const user = [
@@ -163,12 +176,15 @@ export type LlamaPolicyOptions = {
   timeoutMs?: number;
   // Called before each prompt is rendered; lets a skill circuit decorate or narrow it.
   decorate?: (packet: TaskPacketV3) => PromptDecoration;
+  // Arm A2 only: ask over this many option orders and choose by mean log-probability.
+  permutations?: number;
 };
 
 export type LlamaPolicyStats = { calls: number; promptTokens: number; completionTokens: number; wallMs: number };
 
 // What the last proposal chose, for a veto gate or a probe that needs more than the key.
-export type LastChoice = { optionIndex: number; optionCount: number; key: string | null; argRefs: Record<string, string> };
+// `agreement` is the share of option orders whose single answer was the chosen option.
+export type LastChoice = { optionIndex: number; optionCount: number; key: string | null; argRefs: Record<string, string>; agreement?: number };
 
 type TokenProb = { token: string; logprob: number };
 
@@ -190,9 +206,10 @@ export function llamaPolicy(options: LlamaPolicyOptions): LlamaPolicyHandle {
   const stats: LlamaPolicyStats = { calls: 0, promptTokens: 0, completionTokens: 0, wallMs: 0 };
   let margin: number | undefined;
   let turn = "";
-  let masked = new Set<number>();
-  let lastChoice = -1;
+  let masked = new Set<string>();
+  let lastIdentity: string | null = null;
   let last: LastChoice = { optionIndex: -1, optionCount: 0, key: null, argRefs: {} };
+  const permutations = Math.max(1, options.permutations ?? 1);
 
   async function complete(body: Record<string, unknown>) {
     const started = Date.now();
@@ -221,17 +238,19 @@ export function llamaPolicy(options: LlamaPolicyOptions): LlamaPolicyHandle {
       if (packet.task_id !== turn) {
         turn = packet.task_id;
         masked = new Set();
-      } else if (lastChoice >= 0) {
+      } else if (lastIdentity) {
         // A rejected option is not offered again in the same turn.
-        masked.add(lastChoice);
+        masked.add(lastIdentity);
       }
-      const rendered = renderPrompt(packet, options.arm, context, masked, options.decorate?.(packet) || {});
+      const decoration = options.decorate?.(packet) || {};
+      const rendered = renderPrompt(packet, options.arm, context, masked, decoration);
       last = { optionIndex: -1, optionCount: rendered.options.length, key: null, argRefs: {} };
       if (options.arm === "A1") {
         const body = await complete({ prompt: rendered.prompt, n_predict: 160, json_schema: A1_SCHEMA });
         try {
           const move = JSON.parse(String(body.content)) as Record<string, unknown>;
           last = { ...last, key: `${move.decision}/${move.next_node}/${move.tool}`, argRefs: (move.arg_refs as Record<string, string>) || {} };
+          lastIdentity = null;
           return {
             schema: DAG_CANDIDATE_V3_SCHEMA,
             task_id: packet.task_id,
@@ -249,25 +268,50 @@ export function llamaPolicy(options: LlamaPolicyOptions): LlamaPolicyHandle {
           return String(body.content);
         }
       }
-      const open = rendered.options.map((_, index) => index).filter((index) => !masked.has(index));
-      if (open.length === 0) return null;
-      const grammar = `root ::= ${open.map((index) => `"${LETTERS[index]}"`).join(" | ")}`;
-      const body = await complete({ prompt: rendered.prompt, n_predict: 1, grammar, n_probs: 40 });
-      const letter = String(body.content).trim().slice(0, 1);
-      lastChoice = LETTERS.indexOf(letter);
-      const chosen = rendered.options[lastChoice];
-      if (!chosen || masked.has(lastChoice)) return String(body.content);
-      const byLetter = new Map<string, number>();
-      for (const row of firstTokenProbs(body)) {
-        const token = row.token.trim();
-        if (token.length === 1 && open.includes(LETTERS.indexOf(token))) {
-          byLetter.set(token, Math.max(byLetter.get(token) ?? -Infinity, row.logprob));
+      // One lettered question per option order. Each order yields a log-probability for every open
+      // option; the choice is the option with the highest mean over orders.
+      const scores = new Map<string, number[]>();
+      const votes = new Map<string, number>();
+      let answered = false;
+      for (let permutation = 0; permutation < permutations; permutation += 1) {
+        const view = permutation === 0 ? rendered : renderPrompt(packet, options.arm, context, masked, decoration, permutation);
+        const open = view.options.map((_, index) => index).filter((index) => !masked.has(optionIdentity(view.options[index]!)));
+        if (open.length === 0) return null;
+        const grammar = `root ::= ${open.map((index) => `"${LETTERS[index]}"`).join(" | ")}`;
+        const body = await complete({ prompt: view.prompt, n_predict: 1, grammar, n_probs: 40 });
+        const letter = String(body.content).trim().slice(0, 1);
+        const picked = LETTERS.indexOf(letter);
+        if (!view.options[picked] || !open.includes(picked)) continue;
+        answered = true;
+        const byLetter = new Map<string, number>();
+        for (const row of firstTokenProbs(body)) {
+          const token = row.token.trim();
+          if (token.length === 1 && open.includes(LETTERS.indexOf(token))) {
+            byLetter.set(token, Math.max(byLetter.get(token) ?? -Infinity, row.logprob));
+          }
         }
+        const floor = Math.min(-20, ...byLetter.values()) - 1;
+        for (const index of open) {
+          const identity = optionIdentity(view.options[index]!);
+          const logprob = byLetter.get(LETTERS[index]!) ?? (index === picked ? Math.max(...byLetter.values(), floor) : floor);
+          scores.set(identity, [...(scores.get(identity) || []), logprob]);
+        }
+        const pickedIdentity = optionIdentity(view.options[picked]!);
+        votes.set(pickedIdentity, (votes.get(pickedIdentity) || 0) + 1);
       }
-      const own = byLetter.get(letter);
-      const rival = Math.max(...[...byLetter.entries()].filter(([token]) => token !== letter).map(([, logprob]) => logprob));
-      if (own !== undefined) margin = Number.isFinite(rival) ? own - rival : 20;
-      last = { optionIndex: lastChoice, optionCount: rendered.options.length, key: chosen.key, argRefs: { ...chosen.argRefs } };
+      if (!answered) return null;
+      const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
+      const ranked = [...scores.entries()].map(([identity, values]) => ({ identity, score: mean(values) }))
+        .sort((left, right) => right.score - left.score);
+      const best = ranked[0]!;
+      const chosenIndex = rendered.options.findIndex((option) => optionIdentity(option) === best.identity);
+      const chosen = rendered.options[chosenIndex]!;
+      lastIdentity = best.identity;
+      margin = ranked.length > 1 ? best.score - ranked[1]!.score : 20;
+      last = {
+        optionIndex: chosenIndex, optionCount: rendered.options.length, key: chosen.key, argRefs: { ...chosen.argRefs },
+        agreement: (votes.get(best.identity) || 0) / permutations
+      };
       return candidateFromKey({ taskId: packet.task_id, key: chosen.key, argRefs: chosen.argRefs, reasonCode: "model_choice" });
     }
   };
