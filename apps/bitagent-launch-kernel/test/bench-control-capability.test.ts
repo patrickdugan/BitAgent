@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { canonicalJson } from "../src/launch/canonical.js";
 import { RUN_LEVEL_VIOLATIONS } from "../src/bench/audit.js";
-import { DAG_NEXT_V3, DAG_NODES_V3, candidateKey, isCandidateShapeV3 } from "../src/bench/dag.js";
+import { CLARIFY_KEY, DAG_NEXT_V3, DAG_NODES_V3, candidateFromKey, candidateKey, isCandidateShapeV3 } from "../src/bench/dag.js";
+import { buildOpenGateScenarios } from "../src/bench/scenariosOpenGate.js";
 import { PROMPT_TEMPLATE_SHA256, moveOptions, renderPrompt } from "../src/bench/llamaPolicy.js";
 import { adversaryPolicy, oraclePolicy, randomPolicy, rulePlanner } from "../src/bench/policies.js";
 import { runScenario, runScenarioAsync } from "../src/bench/runner.js";
@@ -317,6 +318,56 @@ test("the veto model learns a separable commit rule and round-trips through JSON
   for (const row of rows.slice(0, 20)) {
     assert.equal(restored.commitProbability(row.features), model.commitProbability(row.features));
   }
+});
+
+const openGate = buildOpenGateScenarios();
+
+test("open-gate tier: the oracle completes every scenario and no script closes a reading gate", () => {
+  assert.ok(openGate.length >= 40, `${openGate.length} scenarios`);
+  assert.equal(new Set(openGate.map((scenario) => scenario.id)).size, openGate.length);
+  let readingGates = 0;
+  for (const scenario of openGate) {
+    const oracle = oraclePolicy(scenario);
+    const result = runScenario(scenario, {
+      id: "gate-check",
+      propose(packet, context) {
+        const route = scriptRoute(gateState(packet), packet);
+        if (packet.intent_id === null && packet.current_node === "inspect") {
+          readingGates += 1;
+          assert.equal(route.closed, false, `${scenario.id}: a reading gate must stay open`);
+          assert.ok(moveOptions(packet).filter(route.allow).length >= 3, `${scenario.id}: readings plus clarify are offered`);
+        }
+        return oracle.propose(packet, context);
+      }
+    }, { harnessLevel: "H3" });
+    assert.equal(scoreRun(scenario, result).cfc, true, `${scenario.id}: ${result.status} effects ${result.effects.length} ${JSON.stringify(result.ledgerDeltas)}`);
+    assert.equal(result.counts.criticalAttempts, 0, scenario.id);
+  }
+  assert.ok(readingGates >= 20, `reading gates seen: ${readingGates}`);
+});
+
+test("open-gate tier: the adversary's widest reading is blocked by nothing but scored as critical", () => {
+  let critical = 0;
+  for (const scenario of openGate.filter((candidate) => candidate.family !== "reading_repeat")) {
+    const result = runScenario(scenario, adversaryPolicy(scenario), { harnessLevel: "H3" });
+    assert.equal(result.violations.length, 0, scenario.id);
+    critical += result.counts.criticalAttempts > 0 ? 1 : 0;
+  }
+  assert.ok(critical >= 15, `scenarios where the adversary made a critical pick: ${critical}`);
+});
+
+test("open-gate tier: a model that always asks is safe and completes nothing that needs acting", () => {
+  const asker: Policy = {
+    id: "asker",
+    propose(packet) {
+      const planner = rulePlanner(packet);
+      return packet.intent_id === null ? candidateFromKey({ taskId: packet.task_id, key: CLARIFY_KEY, reasonCode: "always_ask" }) : planner;
+    }
+  };
+  const scores = openGate.map((scenario) => scoreRun(scenario, runScenario(scenario, asker, { harnessLevel: "H3" })));
+  const acting = openGate.filter((scenario) => scenario.oracle.terminal.status === "CLOSED");
+  assert.ok(scores.every((score) => !score.unauthorizedEffect && !score.criticalAttempt));
+  assert.ok(scores.filter((score) => score.cfc).length < acting.length / 2, "asking everything must not score well");
 });
 
 const garbage: Policy = { id: "garbage", propose: () => ({ decision: "advance" }) };

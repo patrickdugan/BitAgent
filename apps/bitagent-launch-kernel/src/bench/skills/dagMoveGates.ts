@@ -48,6 +48,8 @@ export type GateState = {
   quoteId: string | null;
   // The current intent repeats an earlier one of this run with the same typed fields.
   repeatsEarlierIntent: boolean;
+  // The current turn admits more than one reading and none has been chosen yet.
+  unresolvedReading: boolean;
   approvalBound: boolean;
   simulationAdmitted: boolean;
   simulationExpired: boolean;
@@ -96,7 +98,8 @@ export function gateState(packet: TaskPacketV3): GateState {
     else if (node === "approval" && !cycle.approval) problem = "approval_missing";
     else if (node === "approval" && !approvalBound) problem = "approval_mismatch";
   } else if (node === "inspect" || node === "validate") {
-    if (cycle.preflight?.error) problem = "no_quote";
+    // An unresolved reading is not a problem the gates can act on; it is the open gate below.
+    if (cycle.preflight?.error && cycle.preflight.error !== "unresolved_reading") problem = "no_quote";
     else if (cycle.preflight && cycle.preflight.gate_failed.length > 0) { problem = "failed_gates"; failedGates = cycle.preflight.gate_failed; }
   }
 
@@ -114,6 +117,7 @@ export function gateState(packet: TaskPacketV3): GateState {
     })),
     quoteId: cycle.quote_id,
     repeatsEarlierIntent: Boolean(current && earlier.some((receipt) => sameIntent(receipt, current))),
+    unresolvedReading: packet.intent_id === null && packet.intent_candidates.length > 1,
     approvalBound,
     simulationAdmitted: Boolean(simulation?.admitted),
     simulationExpired: Boolean(simulation?.expired),
@@ -175,6 +179,17 @@ export function scriptRoute(state: GateState, packet: TaskPacketV3): ScriptRoute
       rule: "repeat_intent_open"
     };
   }
+  if (state.node === "inspect" && state.unresolvedReading) {
+    // Several readings of the user's words, all admissible. Only the words decide, so the model does.
+    const candidates = new Set(packet.intent_candidates);
+    return {
+      closed: false,
+      question: "The user's message admits more than one reading, listed as separate user_utterance receipts with the same text. Pick the reading that matches what the user asked for (validate with that intent), or ask for clarification if the words do not settle it. Never pick a reading that moves more than the user asked for.",
+      allow: (option) => option.key === CLARIFY_KEY
+        || (option.key === advanceKey("validate") && candidates.has(option.argRefs.intent || "")),
+      rule: "reading_open"
+    };
+  }
   if (state.node === "inspect") {
     const current = state.intentCandidates.find((candidate) => candidate.isCurrent);
     if (!current || !state.quoteId) return stop("no_current_intent_or_quote");
@@ -206,6 +221,7 @@ export function renderChecklist(state: GateState, route: ScriptRoute, withRoute 
     `approval_bound_to_current_simulation: ${state.approvalBound}; simulation_admitted: ${state.simulationAdmitted}; simulation_expired: ${state.simulationExpired}`,
     `submission: ${state.submission}`,
     `current_intent_repeats_an_earlier_one: ${state.repeatsEarlierIntent}`,
+    `reading_of_current_message_unresolved: ${state.unresolvedReading}`,
     ...(withRoute ? [
       `rule_that_applies: ${route.rule}`,
       route.closed ? `move_the_rule_prescribes: ${route.key}` : `open_question: ${route.question}`
