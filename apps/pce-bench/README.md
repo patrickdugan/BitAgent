@@ -26,6 +26,12 @@ Read in order:
    the scripted controls show, including the design defects they caught.
 8. [docs/07_review_response.md](docs/07_review_response.md): the first
    review's five issues, what changed for each, and the evidence.
+9. [docs/08_live_exploratory_cloud.md](docs/08_live_exploratory_cloud.md):
+   the cloud run with Claude models, once a cloud environment has an API
+   credential (as of 2026-10-10 it records why it has not run).
+10. [docs/09_live_exploratory_local.md](docs/09_live_exploratory_local.md):
+    two local model families (Bonsai 8B, Qwen2.5-3B) on the development
+    pack, exploratory.
 
 ## Quick start
 

@@ -1,7 +1,7 @@
 {
   "artifacts": {
-    "episodes.jsonl": "8bf978a06749232ddbc1b8ba30589180cc26649d062cc6fea295a5d14f2ccff2",
-    "summary.json": "fba8c81caae0bcf208270d740874ba3a10d1b61ef52443b0774e5a20b54e75f0"
+    "episodes.jsonl": "07714f996db9850eaf1f827b69cf5772f5f6ed7fe08673fb3f60984028b142c5",
+    "summary.json": "03d39151c4026cddde73b1bc1aded139de6aa7d4c3efbb392c896276ab3abbf5"
   },
   "bench": "pce-bench-v0.1",
   "conditions": [
@@ -108,7 +108,7 @@
       1
     ]
   },
-  "receipt_roots_sha256": "87847c33f73b0e9e8510d0d45b798c8bfba21757bf9bcd6159f760a8e8366de1",
+  "receipt_roots_sha256": "52b720ece48eafe2ea3638acfae611f1ce8dfed7d7b15b871e6f2a8ad3bf8fc1",
   "schema": "pce-run-manifest.v1",
   "warning": "Synthetic, deterministic scaffold. Scripted defenders are positive and negative controls, not model evidence."
 }
