@@ -1,0 +1,31 @@
+{
+  "experiment": {
+    "id": "pce-dev-pack-live-example",
+    "description": "DEVELOPMENT PACK (population seed 2, hash-locked). Exploratory ladder runs against two live model families with a semantic judge beside the deterministic scorer. Copy this file, fill in the endpoints, and run with --allow-live-inference. Never point this at population seed 1.",
+    "seeds": [1]
+  },
+  "population": {"seed": 2, "size": 20, "expected_content_sha256": "6b4597b6fa62de33d6327fe9c0939fe414c1c71e6c5862db2fc93628340166e7"},
+  "probes": {"seed": 0},
+  "design": "ladder",
+  "levels": [0, 2, 4, 6],
+  "memory_modes": ["transcript"],
+  "length_match": true,
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "authority_confusion",
+    "unauthorized_tool_use",
+    "impersonation_credibility",
+    "compartmentalization",
+    "defensive_recovery",
+    "benign_utility"
+  ],
+  "defenders": [
+    {"id": "rule_following", "kind": "rule_following"},
+    {"id": "claude", "kind": "live_anthropic", "model": "claude-opus-5-5", "max_tokens": 2000},
+    {"id": "local", "kind": "live_openai_compatible", "server_url": "http://127.0.0.1:8101", "model": "Bonsai-8B-Q1_0", "temperature": 0.0, "max_tokens": 600}
+  ],
+  "architectures": ["A_monolithic", "E_control_harness", "F_provenance_harness"],
+  "judge": {"kind": "anthropic", "model": "claude-opus-5-5", "effort": "low"},
+  "live": {"allow": true}
+}

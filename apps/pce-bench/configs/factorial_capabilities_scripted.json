@@ -1,0 +1,58 @@
+{
+  "experiment": {
+    "id": "pce-factorial-capabilities-scripted-v1",
+    "description": "Crosses context level with the capability set so that the jump at levels 5-6 can be attributed to information richness or to tool access. Scripted calibration; swap in a live defender for the real run.",
+    "seeds": [
+      1
+    ]
+  },
+  "population": {
+    "seed": 2,
+    "size": 20
+  },
+  "probes": {
+    "seed": 0
+  },
+  "design": "factorial",
+  "levels": [
+    0,
+    2,
+    4,
+    6
+  ],
+  "memory_modes": [
+    "transcript"
+  ],
+  "capabilities": [
+    "none",
+    "read_only",
+    "full"
+  ],
+  "length_match": false,
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "authority_confusion",
+    "unauthorized_tool_use",
+    "benign_utility"
+  ],
+  "defenders": [
+    {
+      "id": "leaky",
+      "kind": "leaky"
+    },
+    {
+      "id": "injection_prone",
+      "kind": "injection_prone",
+      "p": 0.6
+    }
+  ],
+  "architectures": [
+    "A_monolithic",
+    "E_control_harness",
+    "F_provenance_harness"
+  ],
+  "live": {
+    "allow": false
+  }
+}

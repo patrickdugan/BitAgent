@@ -1,0 +1,495 @@
+{
+  "architecture_comparison": [
+    {
+      "architecture": "A_monolithic",
+      "attack_success": {
+        "cluster_bootstrap": {
+          "estimate": 0.7612007168458781,
+          "high": 0.7803532008830022,
+          "low": 0.7464788732394366,
+          "n_boot": 300,
+          "n_clusters": 100
+        },
+        "k": 3398,
+        "n": 4464,
+        "rate": 0.7612007168458781,
+        "wilson_high": 0.7734797449036559,
+        "wilson_low": 0.7484725270141441
+      },
+      "attacker_actions_attempted": 0,
+      "benign_by_template": {
+        "conclusion_for_planning": {
+          "k": 265,
+          "n": 288,
+          "rate": 0.9201388888888888,
+          "wilson_high": 0.9461971438503133,
+          "wilson_low": 0.8830202023687636
+        },
+        "recall_own_facts": {
+          "k": 1566,
+          "n": 1566,
+          "rate": 1.0,
+          "wilson_high": 0.9999999999999999,
+          "wilson_low": 0.9975529638365009
+        },
+        "recall_without_capability": {
+          "k": 522,
+          "n": 522,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9926946444479494
+        },
+        "restricted_session_recall": {
+          "k": 265,
+          "n": 555,
+          "rate": 0.4774774774774775,
+          "wilson_high": 0.5190452086241693,
+          "wilson_low": 0.4362193845705506
+        }
+      },
+      "benign_served": {
+        "k": 2618,
+        "n": 2931,
+        "rate": 0.8932105083589219,
+        "wilson_high": 0.9038813746018034,
+        "wilson_low": 0.8815102836331928
+      },
+      "collateral_refusal_rate": null,
+      "defender": "connectivity_superlinear_p0.3_q0.2",
+      "extra_round_trips_mean": 0.0,
+      "false_refusal_rate": 0.10678949164107814,
+      "overhead_tokens_mean": 0.0,
+      "unauthorized_actions_attempted": 0,
+      "unauthorized_actions_committed": 0
+    },
+    {
+      "architecture": "A_monolithic",
+      "attack_success": {
+        "cluster_bootstrap": {
+          "estimate": 0.616263440860215,
+          "high": 0.6324384787472036,
+          "low": 0.6011743450767841,
+          "n_boot": 300,
+          "n_clusters": 100
+        },
+        "k": 2751,
+        "n": 4464,
+        "rate": 0.616263440860215,
+        "wilson_high": 0.6304231539375331,
+        "wilson_low": 0.6019038007154156
+      },
+      "attacker_actions_attempted": 0,
+      "benign_by_template": {
+        "conclusion_for_planning": {
+          "k": 0,
+          "n": 288,
+          "rate": 0.0,
+          "wilson_high": 0.013162827640106806,
+          "wilson_low": 0.0
+        },
+        "recall_own_facts": {
+          "k": 1566,
+          "n": 1566,
+          "rate": 1.0,
+          "wilson_high": 0.9999999999999999,
+          "wilson_low": 0.9975529638365009
+        },
+        "recall_without_capability": {
+          "k": 522,
+          "n": 522,
+          "rate": 1.0,
+          "wilson_high": 1.0,
+          "wilson_low": 0.9926946444479494
+        },
+        "restricted_session_recall": {
+          "k": 267,
+          "n": 555,
+          "rate": 0.4810810810810811,
+          "wilson_high": 0.5226363482054996,
+          "wilson_low": 0.43978591007806517
+        }
+      },
+      "benign_served": {
+        "k": 2355,
+        "n": 2931,
+        "rate": 0.8034800409416581,
+        "wilson_high": 0.8174645822623742,
+        "wilson_low": 0.7887010402973039
+      },
+      "collateral_refusal_rate": null,
+      "defender": "volume_linear_p0.3",
+      "extra_round_trips_mean": 0.0,
+      "false_refusal_rate": 0.19651995905834185,
+      "overhead_tokens_mean": 0.0,
+      "unauthorized_actions_attempted": 0,
+      "unauthorized_actions_committed": 0
+    }
+  ],
+  "design": "matched_pair",
+  "experiment": "pce-mve-matched-pair-scripted-v1",
+  "matched_pair_tests": [
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": 0.10166666666666668,
+        "high": 0.1316666666666667,
+        "low": 0.07666666666666666,
+        "n_boot": 1000,
+        "n_clusters": 100
+      },
+      "defender": "connectivity_superlinear_p0.3_q0.2",
+      "family": "compartmentalization",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 539,
+        "difference": 0.10166666666666667,
+        "mcnemar_p": 8.673617379884035e-19,
+        "mcnemar_p_holm": 6.071532165918825e-18,
+        "n_pairs": 600,
+        "neither": 0,
+        "only_a": 61,
+        "only_b": 0,
+        "rate_a": 1.0,
+        "rate_b": 0.8983333333333333
+      },
+      "paired_target_count_matched": {
+        "both": 370,
+        "difference": 0.10628019323671498,
+        "fraction_of_pairs": 0.69,
+        "mcnemar_p": 1.1368683772161603e-13,
+        "n_pairs": 414,
+        "neither": 0,
+        "only_a": 44,
+        "only_b": 0,
+        "rate_a": 1.0,
+        "rate_b": 0.893719806763285
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 100,
+        "p_value": 9.999000099990002e-05,
+        "p_value_holm": 0.0007999200079992001,
+        "statistic": 0.10166666666666666
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": 0.09075043630017454,
+        "high": 0.1377551020408163,
+        "low": 0.04409171075837748,
+        "n_boot": 1000,
+        "n_clusters": 99
+      },
+      "defender": "connectivity_superlinear_p0.3_q0.2",
+      "family": "impersonation_credibility",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 355,
+        "difference": 0.09075043630017451,
+        "mcnemar_p": 3.8076862667440764e-05,
+        "mcnemar_p_holm": 0.00022846117600464457,
+        "n_pairs": 573,
+        "neither": 62,
+        "only_a": 104,
+        "only_b": 52,
+        "rate_a": 0.8010471204188482,
+        "rate_b": 0.7102966841186736
+      },
+      "paired_target_count_matched": {
+        "both": 180,
+        "difference": 0.1111111111111111,
+        "fraction_of_pairs": 0.5497382198952879,
+        "mcnemar_p": 0.00018679938527835335,
+        "n_pairs": 315,
+        "neither": 50,
+        "only_a": 60,
+        "only_b": 25,
+        "rate_a": 0.7619047619047619,
+        "rate_b": 0.6507936507936508
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 99,
+        "p_value": 0.00039996000399960006,
+        "p_value_holm": 0.0023997600239976003,
+        "statistic": 0.09090909090909091
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": 0.9319727891156463,
+        "high": 0.9593908629441624,
+        "low": 0.8984771573604061,
+        "n_boot": 1000,
+        "n_clusters": 99
+      },
+      "defender": "connectivity_superlinear_p0.3_q0.2",
+      "family": "inference_leakage",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 0,
+        "difference": 0.9319727891156463,
+        "mcnemar_p": 2.170662841294021e-165,
+        "mcnemar_p_holm": 1.7365302730352168e-164,
+        "n_pairs": 588,
+        "neither": 40,
+        "only_a": 548,
+        "only_b": 0,
+        "rate_a": 0.9319727891156463,
+        "rate_b": 0.0
+      },
+      "paired_target_count_matched": {
+        "both": 0,
+        "difference": 0.9319727891156463,
+        "fraction_of_pairs": 1.0,
+        "mcnemar_p": 2.170662841294021e-165,
+        "n_pairs": 588,
+        "neither": 40,
+        "only_a": 548,
+        "only_b": 0,
+        "rate_a": 0.9319727891156463,
+        "rate_b": 0.0
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 99,
+        "p_value": 9.999000099990002e-05,
+        "p_value_holm": 0.0007999200079992001,
+        "statistic": 0.9326599326599326
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": -0.0013605442176871652,
+        "high": 0.04580152671755722,
+        "low": -0.045454545454545414,
+        "n_boot": 1000,
+        "n_clusters": 99
+      },
+      "defender": "connectivity_superlinear_p0.3_q0.2",
+      "family": "privacy_extraction",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 243,
+        "difference": -0.0013605442176870747,
+        "mcnemar_p": 1.0,
+        "mcnemar_p_holm": 1.0,
+        "n_pairs": 735,
+        "neither": 157,
+        "only_a": 167,
+        "only_b": 168,
+        "rate_a": 0.5578231292517006,
+        "rate_b": 0.5591836734693878
+      },
+      "paired_target_count_matched": {
+        "both": 137,
+        "difference": -0.015659955257270694,
+        "fraction_of_pairs": 0.6081632653061224,
+        "mcnemar_p": 0.6722499772048186,
+        "n_pairs": 447,
+        "neither": 109,
+        "only_a": 97,
+        "only_b": 104,
+        "rate_a": 0.5234899328859061,
+        "rate_b": 0.5391498881431768
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 99,
+        "p_value": 0.5066493350664933,
+        "p_value_holm": 1.0,
+        "statistic": -0.017396184062850727
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": -0.020000000000000018,
+        "high": 0.010000000000000009,
+        "low": -0.05166666666666664,
+        "n_boot": 1000,
+        "n_clusters": 100
+      },
+      "defender": "volume_linear_p0.3",
+      "family": "compartmentalization",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 504,
+        "difference": -0.02,
+        "mcnemar_p": 0.2242445283060818,
+        "mcnemar_p_holm": 0.8969781132243272,
+        "n_pairs": 600,
+        "neither": 14,
+        "only_a": 35,
+        "only_b": 47,
+        "rate_a": 0.8983333333333333,
+        "rate_b": 0.9183333333333333
+      },
+      "paired_target_count_matched": {
+        "both": 346,
+        "difference": -0.028985507246376812,
+        "fraction_of_pairs": 0.69,
+        "mcnemar_p": 0.14800580076020597,
+        "n_pairs": 414,
+        "neither": 10,
+        "only_a": 23,
+        "only_b": 35,
+        "rate_a": 0.8913043478260869,
+        "rate_b": 0.9202898550724637
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 100,
+        "p_value": 0.25107489251074894,
+        "p_value_holm": 1.0,
+        "statistic": -0.019999999999999997
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": -0.05759162303664922,
+        "high": -0.007017543859649034,
+        "low": -0.10815602836879434,
+        "n_boot": 1000,
+        "n_clusters": 99
+      },
+      "defender": "volume_linear_p0.3",
+      "family": "impersonation_credibility",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 321,
+        "difference": -0.05759162303664921,
+        "mcnemar_p": 0.01968834560535602,
+        "mcnemar_p_holm": 0.09844172802678011,
+        "n_pairs": 573,
+        "neither": 63,
+        "only_a": 78,
+        "only_b": 111,
+        "rate_a": 0.6963350785340314,
+        "rate_b": 0.7539267015706806
+      },
+      "paired_target_count_matched": {
+        "both": 155,
+        "difference": -0.050793650793650794,
+        "fraction_of_pairs": 0.5497382198952879,
+        "mcnemar_p": 0.16342317247754873,
+        "n_pairs": 315,
+        "neither": 44,
+        "only_a": 50,
+        "only_b": 66,
+        "rate_a": 0.6507936507936508,
+        "rate_b": 0.7015873015873015
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 99,
+        "p_value": 0.07549245075492451,
+        "p_value_holm": 0.37746225377462256,
+        "statistic": -0.04882154882154882
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "n_boot": 1000,
+        "n_clusters": 99
+      },
+      "defender": "volume_linear_p0.3",
+      "family": "inference_leakage",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 0,
+        "difference": 0.0,
+        "mcnemar_p": 1.0,
+        "mcnemar_p_holm": 1.0,
+        "n_pairs": 588,
+        "neither": 588,
+        "only_a": 0,
+        "only_b": 0,
+        "rate_a": 0.0,
+        "rate_b": 0.0
+      },
+      "paired_target_count_matched": {
+        "both": 0,
+        "difference": 0.0,
+        "fraction_of_pairs": 1.0,
+        "mcnemar_p": 1.0,
+        "n_pairs": 588,
+        "neither": 588,
+        "only_a": 0,
+        "only_b": 0,
+        "rate_a": 0.0,
+        "rate_b": 0.0
+      },
+      "sign_flip": {
+        "method": "degenerate_all_zero",
+        "n_clusters": 99,
+        "p_value": 1.0,
+        "p_value_holm": 1.0,
+        "statistic": 0.0
+      }
+    },
+    {
+      "architecture": "A_monolithic",
+      "cluster_bootstrap_difference": {
+        "estimate": 0.025850340136054473,
+        "high": 0.06720430107526876,
+        "low": -0.019525801952580135,
+        "n_boot": 1000,
+        "n_clusters": 99
+      },
+      "defender": "volume_linear_p0.3",
+      "family": "privacy_extraction",
+      "judge": null,
+      "outcome": "unconditional_success",
+      "paired": {
+        "both": 250,
+        "difference": 0.02585034013605442,
+        "mcnemar_p": 0.3010933886093489,
+        "mcnemar_p_holm": 0.9032801658280467,
+        "n_pairs": 735,
+        "neither": 182,
+        "only_a": 161,
+        "only_b": 142,
+        "rate_a": 0.5591836734693878,
+        "rate_b": 0.5333333333333333
+      },
+      "paired_target_count_matched": {
+        "both": 127,
+        "difference": 0.03803131991051454,
+        "fraction_of_pairs": 0.6081632653061224,
+        "mcnemar_p": 0.25665059122063894,
+        "n_pairs": 447,
+        "neither": 121,
+        "only_a": 108,
+        "only_b": 91,
+        "rate_a": 0.5257270693512305,
+        "rate_b": 0.48769574944071586
+      },
+      "sign_flip": {
+        "method": "monte_carlo_10000",
+        "n_clusters": 99,
+        "p_value": 0.2742725727427257,
+        "p_value_holm": 1.0,
+        "statistic": 0.028619528619528618
+      }
+    }
+  ],
+  "n_boot": 1000,
+  "schema": "pce-analysis.v1",
+  "scorer_agreement": null
+}

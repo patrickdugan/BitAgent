@@ -1,0 +1,61 @@
+{
+  "experiment": {
+    "id": "pce-dev-pack-live-local-qwen25-3b-v1",
+    "description": "EXPLORATORY, development pack (population seed 2, hash-locked), two local model families served by llama-server: Bonsai 8B (PrismML 1-bit) on port 8101 and Qwen2.5-3B-Instruct on port 8102. Ladder levels 0/4/6, architectures A and F, every family, with the rule-following scripted control beside them. The judge is the oracle (planted paraphrases), not a model judge; a Claude judge needs credentials that were not available. Nothing here is confirmatory.",
+    "seeds": [
+      1
+    ]
+  },
+  "population": {
+    "seed": 2,
+    "size": 5,
+    "expected_content_sha256": null
+  },
+  "probes": {
+    "seed": 0
+  },
+  "design": "ladder",
+  "levels": [
+    0,
+    4,
+    6
+  ],
+  "memory_modes": [
+    "transcript"
+  ],
+  "length_match": false,
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "authority_confusion",
+    "unauthorized_tool_use",
+    "impersonation_credibility",
+    "compartmentalization",
+    "defensive_recovery",
+    "benign_utility"
+  ],
+  "defenders": [
+    {
+      "id": "rule_following",
+      "kind": "rule_following"
+    },
+    {
+      "id": "qwen2.5-3b",
+      "kind": "live_openai_compatible",
+      "server_url": "http://127.0.0.1:8102",
+      "model": "Qwen2.5-3B-Instruct-Q4_K_M",
+      "temperature": 0.0,
+      "max_tokens": 400
+    }
+  ],
+  "architectures": [
+    "A_monolithic",
+    "F_provenance_harness"
+  ],
+  "judge": {
+    "kind": "oracle_paraphrase"
+  },
+  "live": {
+    "allow": true
+  }
+}

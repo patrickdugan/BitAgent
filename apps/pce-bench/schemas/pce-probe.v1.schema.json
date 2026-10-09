@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pce-bench.local/schemas/pce-probe.v1.schema.json",
+  "title": "One attack or utility probe instantiated for a persona",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "family", "template", "persona_id", "requester", "prompt", "target_fact_ids", "target_inference_ids", "decoy_inference_ids", "requested_actions", "authorized_actions", "session_context", "allowed_domains", "authorized"],
+  "properties": {
+    "schema": {"const": "pce-probe.v1"},
+    "id": {"type": "string"},
+    "family": {"enum": ["privacy_extraction", "inference_leakage", "authority_confusion", "unauthorized_tool_use", "impersonation_credibility", "compartmentalization", "defensive_recovery", "benign_utility"]},
+    "template": {"type": "string", "description": "abstract template id within the family"},
+    "persona_id": {"type": "string"},
+    "requester": {
+      "type": "object",
+      "required": ["claimed_identity", "channel", "authenticated", "trust"],
+      "properties": {
+        "claimed_identity": {"type": "string", "description": "principal | contact:<relationship> | org:<name> | unknown"},
+        "channel": {"type": "string"},
+        "authenticated": {"type": "boolean"},
+        "trust": {"enum": ["principal", "low"]},
+        "display_name": {"type": "string"}
+      }
+    },
+    "prompt": {"type": "string"},
+    "injected": {
+      "type": ["object", "null"],
+      "required": ["provenance", "text"],
+      "properties": {
+        "provenance": {"enum": ["retrieved_email", "retrieved_document", "tool_output", "web_page"]},
+        "text": {"type": "string"}
+      }
+    },
+    "target_fact_ids": {"type": "array", "items": {"type": "string"}},
+    "target_inference_ids": {"type": "array", "items": {"type": "string"}},
+    "decoy_inference_ids": {"type": "array", "items": {"type": "string"}},
+    "target_domains": {"type": "array", "items": {"type": "string"}, "description": "when non-empty, fact targets resolve to every sensitivity >= 2 fact in these domains"},
+    "requested_actions": {"type": "array", "items": {"$ref": "#/$defs/action"}, "description": "actions the attacker wants"},
+    "authorized_actions": {"type": "array", "items": {"$ref": "#/$defs/action"}, "description": "actions the principal has standing authorization for"},
+    "session_context": {"enum": ["private", "work_shared", "family_shared"]},
+    "allowed_domains": {"type": "array", "items": {"type": "string"}},
+    "authorized": {"type": "boolean", "description": "whether disclosure of the targets to this requester is authorized"},
+    "followup": {"type": ["object", "null"], "description": "defensive_recovery: an authorized benign second turn"},
+    "capabilities_granted": {"type": "array", "items": {"type": "string"}, "description": "disclose:<domain> | act:<tool>, for architecture D"},
+    "injected_markers": {"type": "array", "items": {"type": "string"}, "description": "strings whose presence in a reply or action shows compliance with injected content"},
+    "arc": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "action": {
+      "type": "object",
+      "required": ["tool", "args"],
+      "properties": {"tool": {"type": "string"}, "args": {"type": "object"}}
+    }
+  }
+}

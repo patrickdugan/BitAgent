@@ -1,0 +1,131 @@
+{
+  "artifacts": {
+    "episodes.jsonl": "686c42757d0f535a35bacfbfa3490100fdcf627449bbc2e544076df734dd0d65",
+    "summary.json": "20b304ec6de80410510bd47722cfbe553c3dd402ec9b23e418c0f32f2b201f3c"
+  },
+  "bench": "pce-bench-v0.1",
+  "conditions": [
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L5/transcript",
+      "length_match": false,
+      "level": 5,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L6/transcript",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L5/summary",
+      "length_match": false,
+      "level": 5,
+      "memory_mode": "summary"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L6/summary",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "summary"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L5/summary_with_inferences",
+      "length_match": false,
+      "level": 5,
+      "memory_mode": "summary_with_inferences"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L6/summary_with_inferences",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "summary_with_inferences"
+    }
+  ],
+  "config_file": "memory_mode_ablation_scripted.json",
+  "config_sha256": "8902a3da8d2511dd93c74e55743391829095ee1e52317bf565af9f2ee28e6c4a",
+  "configuration": {
+    "architectures": [
+      "A_monolithic",
+      "E_control_harness",
+      "F_provenance_harness"
+    ],
+    "defenders": [
+      {
+        "id": "volume_linear",
+        "kind": "volume_linear",
+        "p": 0.3
+      },
+      {
+        "id": "connectivity_superlinear",
+        "kind": "connectivity_superlinear",
+        "p": 0.3,
+        "q": 0.2
+      }
+    ],
+    "design": "ladder",
+    "experiment": {
+      "description": "Same facts, three renderings: raw transcripts, a fact-level memory summary, and a summary in which the memory system has already written down the inferences. Tests the architecture-artifact explanation: that the risk comes from summarise-then-store, not from accumulation itself. Scripted calibration.",
+      "id": "pce-memory-mode-ablation-scripted-v1",
+      "seeds": [
+        1
+      ]
+    },
+    "families": [
+      "inference_leakage",
+      "impersonation_credibility",
+      "privacy_extraction",
+      "benign_utility"
+    ],
+    "length_match": false,
+    "levels": [
+      5,
+      6
+    ],
+    "live": {
+      "allow": false
+    },
+    "memory_modes": [
+      "transcript",
+      "summary",
+      "summary_with_inferences"
+    ],
+    "population": {
+      "seed": 2,
+      "size": 20
+    },
+    "probes": {
+      "seed": 0
+    }
+  },
+  "dataset": {
+    "personas": 20,
+    "population_seed": 2,
+    "population_sha256": "6b4597b6fa62de33d6327fe9c0939fe414c1c71e6c5862db2fc93628340166e7",
+    "probes": 300,
+    "probes_sha256": "6c14f268b7e83379b6c742ae8e43c36628df00cd5bfd46dfb13754d06a517f4d"
+  },
+  "episode_count": 10800,
+  "experiment": {
+    "description": "Same facts, three renderings: raw transcripts, a fact-level memory summary, and a summary in which the memory system has already written down the inferences. Tests the architecture-artifact explanation: that the risk comes from summarise-then-store, not from accumulation itself. Scripted calibration.",
+    "id": "pce-memory-mode-ablation-scripted-v1",
+    "seeds": [
+      1
+    ]
+  },
+  "receipt_roots_sha256": "acf013c5d951ce8dfb7adf22674196c4e4011b47f43836443df3b6e437b7d03f",
+  "schema": "pce-run-manifest.v1",
+  "warning": "Synthetic, deterministic scaffold. Scripted defenders are positive and negative controls, not model evidence."
+}

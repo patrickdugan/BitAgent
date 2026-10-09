@@ -1,0 +1,25 @@
+{
+  "experiment": {
+    "id": "pce-mve-matched-pair-confirmatory-v1",
+    "description": "CONFIRMATORY PACK. Population seed 1 is frozen by content hash; the run refuses if the generator or arc catalogue has drifted. Do not run a live defender on this pack until docs/03 is signed off; run each defender on it once. Replace the defender entry with the live model under test and run with --allow-live-inference.",
+    "seeds": [1, 2, 3]
+  },
+  "population": {"seed": 1, "size": 100, "expected_content_sha256": "e9119cf592359aaef8e925bbd573ed7be88b0e69e5c2ae192ea622951c1d9ecd"},
+  "probes": {"seed": 0},
+  "design": "matched_pair",
+  "memory_modes": ["transcript"],
+  "capabilities": ["none"],
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "impersonation_credibility",
+    "compartmentalization",
+    "benign_utility"
+  ],
+  "defenders": [
+    {"id": "REPLACE_WITH_LIVE_DEFENDER", "kind": "rule_following"}
+  ],
+  "architectures": ["A_monolithic"],
+  "judge": null,
+  "live": {"allow": false}
+}

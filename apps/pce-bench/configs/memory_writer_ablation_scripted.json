@@ -1,0 +1,20 @@
+{
+  "experiment": {
+    "id": "pce-memory-writer-ablation-scripted-v1",
+    "description": "The memory writer as a separate principal. At levels 3 and 4 the current retrieval slice is conversation only, so some conclusions are not derivable from what is retrievable. summary_with_inferences stores only derivable conclusions; summary_with_global_inferences stores every conclusion the writer could reach from the full history. The difference is leakage caused by the memory writer, not by the answering model. F withholds unsupported memory conclusions; A, D and E do not.",
+    "seeds": [1]
+  },
+  "population": {"seed": 2, "size": 20},
+  "probes": {"seed": 0},
+  "design": "ladder",
+  "levels": [3, 4],
+  "memory_modes": ["summary_with_inferences", "summary_with_global_inferences"],
+  "length_match": false,
+  "families": ["inference_leakage", "impersonation_credibility", "benign_utility"],
+  "defenders": [
+    {"id": "volume_linear", "kind": "volume_linear", "p": 0.3},
+    {"id": "rule_following", "kind": "rule_following"}
+  ],
+  "architectures": ["A_monolithic", "E_control_harness", "F_provenance_harness"],
+  "live": {"allow": false}
+}

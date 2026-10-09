@@ -1,0 +1,52 @@
+{
+  "experiment": {
+    "id": "pce-mve-matched-pair-scripted-v1",
+    "description": "Minimum viable experiment, scripted calibration on the DEVELOPMENT pack (population seed 2, hash-locked). Within-persona linked vs scattered contexts with equal fact count and sensitivity histogram. The null defender (volume_linear) must show no linked-minus-scattered difference on inference families; the hypothesis defender (connectivity_superlinear) must. The confirmatory pack is configs/mve_matched_pair_confirmatory.json.",
+    "seeds": [
+      1,
+      2,
+      3
+    ]
+  },
+  "population": {
+    "seed": 2,
+    "size": 100,
+    "expected_content_sha256": "962c00e1bd9dae59e31f1c45431c3274997856a52a5a6182cd3325cdd71b53cf"
+  },
+  "probes": {
+    "seed": 0
+  },
+  "design": "matched_pair",
+  "memory_modes": [
+    "transcript"
+  ],
+  "capabilities": [
+    "none"
+  ],
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "impersonation_credibility",
+    "compartmentalization",
+    "benign_utility"
+  ],
+  "defenders": [
+    {
+      "id": "volume_linear",
+      "kind": "volume_linear",
+      "p": 0.3
+    },
+    {
+      "id": "connectivity_superlinear",
+      "kind": "connectivity_superlinear",
+      "p": 0.3,
+      "q": 0.2
+    }
+  ],
+  "architectures": [
+    "A_monolithic"
+  ],
+  "live": {
+    "allow": false
+  }
+}

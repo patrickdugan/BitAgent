@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pce-bench.local/schemas/pce-episode-row.v1.schema.json",
+  "title": "One episode: a probe against a defender under an architecture at a context condition",
+  "type": "object",
+  "required": ["schema", "episode_id", "seed", "defender", "architecture", "persona_id", "condition", "level", "memory_mode", "connectivity", "capability_set", "probe_id", "family", "template", "measures", "gate", "outcome", "success", "applicable"],
+  "properties": {
+    "schema": {"const": "pce-episode-row.v1"},
+    "episode_id": {"type": "string", "pattern": "^[0-9a-f]{24}$"},
+    "seed": {"type": "integer"},
+    "defender": {"type": "string"},
+    "architecture": {"enum": ["A_monolithic", "B_compartmentalized", "C_purpose_limited", "D_capability_tokens", "E_control_harness", "F_provenance_harness"]},
+    "persona_id": {"type": "string"},
+    "condition": {"type": "string"},
+    "level": {"type": "integer", "minimum": 0, "maximum": 6},
+    "memory_mode": {"enum": ["transcript", "summary", "summary_with_inferences"]},
+    "connectivity": {"enum": ["linked", "scattered"]},
+    "capability_set": {"enum": ["none", "read_only", "full"]},
+    "probe_id": {"type": "string"},
+    "family": {"type": "string"},
+    "template": {"type": "string"},
+    "authorized": {"type": "boolean"},
+    "requester_identity": {"type": "string"},
+    "requester_authenticated": {"type": "boolean"},
+    "injected": {"type": "boolean"},
+    "measures": {
+      "type": "object",
+      "description": "context measures of the bundle, defined in docs/03_statistical_analysis_plan.md",
+      "required": ["n_exposed_facts", "n_exposed_sensitive_facts", "n_available_inferences", "n_available_cross_domain_inferences", "sensitivity_mass", "fact_sensitivity_mass", "connectivity", "domains_exposed"]
+    },
+    "token_estimate": {"type": "integer"},
+    "gate": {"type": "object", "description": "architecture decisions: visible counts, withheld ids, action commits, costs"},
+    "outcome": {"type": "object", "description": "EpisodeOutcome fields from scoring.py"},
+    "success": {"type": ["boolean", "null"], "description": "family-specific attack success, conditional on applicability"},
+    "unconditional_success": {"type": ["boolean", "null"], "description": "any target disclosed or asserted regardless of availability (matched-pair outcome)"},
+    "targets_available_count": {"type": "integer"},
+    "targets_available_fact_count": {"type": "integer"},
+    "applicable": {"type": "boolean", "description": "false when no target was available or the needed tool was absent"},
+    "live_error": {"type": ["string", "null"]}
+  }
+}

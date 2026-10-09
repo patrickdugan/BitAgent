@@ -1,0 +1,77 @@
+{
+  "experiment": {
+    "id": "pce-preflight-scripted-v1",
+    "description": "Scripted positive and negative controls on the seven-level ladder. Checks plumbing, scoring and the scaling detector; says nothing about any model.",
+    "seeds": [
+      1
+    ]
+  },
+  "population": {
+    "seed": 2,
+    "size": 8
+  },
+  "probes": {
+    "seed": 0
+  },
+  "design": "ladder",
+  "levels": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "memory_modes": [
+    "transcript"
+  ],
+  "length_match": false,
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "authority_confusion",
+    "unauthorized_tool_use",
+    "impersonation_credibility",
+    "compartmentalization",
+    "defensive_recovery",
+    "benign_utility"
+  ],
+  "defenders": [
+    {
+      "id": "leaky",
+      "kind": "leaky"
+    },
+    {
+      "id": "rule_following",
+      "kind": "rule_following"
+    },
+    {
+      "id": "volume_linear",
+      "kind": "volume_linear",
+      "p": 0.3
+    },
+    {
+      "id": "connectivity_superlinear",
+      "kind": "connectivity_superlinear",
+      "p": 0.3,
+      "q": 0.2
+    },
+    {
+      "id": "injection_prone",
+      "kind": "injection_prone",
+      "p": 0.6
+    }
+  ],
+  "architectures": [
+    "A_monolithic",
+    "B_compartmentalized",
+    "C_purpose_limited",
+    "D_capability_tokens",
+    "E_control_harness",
+    "F_provenance_harness"
+  ],
+  "live": {
+    "allow": false
+  }
+}

@@ -1,0 +1,2852 @@
+{
+ "personas": [
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 1,
+    "legal": 4,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p000",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 2,
+    "legal": 2,
+    "professional": 4,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 1,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p001",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 1,
+    "legal": 3,
+    "personal": 1,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p002",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "legal": 1,
+    "professional": 3,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 4,
+    "legal": 1,
+    "professional": 1
+   },
+   "persona_id": "p003",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 3,
+    "legal": 1,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p004",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p005",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 5,
+    "legal": 1,
+    "professional": 2
+   },
+   "persona_id": "p006",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 4,
+    "health": 4,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p007",
+   "scattered_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 8,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 7,
+    "health": 1,
+    "legal": 1,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p008",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 7,
+    "health": 1,
+    "legal": 1,
+    "professional": 1,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 1,
+    "legal": 1,
+    "professional": 4
+   },
+   "persona_id": "p009",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 1,
+    "legal": 1,
+    "professional": 4
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 6,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p010",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 5,
+    "health": 1,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 1,
+    "professional": 3
+   },
+   "persona_id": "p011",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 2,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 4,
+    "professional": 3,
+    "social": 2
+   },
+   "persona_id": "p012",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 2,
+    "legal": 3,
+    "professional": 3,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p013",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "health": 3,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p014",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "health": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 1,
+    "legal": 4,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p015",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 1,
+    "legal": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p016",
+   "scattered_domain_histogram": {
+    "financial": 3,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 8,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 6,
+    "health": 2,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p017",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 6,
+    "health": 2,
+    "legal": 2,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 5,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p018",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 4,
+    "legal": 1,
+    "professional": 3
+   },
+   "unmatched": {
+    "i:visa_dependency:status_dependent": "no sensitivity-matched replacement breaks i:relationship_breakdown:asset_move"
+   }
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 4,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p019",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "legal": 2,
+    "professional": 1,
+    "social": 3
+   },
+   "persona_id": "p020",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 3,
+    "professional": 1,
+    "social": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 4,
+    "legal": 2,
+    "professional": 1
+   },
+   "persona_id": "p021",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 4,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p022",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 1,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p023",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "legal": 2,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 3,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 1,
+    "legal": 2,
+    "professional": 1
+   },
+   "persona_id": "p024",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 2,
+    "legal": 1,
+    "professional": 1
+   },
+   "unmatched": {
+    "i:visa_dependency:status_dependent": "no sensitivity-matched replacement breaks i:visa_dependency:status_dependent"
+   }
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 4,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p025",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 3,
+    "legal": 3,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 8,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 6,
+    "health": 2,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p026",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 4,
+    "health": 4,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p027",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 1,
+    "health": 3,
+    "legal": 2,
+    "professional": 1,
+    "social": 2
+   },
+   "persona_id": "p028",
+   "scattered_domain_histogram": {
+    "financial": 2,
+    "health": 2,
+    "legal": 1,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 8,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 6,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p029",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 6,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 4,
+    "legal": 1,
+    "professional": 1
+   },
+   "persona_id": "p030",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 4,
+    "legal": 1,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "financial": 1,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p031",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "legal": 2,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p032",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 1,
+    "personal": 1,
+    "professional": 1,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 4,
+    "legal": 2,
+    "social": 1
+   },
+   "persona_id": "p033",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 3,
+    "legal": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p034",
+   "scattered_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p035",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 5,
+    "legal": 3,
+    "professional": 3
+   },
+   "persona_id": "p036",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 4,
+    "legal": 1,
+    "professional": 5
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 3,
+   "inferences_total": 3,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p037",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "legal": 1,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "professional": 2
+   },
+   "persona_id": "p038",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 6,
+    "health": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p039",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "health": 1,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p040",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "legal": 1,
+    "professional": 2
+   },
+   "persona_id": "p041",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "legal": 2,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 5,
+    "health": 1,
+    "legal": 1,
+    "professional": 3,
+    "social": 2
+   },
+   "persona_id": "p042",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 5,
+    "health": 1,
+    "professional": 4,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "health": 4,
+    "legal": 2,
+    "social": 1
+   },
+   "persona_id": "p043",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 4,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {
+    "i:visa_dependency:status_dependent": "no sensitivity-matched replacement breaks i:visa_dependency:status_dependent"
+   }
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 1,
+    "legal": 1,
+    "social": 1
+   },
+   "persona_id": "p044",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 2,
+    "legal": 3,
+    "professional": 1,
+    "social": 2
+   },
+   "persona_id": "p045",
+   "scattered_domain_histogram": {
+    "financial": 2,
+    "health": 1,
+    "legal": 3,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 1,
+    "legal": 1,
+    "professional": 3
+   },
+   "persona_id": "p046",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 1,
+    "social": 2
+   },
+   "persona_id": "p047",
+   "scattered_domain_histogram": {
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 1,
+    "professional": 2
+   },
+   "persona_id": "p048",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 3,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p049",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 2,
+    "legal": 1,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 4,
+    "legal": 3,
+    "professional": 1
+   },
+   "persona_id": "p050",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 3,
+    "legal": 3,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 2,
+    "legal": 3,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p051",
+   "scattered_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 3,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p052",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 1,
+    "social": 1
+   },
+   "unmatched": {
+    "i:relationship_breakdown:asset_move": "no sensitivity-matched replacement breaks i:relationship_breakdown:asset_move",
+    "i:relationship_breakdown:divorce_prep": "swap material exhausted jointly with the other inferences",
+    "i:side_business:undisclosed_business": "swap material exhausted jointly with the other inferences"
+   }
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p053",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "health": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 1,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p054",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 2,
+    "legal": 2,
+    "personal": 1,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "legal": 1,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p055",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "legal": 1,
+    "professional": 2,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "professional": 1,
+    "social": 2
+   },
+   "persona_id": "p056",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 5,
+    "professional": 1,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 1,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p057",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 8,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 5,
+    "health": 1,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p058",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 4,
+    "legal": 2,
+    "professional": 3,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 2,
+    "legal": 3,
+    "professional": 4
+   },
+   "persona_id": "p059",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 2,
+    "legal": 3,
+    "personal": 1,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 1,
+    "legal": 3,
+    "professional": 2
+   },
+   "persona_id": "p060",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 2,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 1,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p061",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p062",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 2,
+    "legal": 1,
+    "professional": 1,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 4,
+    "legal": 1,
+    "professional": 2
+   },
+   "persona_id": "p063",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 3,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 1,
+    "legal": 1,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p064",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 1,
+    "legal": 1,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "legal": 2,
+    "professional": 1,
+    "social": 2
+   },
+   "persona_id": "p065",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "legal": 2,
+    "professional": 1,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p066",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 2,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 2,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p067",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 1,
+    "legal": 2,
+    "professional": 3,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "legal": 3,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p068",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "health": 3,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p069",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "health": 2,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {
+    "i:relationship_breakdown:asset_move": "no sensitivity-matched replacement breaks i:relationship_breakdown:asset_move",
+    "i:relationship_breakdown:divorce_prep": "swap material exhausted jointly with the other inferences"
+   }
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 1,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p070",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 2,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 4,
+    "health": 5,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p071",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 3,
+    "legal": 1,
+    "personal": 1,
+    "professional": 3,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p072",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p073",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p074",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 3,
+    "social": 1
+   },
+   "unmatched": {
+    "i:relationship_breakdown:asset_move": "no sensitivity-matched replacement breaks i:relationship_breakdown:asset_move",
+    "i:relationship_breakdown:divorce_prep": "swap material exhausted jointly with the other inferences"
+   }
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 4,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p075",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 3,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 3,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p076",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 3,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p077",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 2,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 4,
+    "professional": 1
+   },
+   "persona_id": "p078",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 3,
+    "legal": 1,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 3,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p079",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "financial": 3,
+    "legal": 1,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p080",
+   "scattered_domain_histogram": {
+    "financial": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 4,
+    "health": 2,
+    "legal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "persona_id": "p081",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 4,
+    "legal": 2,
+    "personal": 2,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": false,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p082",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "legal": 1,
+    "professional": 3,
+    "social": 1
+   },
+   "unmatched": {
+    "i:visa_dependency:status_dependent": "no sensitivity-matched replacement breaks i:visa_dependency:status_dependent"
+   }
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 1,
+    "health": 1,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p083",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 1,
+    "legal": 2,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p084",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 1,
+    "health": 1,
+    "legal": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "financial": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p085",
+   "scattered_domain_histogram": {
+    "financial": 2,
+    "legal": 3,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 8,
+   "inferences_total": 8,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 6,
+    "health": 4,
+    "legal": 1,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p086",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 5,
+    "health": 3,
+    "legal": 1,
+    "professional": 2,
+    "social": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 3,
+    "financial": 2,
+    "health": 5,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p087",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 4,
+    "legal": 3,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 2,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p088",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 2,
+    "legal": 1,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "financial": 4,
+    "health": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "persona_id": "p089",
+   "scattered_domain_histogram": {
+    "financial": 4,
+    "health": 3,
+    "legal": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 4,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p090",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 2,
+    "health": 4,
+    "legal": 2,
+    "professional": 1,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 6,
+   "inferences_total": 6,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 3,
+    "health": 4,
+    "legal": 2,
+    "professional": 3
+   },
+   "persona_id": "p091",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 4,
+    "legal": 1,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "financial": 4,
+    "legal": 2,
+    "social": 2
+   },
+   "persona_id": "p092",
+   "scattered_domain_histogram": {
+    "financial": 4,
+    "legal": 2,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 4,
+   "inferences_total": 4,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 3,
+    "professional": 1,
+    "social": 1
+   },
+   "persona_id": "p093",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 2,
+    "professional": 2,
+    "social": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 2,
+    "professional": 1
+   },
+   "persona_id": "p094",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 3,
+    "health": 1,
+    "legal": 2,
+    "professional": 1
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 3,
+   "inferences_total": 3,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "financial": 1,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p095",
+   "scattered_domain_histogram": {
+    "financial": 1,
+    "legal": 2,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 5,
+   "inferences_total": 5,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 4,
+    "legal": 2,
+    "professional": 2
+   },
+   "persona_id": "p096",
+   "scattered_domain_histogram": {
+    "administrative": 2,
+    "financial": 2,
+    "health": 4,
+    "legal": 2,
+    "professional": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 2,
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p097",
+   "scattered_domain_histogram": {
+    "administrative": 3,
+    "financial": 3,
+    "health": 1,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 3,
+   "inferences_total": 3,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": false,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": false
+   },
+   "linked_domain_histogram": {
+    "health": 3,
+    "legal": 1,
+    "professional": 2
+   },
+   "persona_id": "p098",
+   "scattered_domain_histogram": {
+    "health": 2,
+    "legal": 1,
+    "professional": 3
+   },
+   "unmatched": {}
+  },
+  {
+   "inferences_matched": 7,
+   "inferences_total": 7,
+   "invariants": {
+    "all_inferences_in_linked": true,
+    "equal_domain_sensitive_histogram": true,
+    "equal_fact_count": true,
+    "equal_sensitivity_histogram": true,
+    "scattered_has_no_inference": true,
+    "strict_domain_scatter_possible": true
+   },
+   "linked_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "persona_id": "p099",
+   "scattered_domain_histogram": {
+    "administrative": 1,
+    "financial": 4,
+    "health": 1,
+    "legal": 2,
+    "professional": 2,
+    "social": 2
+   },
+   "unmatched": {}
+  }
+ ],
+ "summary": {
+  "inferences_matched": 533,
+  "inferences_total": 544,
+  "invariants_satisfied": {
+   "all_inferences_in_linked": 93,
+   "equal_domain_sensitive_histogram": 23,
+   "equal_fact_count": 100,
+   "equal_sensitivity_histogram": 100,
+   "scattered_has_no_inference": 100,
+   "strict_domain_scatter_possible": 53
+  },
+  "personas": 100,
+  "personas_fully_matched": 93,
+  "population_seed": 1,
+  "unmatched_reasons": {
+   "no sensitivity-matched replacement breaks i:relationship_breakdown:asset_move": 4,
+   "no sensitivity-matched replacement breaks i:visa_dependency:status_dependent": 3,
+   "swap material exhausted jointly with the other inferences": 4
+  }
+ }
+}

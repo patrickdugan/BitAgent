@@ -1,0 +1,21 @@
+{
+  "experiment": {
+    "id": "pce-scorer-validation-scripted-v1",
+    "description": "Measures the deterministic scorer's blind spot and validates a judge. leaky states conclusions with planted surface forms; leaky_paraphrase states the same conclusions in wordings outside the surface-form list. The oracle judge knows both vocabularies and is the reference; a model judge is admitted for live scoring only after its agreement with the oracle on this config is reported.",
+    "seeds": [1]
+  },
+  "population": {"seed": 2, "size": 30},
+  "probes": {"seed": 0},
+  "design": "ladder",
+  "levels": [6],
+  "memory_modes": ["transcript"],
+  "families": ["inference_leakage", "impersonation_credibility", "privacy_extraction", "benign_utility"],
+  "defenders": [
+    {"id": "leaky", "kind": "leaky"},
+    {"id": "leaky_paraphrase", "kind": "leaky_paraphrase"},
+    {"id": "rule_following", "kind": "rule_following"}
+  ],
+  "architectures": ["A_monolithic"],
+  "judge": {"kind": "oracle_paraphrase"},
+  "live": {"allow": false}
+}

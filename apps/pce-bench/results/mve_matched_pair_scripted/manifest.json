@@ -1,0 +1,99 @@
+{
+  "artifacts": {
+    "episodes.jsonl": "545ffd5bdef785e65afb39a5ab88c19eb6388547dd55a0a033ca87e83e0dcef6",
+    "summary.json": "e428e72248b1adc431a6158c0f12f3aa063c7021cd2da793b6eecaee371cf151"
+  },
+  "bench": "pce-bench-v0.1",
+  "conditions": [
+    {
+      "capabilities": "none",
+      "connectivity": "linked",
+      "label": "linked/transcript/none",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "none",
+      "connectivity": "scattered",
+      "label": "scattered/transcript/none",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    }
+  ],
+  "config_file": "mve_matched_pair_scripted.json",
+  "config_sha256": "5f5dcb4044b45d866c1714c4084e6f509daa431cde3cd1869909260ef92ae84b",
+  "configuration": {
+    "architectures": [
+      "A_monolithic"
+    ],
+    "capabilities": [
+      "none"
+    ],
+    "defenders": [
+      {
+        "id": "volume_linear",
+        "kind": "volume_linear",
+        "p": 0.3
+      },
+      {
+        "id": "connectivity_superlinear",
+        "kind": "connectivity_superlinear",
+        "p": 0.3,
+        "q": 0.2
+      }
+    ],
+    "design": "matched_pair",
+    "experiment": {
+      "description": "Minimum viable experiment, scripted calibration on the DEVELOPMENT pack (population seed 2, hash-locked). Within-persona linked vs scattered contexts with equal fact count and sensitivity histogram. The null defender (volume_linear) must show no linked-minus-scattered difference on inference families; the hypothesis defender (connectivity_superlinear) must. The confirmatory pack is configs/mve_matched_pair_confirmatory.json.",
+      "id": "pce-mve-matched-pair-scripted-v1",
+      "seeds": [
+        1,
+        2,
+        3
+      ]
+    },
+    "families": [
+      "privacy_extraction",
+      "inference_leakage",
+      "impersonation_credibility",
+      "compartmentalization",
+      "benign_utility"
+    ],
+    "live": {
+      "allow": false
+    },
+    "memory_modes": [
+      "transcript"
+    ],
+    "population": {
+      "expected_content_sha256": "962c00e1bd9dae59e31f1c45431c3274997856a52a5a6182cd3325cdd71b53cf",
+      "seed": 2,
+      "size": 100
+    },
+    "probes": {
+      "seed": 0
+    }
+  },
+  "dataset": {
+    "personas": 100,
+    "population_seed": 2,
+    "population_sha256": "962c00e1bd9dae59e31f1c45431c3274997856a52a5a6182cd3325cdd71b53cf",
+    "probes": 1699,
+    "probes_sha256": "c6824d961a3ddbc77f7896f3d39fd10d60ac02fd08843c6c35ae3b38007212e9"
+  },
+  "episode_count": 20388,
+  "experiment": {
+    "description": "Minimum viable experiment, scripted calibration on the DEVELOPMENT pack (population seed 2, hash-locked). Within-persona linked vs scattered contexts with equal fact count and sensitivity histogram. The null defender (volume_linear) must show no linked-minus-scattered difference on inference families; the hypothesis defender (connectivity_superlinear) must. The confirmatory pack is configs/mve_matched_pair_confirmatory.json.",
+    "id": "pce-mve-matched-pair-scripted-v1",
+    "seeds": [
+      1,
+      2,
+      3
+    ]
+  },
+  "receipt_roots_sha256": "ccecbe1fe9154e7764c5df04e3cdeeb7c7afc21ecc2152865dcba01a11a50747",
+  "schema": "pce-run-manifest.v1",
+  "warning": "Synthetic, deterministic scaffold. Scripted defenders are positive and negative controls, not model evidence."
+}

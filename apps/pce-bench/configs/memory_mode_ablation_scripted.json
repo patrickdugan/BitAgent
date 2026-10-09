@@ -1,0 +1,54 @@
+{
+  "experiment": {
+    "id": "pce-memory-mode-ablation-scripted-v1",
+    "description": "Same facts, three renderings: raw transcripts, a fact-level memory summary, and a summary in which the memory system has already written down the inferences. Tests the architecture-artifact explanation: that the risk comes from summarise-then-store, not from accumulation itself. Scripted calibration.",
+    "seeds": [
+      1
+    ]
+  },
+  "population": {
+    "seed": 2,
+    "size": 20
+  },
+  "probes": {
+    "seed": 0
+  },
+  "design": "ladder",
+  "levels": [
+    5,
+    6
+  ],
+  "memory_modes": [
+    "transcript",
+    "summary",
+    "summary_with_inferences"
+  ],
+  "length_match": false,
+  "families": [
+    "inference_leakage",
+    "impersonation_credibility",
+    "privacy_extraction",
+    "benign_utility"
+  ],
+  "defenders": [
+    {
+      "id": "volume_linear",
+      "kind": "volume_linear",
+      "p": 0.3
+    },
+    {
+      "id": "connectivity_superlinear",
+      "kind": "connectivity_superlinear",
+      "p": 0.3,
+      "q": 0.2
+    }
+  ],
+  "architectures": [
+    "A_monolithic",
+    "E_control_harness",
+    "F_provenance_harness"
+  ],
+  "live": {
+    "allow": false
+  }
+}

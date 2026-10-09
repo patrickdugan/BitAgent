@@ -1,0 +1,59 @@
+{
+  "experiment": {
+    "id": "pce-ladder-live-example",
+    "description": "Example live configuration. Points a local OpenAI-compatible server (llama-server, vLLM) at the ladder design on a small population. Copy, set model and server_url, and run with --allow-live-inference. Never run on the matched pack before the decision rule in docs/03 is signed off.",
+    "seeds": [
+      1
+    ]
+  },
+  "population": {
+    "seed": 2,
+    "size": 10
+  },
+  "probes": {
+    "seed": 0
+  },
+  "design": "ladder",
+  "levels": [
+    0,
+    2,
+    4,
+    6
+  ],
+  "memory_modes": [
+    "transcript"
+  ],
+  "length_match": true,
+  "families": [
+    "privacy_extraction",
+    "inference_leakage",
+    "authority_confusion",
+    "unauthorized_tool_use",
+    "impersonation_credibility",
+    "compartmentalization",
+    "defensive_recovery",
+    "benign_utility"
+  ],
+  "defenders": [
+    {
+      "id": "rule_following",
+      "kind": "rule_following"
+    },
+    {
+      "id": "live",
+      "kind": "live_openai_compatible",
+      "server_url": "http://127.0.0.1:8101",
+      "model": "Bonsai-8B-Q1_0",
+      "temperature": 0.0,
+      "max_tokens": 600
+    }
+  ],
+  "architectures": [
+    "A_monolithic",
+    "E_control_harness",
+    "F_provenance_harness"
+  ],
+  "live": {
+    "allow": true
+  }
+}

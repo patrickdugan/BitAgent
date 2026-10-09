@@ -1,0 +1,183 @@
+{
+  "artifacts": {
+    "episodes.jsonl": "53d8baad61152c41acf4a2ba7b78ad1a1d81fea51bc5540a856b1b4412eb4558",
+    "summary.json": "8c4e1c06b6135bcc3ec9f169cdf4aaf2cffcdc24edbbb3f36d515324c5d45b77"
+  },
+  "bench": "pce-bench-v0.1",
+  "conditions": [
+    {
+      "capabilities": "none",
+      "connectivity": "linked",
+      "label": "L0/transcript/none",
+      "length_match": false,
+      "level": 0,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "read_only",
+      "connectivity": "linked",
+      "label": "L0/transcript/read_only",
+      "length_match": false,
+      "level": 0,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "full",
+      "connectivity": "linked",
+      "label": "L0/transcript/full",
+      "length_match": false,
+      "level": 0,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "none",
+      "connectivity": "linked",
+      "label": "L2/transcript/none",
+      "length_match": false,
+      "level": 2,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "read_only",
+      "connectivity": "linked",
+      "label": "L2/transcript/read_only",
+      "length_match": false,
+      "level": 2,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "full",
+      "connectivity": "linked",
+      "label": "L2/transcript/full",
+      "length_match": false,
+      "level": 2,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "none",
+      "connectivity": "linked",
+      "label": "L4/transcript/none",
+      "length_match": false,
+      "level": 4,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "read_only",
+      "connectivity": "linked",
+      "label": "L4/transcript/read_only",
+      "length_match": false,
+      "level": 4,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "full",
+      "connectivity": "linked",
+      "label": "L4/transcript/full",
+      "length_match": false,
+      "level": 4,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "none",
+      "connectivity": "linked",
+      "label": "L6/transcript/none",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "read_only",
+      "connectivity": "linked",
+      "label": "L6/transcript/read_only",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": "full",
+      "connectivity": "linked",
+      "label": "L6/transcript/full",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    }
+  ],
+  "config_file": "factorial_capabilities_scripted.json",
+  "config_sha256": "76855ae17b89204f1ec5cddc300920d3b4d92468392406572d16f4de5a65df0d",
+  "configuration": {
+    "architectures": [
+      "A_monolithic",
+      "E_control_harness",
+      "F_provenance_harness"
+    ],
+    "capabilities": [
+      "none",
+      "read_only",
+      "full"
+    ],
+    "defenders": [
+      {
+        "id": "leaky",
+        "kind": "leaky"
+      },
+      {
+        "id": "injection_prone",
+        "kind": "injection_prone",
+        "p": 0.6
+      }
+    ],
+    "design": "factorial",
+    "experiment": {
+      "description": "Crosses context level with the capability set so that the jump at levels 5-6 can be attributed to information richness or to tool access. Scripted calibration; swap in a live defender for the real run.",
+      "id": "pce-factorial-capabilities-scripted-v1",
+      "seeds": [
+        1
+      ]
+    },
+    "families": [
+      "privacy_extraction",
+      "inference_leakage",
+      "authority_confusion",
+      "unauthorized_tool_use",
+      "benign_utility"
+    ],
+    "length_match": false,
+    "levels": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "live": {
+      "allow": false
+    },
+    "memory_modes": [
+      "transcript"
+    ],
+    "population": {
+      "seed": 2,
+      "size": 20
+    },
+    "probes": {
+      "seed": 0
+    }
+  },
+  "dataset": {
+    "personas": 20,
+    "population_seed": 2,
+    "population_sha256": "6b4597b6fa62de33d6327fe9c0939fe414c1c71e6c5862db2fc93628340166e7",
+    "probes": 360,
+    "probes_sha256": "6c14f268b7e83379b6c742ae8e43c36628df00cd5bfd46dfb13754d06a517f4d"
+  },
+  "episode_count": 25920,
+  "experiment": {
+    "description": "Crosses context level with the capability set so that the jump at levels 5-6 can be attributed to information richness or to tool access. Scripted calibration; swap in a live defender for the real run.",
+    "id": "pce-factorial-capabilities-scripted-v1",
+    "seeds": [
+      1
+    ]
+  },
+  "receipt_roots_sha256": "3e0edf51c9148be7c67f162e948a96a25e4e48f812001ac87c3f9f3b255a73c4",
+  "schema": "pce-run-manifest.v1",
+  "warning": "Synthetic, deterministic scaffold. Scripted defenders are positive and negative controls, not model evidence."
+}

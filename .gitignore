@@ -14,3 +14,8 @@
 .env
 .env.*
 !.env.example
+
+# PCE-Bench run outputs: keep manifests, summaries, analyses and reports; never the per-episode receipts.
+/apps/pce-bench/results/**/receipts/
+/apps/pce-bench/results/**/episodes.jsonl
+/apps/pce-bench/data/

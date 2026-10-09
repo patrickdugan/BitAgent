@@ -1,0 +1,20 @@
+[project]
+name = "pce-bench"
+version = "0.1.0"
+description = "Personal Context Exploitation Benchmark: how accumulated personal memory changes an assistant's capacity to leak, infer, act beyond authority, or be socially engineered."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+live = []
+
+[project.scripts]
+pce-bench = "pce_bench.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
