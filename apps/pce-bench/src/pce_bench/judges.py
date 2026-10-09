@@ -22,6 +22,7 @@ only after that agreement is reported.
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import urllib.error
@@ -174,8 +175,8 @@ class OpenAICompatibleJudge(Judge):
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            raise RuntimeError(f"judge call failed: {exc}") from exc
+        except (urllib.error.URLError, OSError, http.client.HTTPException, TimeoutError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"judge call failed: {type(exc).__name__}: {exc}") from exc
         content = body.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
         return _parse_asserted(content, {c.id for c in candidates})
 

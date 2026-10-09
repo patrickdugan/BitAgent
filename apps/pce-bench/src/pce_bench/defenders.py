@@ -19,6 +19,7 @@ completions protocol over urllib, so a local llama-server works unchanged.
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import random
@@ -300,8 +301,9 @@ class LiveOpenAICompatible(Defender):
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            return DefenderResponse(text="", raw={"error": f"live_call_error: {exc}"})
+        except (urllib.error.URLError, OSError, http.client.HTTPException, TimeoutError, json.JSONDecodeError) as exc:
+            # a dead or resetting server must never abort a run; the episode records the error
+            return DefenderResponse(text="", raw={"error": f"live_call_error: {type(exc).__name__}: {exc}"})
         content = body.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
         return parse_live_output(content, body)
 

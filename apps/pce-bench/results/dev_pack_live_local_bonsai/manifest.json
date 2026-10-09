@@ -1,0 +1,114 @@
+{
+  "artifacts": {
+    "episodes.jsonl": "3a00f7a1fa9ce186066c1b7bd3a066b3a87a1dab02dffac49e03899f1f7156c6",
+    "summary.json": "ef131e66fec7710af925085b626ad68512c9ee3a1e153b00bf123d5e60d8737d"
+  },
+  "bench": "pce-bench-v0.1",
+  "conditions": [
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L0/transcript",
+      "length_match": false,
+      "level": 0,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L4/transcript",
+      "length_match": false,
+      "level": 4,
+      "memory_mode": "transcript"
+    },
+    {
+      "capabilities": null,
+      "connectivity": "linked",
+      "label": "L6/transcript",
+      "length_match": false,
+      "level": 6,
+      "memory_mode": "transcript"
+    }
+  ],
+  "config_file": "dev_pack_live_local_bonsai.json",
+  "config_sha256": "ea4d56e49251ebfd0d9b6959c950cbd0e8e8f51aa37eece335aca9248d151bd9",
+  "configuration": {
+    "architectures": [
+      "A_monolithic",
+      "F_provenance_harness"
+    ],
+    "defenders": [
+      {
+        "id": "rule_following",
+        "kind": "rule_following"
+      },
+      {
+        "id": "bonsai8b",
+        "kind": "live_openai_compatible",
+        "max_tokens": 400,
+        "model": "Bonsai-8B-Q1_0",
+        "server_url": "http://127.0.0.1:8101",
+        "temperature": 0.0
+      }
+    ],
+    "design": "ladder",
+    "experiment": {
+      "description": "EXPLORATORY, development pack (population seed 2, hash-locked), two local model families served by llama-server: Bonsai 8B (PrismML 1-bit) on port 8101 and Qwen2.5-3B-Instruct on port 8102. Ladder levels 0/4/6, architectures A and F, every family, with the rule-following scripted control beside them. The judge is the oracle (planted paraphrases), not a model judge; a Claude judge needs credentials that were not available. Nothing here is confirmatory.",
+      "id": "pce-dev-pack-live-local-bonsai8b-v1",
+      "seeds": [
+        1
+      ]
+    },
+    "families": [
+      "privacy_extraction",
+      "inference_leakage",
+      "authority_confusion",
+      "unauthorized_tool_use",
+      "impersonation_credibility",
+      "compartmentalization",
+      "defensive_recovery",
+      "benign_utility"
+    ],
+    "judge": {
+      "kind": "oracle_paraphrase"
+    },
+    "length_match": false,
+    "levels": [
+      0,
+      4,
+      6
+    ],
+    "live": {
+      "allow": true
+    },
+    "memory_modes": [
+      "transcript"
+    ],
+    "population": {
+      "expected_content_sha256": null,
+      "seed": 2,
+      "size": 5
+    },
+    "probes": {
+      "seed": 0
+    }
+  },
+  "dataset": {
+    "personas": 5,
+    "population_seed": 2,
+    "population_sha256": "6e6d75aa4f0753dc07dc01577268b9d401b60d0a5db9d590838cfd32acef8e7c",
+    "probes": 120,
+    "probes_sha256": "4f8fe1282b9285e4a9674a23a666ff0cb4f234a15b94c831f7c49b95aa4d1928"
+  },
+  "episode_count": 1440,
+  "experiment": {
+    "description": "EXPLORATORY, development pack (population seed 2, hash-locked), two local model families served by llama-server: Bonsai 8B (PrismML 1-bit) on port 8101 and Qwen2.5-3B-Instruct on port 8102. Ladder levels 0/4/6, architectures A and F, every family, with the rule-following scripted control beside them. The judge is the oracle (planted paraphrases), not a model judge; a Claude judge needs credentials that were not available. Nothing here is confirmatory.",
+    "id": "pce-dev-pack-live-local-bonsai8b-v1",
+    "seeds": [
+      1
+    ]
+  },
+  "receipt_roots_sha256": "0e207a93967110a05f68346849526f147fe02f2bfa978aa204873acdb44e17ba",
+  "schema": "pce-run-manifest.v1",
+  "warning": "Synthetic, deterministic scaffold. Scripted defenders are positive and negative controls, not model evidence."
+}
