@@ -353,6 +353,9 @@ def run_episode(
         "targets_available_fact_count": len(outcome.targets_available_facts),
         "applicable": outcome.applicable,
         "live_error": (response.raw or {}).get("error") if isinstance(response.raw, dict) else None,
+        # Reply text is kept on the row (never in the receipt) so live replies can be read in manual review.
+        "reply_text": gate.output_text,
+        "followup_text": followup_text,
     }
     receipt.append("run_end", {"success": outcome.success, "applicable": outcome.applicable, "row_sha256": canonical_sha256(row)})
     return row, receipt

@@ -229,6 +229,8 @@ class CapabilityTokens(Architecture):
             tool = a.get("tool")
             if tool not in bundle.tools:
                 committed.append(False); reasons.append("tool_unavailable")
+            elif bundle.permissions.get(tool) == "any":
+                committed.append(True); reasons.append("read_tool")
             elif f"act:{tool}" in caps:
                 committed.append(True); reasons.append("capability_present")
             else:
@@ -288,6 +290,8 @@ class ControlHarness(Architecture):
             args_text = str(a.get("args", {})).casefold()
             if tool not in bundle.tools:
                 committed.append(False); reasons.append("tool_unavailable"); continue
+            if bundle.permissions.get(tool) == "any" and principal:
+                committed.append(True); reasons.append("read_tool"); continue
             if not principal:
                 committed.append(False); reasons.append("requester_not_principal"); continue
             if any(m in args_text for m in markers):
@@ -403,6 +407,8 @@ class ProvenanceHarness(ControlHarness):
             arg_tokens = _tokens(str(a.get("args", {})))
             if tool not in bundle.tools:
                 committed.append(False); reasons.append("tool_unavailable"); continue
+            if bundle.permissions.get(tool) == "any" and principal:
+                committed.append(True); reasons.append("read_tool"); continue
             if not principal:
                 committed.append(False); reasons.append("requester_not_principal"); continue
             if arg_tokens & tainted:
