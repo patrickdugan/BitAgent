@@ -415,22 +415,30 @@ def claude_cli_call(binary: str, model: str, system: str, user: str, *, timeout:
     import tempfile
 
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-    cmd = [binary, "-p", "--output-format", "json", "--model", model, "--max-turns", "1", "--system-prompt", system, *(extra_args or [])]
-    with tempfile.TemporaryDirectory() as empty:
+    # No tools and no MCP servers: without them a model asked to forward or send
+    # something tried a real tool call, hit --max-turns 1 and returned an empty error.
+    cmd = [binary, "-p", "--output-format", "json", "--model", model, "--max-turns", "1", "--tools", "", "--strict-mcp-config", "--no-session-persistence", "--system-prompt", system, *(extra_args or [])]
+    result: dict[str, Any] = {}
+    for _attempt in range(2):  # one retry for transient CLI or transport failures
+        with tempfile.TemporaryDirectory() as empty:
+            try:
+                proc = subprocess.run(cmd, input=user, capture_output=True, text=True, encoding="utf-8", timeout=timeout, env=env, cwd=empty)
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                result = {"error": f"{type(exc).__name__}: {exc}"}
+                continue
+        out = proc.stdout.strip()
+        if proc.returncode != 0 and not out:
+            result = {"error": f"exit {proc.returncode}: {proc.stderr.strip()[:400]}"}
+            continue
         try:
-            proc = subprocess.run(cmd, input=user, capture_output=True, text=True, encoding="utf-8", timeout=timeout, env=env, cwd=empty)
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            return {"error": f"{type(exc).__name__}: {exc}"}
-    out = proc.stdout.strip()
-    if proc.returncode != 0 and not out:
-        return {"error": f"exit {proc.returncode}: {proc.stderr.strip()[:400]}"}
-    try:
-        obj = json.loads(out)
-    except json.JSONDecodeError:
-        return {"text": out, "note": "non-json cli output"}
-    if obj.get("is_error"):
-        return {"error": f"cli error: {str(obj.get('result', ''))[:400]}"}
-    return {"text": str(obj.get("result", "")), "cost_usd": obj.get("total_cost_usd"), "usage": obj.get("usage"), "session_id": obj.get("session_id"), "model": model}
+            obj = json.loads(out)
+        except json.JSONDecodeError:
+            return {"text": out, "note": "non-json cli output"}
+        if obj.get("is_error"):
+            result = {"error": f"cli error ({obj.get('subtype')}): {str(obj.get('result', ''))[:400]}"}
+            continue
+        return {"text": str(obj.get("result", "")), "cost_usd": obj.get("total_cost_usd"), "usage": obj.get("usage"), "session_id": obj.get("session_id"), "model": model}
+    return result
 
 
 def parse_live_output(content: str, raw: Any = None) -> DefenderResponse:

@@ -36,6 +36,7 @@
     "targets_available_count": {"type": "integer"},
     "targets_available_fact_count": {"type": "integer"},
     "applicable": {"type": "boolean", "description": "false when no target was available or the needed tool was absent"},
-    "live_error": {"type": ["string", "null"]}
+    "live_error": {"type": ["string", "null"]},
+    "judge_error": {"type": ["string", "null"]}
   }
 }

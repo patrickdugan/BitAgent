@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import random
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -319,8 +320,12 @@ def run_episode(
         followup_refused = response2.refused
 
     outcome = score_episode(probe, bundle, graph, gate.output_text, actions, explicit_flag=response.flagged or gate.validator_flag, explicit_refusal=response.refused, followup_text=followup_text, followup_refused=followup_refused)
+    judge_error = None
     if judge is not None:
-        apply_judge(judge, probe, bundle, graph, gate.output_text, outcome)
+        try:
+            apply_judge(judge, probe, bundle, graph, gate.output_text, outcome)
+        except RuntimeError as exc:  # a failed judge call leaves the judge outcome empty, never aborts the run
+            judge_error = str(exc)[:400]
         receipt.append("monitor_decision", {"turn": 1, "judge": judge.id, "judge_disclosed": (outcome.judge_disclosed_target_facts or []) + (outcome.judge_disclosed_target_inferences or [])})
     row = {
         "schema": ROW_SCHEMA,
@@ -353,6 +358,7 @@ def run_episode(
         "targets_available_fact_count": len(outcome.targets_available_facts),
         "applicable": outcome.applicable,
         "live_error": (response.raw or {}).get("error") if isinstance(response.raw, dict) else None,
+        "judge_error": judge_error,
         # Reply text is kept on the row (never in the receipt) so live replies can be read in manual review.
         "reply_text": gate.output_text,
         "followup_text": followup_text,
@@ -382,7 +388,7 @@ def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def run_config(config_path: str | Path, output_dir: str | Path, *, allow_live: bool = False, progress: Any = None) -> Path:
+def run_config(config_path: str | Path, output_dir: str | Path, *, allow_live: bool = False, progress: Any = None, workers: int = 1) -> Path:
     config, raw = load_config(config_path)
     out = Path(output_dir)
     if out.exists() and any(out.iterdir()):
@@ -402,20 +408,30 @@ def run_config(config_path: str | Path, output_dir: str | Path, *, allow_live: b
     roots: list[dict[str, str]] = []
     total = len(config["experiment"]["seeds"]) * len(defenders) * len(config["architectures"]) * len(dataset.personas) * len(conds)
     done = 0
+
+    def one(task: tuple[Any, ...]) -> tuple[dict[str, Any], str]:
+        seed, defender, arch_id, persona, cond, bundle, probe = task
+        row, receipt = run_episode(config_sha256=config_sha, seed=seed, defender=defender, arch_id=arch_id, persona=persona, cond=cond, bundle=bundle, probe=probe, judge=judge)
+        return row, receipt.write(out / "receipts" / f"{row['episode_id']}.jsonl")
+
+    # Episodes are independent (each seeds its own rng from its id), so live runs
+    # may overlap their model calls; rows keep the sequential order either way.
+    pool = ThreadPoolExecutor(max_workers=workers) if workers > 1 else None
     for seed in config["experiment"]["seeds"]:
         for defender in defenders:
             for arch_id in config["architectures"]:
                 for persona in dataset.personas:
                     for cond in conds:
                         bundle = cache.get(persona, cond)
-                        for probe in dataset.probes.get(persona.id, []):
-                            row, receipt = run_episode(config_sha256=config_sha, seed=seed, defender=defender, arch_id=arch_id, persona=persona, cond=cond, bundle=bundle, probe=probe, judge=judge)
-                            root = receipt.write(out / "receipts" / f"{row['episode_id']}.jsonl")
+                        tasks = [(seed, defender, arch_id, persona, cond, bundle, probe) for probe in dataset.probes.get(persona.id, [])]
+                        for row, root in (pool.map(one, tasks) if pool else map(one, tasks)):
                             rows.append(row)
                             roots.append({"episode_id": row["episode_id"], "root": root})
                         done += 1
                         if progress and done % 50 == 0:
                             progress(done, total)
+    if pool:
+        pool.shutdown()
     episodes_path = out / "episodes.jsonl"
     episodes_path.write_bytes(b"".join(canonical_json_bytes(r) + b"\n" for r in rows))
     summary = summarize(rows, config)

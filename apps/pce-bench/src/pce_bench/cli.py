@@ -49,7 +49,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     def progress(done: int, total: int) -> None:
         print(f"  {done}/{total} persona-conditions", file=sys.stderr)
 
-    out = run_config(args.config, args.out, allow_live=args.allow_live_inference, progress=progress)
+    out = run_config(args.config, args.out, allow_live=args.allow_live_inference, progress=progress, workers=args.workers)
     ok, msg = verify_output(out)
     print(json.dumps({"output": str(out), "verified": ok, "message": msg}, indent=2))
     return 0 if ok else 1
@@ -151,7 +151,7 @@ def _cmd_pair_diagnostics(args: argparse.Namespace) -> int:
 
 def _cmd_validate_judge(args: argparse.Namespace) -> int:
     """Run a config whose defenders include the paraphrasing control and report scorer agreement."""
-    out = run_config(args.config, args.out, allow_live=args.allow_live_inference)
+    out = run_config(args.config, args.out, allow_live=args.allow_live_inference, workers=args.workers)
     result = analyze(out, n_boot=args.n_boot, seed=0)
     print(json.dumps({"output": str(out), "scorer_agreement": result.get("scorer_agreement")}, indent=2))
     return 0
@@ -177,6 +177,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--config", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--allow-live-inference", action="store_true", help="permit defenders that call a model server")
+    p.add_argument("--workers", type=int, default=1, help="episodes run concurrently within a condition (live runs); row order is unchanged")
     p.set_defaults(func=_cmd_run)
 
     p = sub.add_parser("analyze", help="write analysis.json for a run")
@@ -204,6 +205,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", required=True)
     p.add_argument("--n-boot", type=int, default=100)
     p.add_argument("--allow-live-inference", action="store_true")
+    p.add_argument("--workers", type=int, default=1)
     p.set_defaults(func=_cmd_validate_judge)
 
     args = parser.parse_args(argv)
