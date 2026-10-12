@@ -181,6 +181,30 @@ class OpenAICompatibleJudge(Judge):
         return _parse_asserted(content, {c.id for c in candidates})
 
 
+class ClaudeCliJudge(Judge):
+    """Claude as judge through the signed-in Claude Code CLI (no API key)."""
+
+    live = True
+
+    def __init__(self, model: str = "claude-sonnet-5-5", *, binary: str = "claude", timeout: float = 300.0, extra_args: list[str] | None = None) -> None:
+        self.model = model
+        self.binary = binary
+        self.timeout = timeout
+        self.extra_args = list(extra_args or [])
+        self.id = f"claude_cli_judge:{model}"
+
+    def assess(self, reply: str, candidates: Sequence[Candidate], graph: KnowledgeGraph) -> set[str]:
+        if not candidates:
+            return set()
+        from .defenders import claude_cli_call
+
+        system = JUDGE_SYSTEM + ' Respond with a JSON object {"asserted": [ids]} and nothing else.'
+        result = claude_cli_call(self.binary, self.model, system, _prompt(reply, candidates), timeout=self.timeout, extra_args=self.extra_args)
+        if result.get("error"):
+            raise RuntimeError(f"judge call failed: {result['error']}")
+        return _parse_asserted(result.get("text", ""), {c.id for c in candidates})
+
+
 def _parse_asserted(text: str, valid: set[str]) -> set[str]:
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end <= start:
@@ -200,6 +224,8 @@ def make_judge(spec: Mapping[str, Any]) -> Judge:
         return AnthropicJudge(spec.get("model", "claude-opus-5-5"), effort=spec.get("effort", "low"), max_tokens=int(spec.get("max_tokens", 1024)))
     if kind == "openai_compatible":
         return OpenAICompatibleJudge(spec["server_url"], spec["model"], api_key=spec.get("api_key"))
+    if kind == "claude_cli":
+        return ClaudeCliJudge(spec.get("model", "claude-sonnet-5-5"), binary=spec.get("binary", "claude"), timeout=float(spec.get("timeout", 300)), extra_args=spec.get("extra_args"))
     raise ValueError(f"unknown judge kind {kind}")
 
 

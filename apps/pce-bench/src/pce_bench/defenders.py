@@ -381,6 +381,58 @@ class LiveAnthropic(Defender):
         return out
 
 
+class LiveClaudeCli(Defender):
+    """Claude as the defender through the Claude Code CLI in headless mode.
+
+    Uses the account the CLI is signed in with, so no API key is needed: in a
+    Claude Code cloud session the binary is already authenticated.  Each call
+    is `claude -p` with the prompt on stdin, JSON output, one turn, no tools,
+    run in an empty working directory so the model can read nothing but the
+    prompt.  The guard variable Claude Code sets for its own shell is removed
+    so a nested call is allowed.
+    """
+
+    live = True
+
+    def __init__(self, model: str = "claude-opus-5-5", *, binary: str = "claude", timeout: float = 600.0, extra_args: list[str] | None = None) -> None:
+        self.model = model
+        self.binary = binary
+        self.timeout = timeout
+        self.extra_args = list(extra_args or [])
+        self.id = f"live:claude-cli:{model}"
+
+    def respond(self, view: DefenderView, rng: random.Random) -> DefenderResponse:
+        messages = LiveOpenAICompatible.build_messages(self, view)
+        result = claude_cli_call(self.binary, self.model, messages[0]["content"], messages[1]["content"], timeout=self.timeout, extra_args=self.extra_args)
+        if result.get("error"):
+            return DefenderResponse(text="", raw={"error": f"live_call_error: {result['error']}"})
+        return parse_live_output(result.get("text", ""), {k: v for k, v in result.items() if k != "text"})
+
+
+def claude_cli_call(binary: str, model: str, system: str, user: str, *, timeout: float = 600.0, extra_args: list[str] | None = None) -> dict[str, Any]:
+    """One headless Claude Code call; returns {text, cost_usd, usage, ...} or {error}."""
+    import subprocess
+    import tempfile
+
+    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+    cmd = [binary, "-p", "--output-format", "json", "--model", model, "--max-turns", "1", "--system-prompt", system, *(extra_args or [])]
+    with tempfile.TemporaryDirectory() as empty:
+        try:
+            proc = subprocess.run(cmd, input=user, capture_output=True, text=True, encoding="utf-8", timeout=timeout, env=env, cwd=empty)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return {"error": f"{type(exc).__name__}: {exc}"}
+    out = proc.stdout.strip()
+    if proc.returncode != 0 and not out:
+        return {"error": f"exit {proc.returncode}: {proc.stderr.strip()[:400]}"}
+    try:
+        obj = json.loads(out)
+    except json.JSONDecodeError:
+        return {"text": out, "note": "non-json cli output"}
+    if obj.get("is_error"):
+        return {"error": f"cli error: {str(obj.get('result', ''))[:400]}"}
+    return {"text": str(obj.get("result", "")), "cost_usd": obj.get("total_cost_usd"), "usage": obj.get("usage"), "session_id": obj.get("session_id"), "model": model}
+
+
 def parse_live_output(content: str, raw: Any = None) -> DefenderResponse:
     text = content.strip()
     start, end = text.find("{"), text.rfind("}")
@@ -403,6 +455,8 @@ def make_defender(spec: Mapping[str, Any]) -> Defender:
         return Leaky(paraphrase=True)
     if kind == "live_anthropic":
         return LiveAnthropic(spec.get("model", "claude-opus-5-5"), effort=spec.get("effort"), max_tokens=int(spec.get("max_tokens", 2000)))
+    if kind == "live_claude_cli":
+        return LiveClaudeCli(spec.get("model", "claude-opus-5-5"), binary=spec.get("binary", "claude"), timeout=float(spec.get("timeout", 600)), extra_args=spec.get("extra_args"))
     if kind == "rule_following":
         return RuleFollowing()
     if kind == "volume_linear":
