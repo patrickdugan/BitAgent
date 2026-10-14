@@ -1,0 +1,450 @@
+\begin{thebibliography}{10}
+
+\bibitem{agarwal2026}
+Ayushi Agarwal.
+\newblock On the formal limits of alignment verification.
+\newblock Preprint, arXiv:2603.08761, 2026.
+
+\bibitem{agrawal2017}
+Ayush Agrawal and Koushil Sreenath.
+\newblock Discrete control barrier functions for safety-critical control of
+  discrete systems with application to bipedal robot navigation.
+\newblock In {\em Robotics: Science and Systems XIII}, 2017.
+
+\bibitem{ames2019}
+Aaron~D. Ames, Samuel Coogan, Magnus Egerstedt, Gennaro Notomista, Koushil
+  Sreenath, and Paulo Tabuada.
+\newblock Control barrier functions: Theory and applications.
+\newblock In {\em 2019 18th European Control Conference (ECC)}, pages
+  3420--3431, 2019.
+
+\bibitem{aubin1991}
+Jean-Pierre Aubin.
+\newblock {\em Viability Theory}.
+\newblock Systems \& Control: Foundations \& Applications. Birkh{\"a}user,
+  Boston, 1991.
+
+\bibitem{auffinger2013}
+Antonio Auffinger, G{\'e}rard Ben~Arous, and Ji{\v{r}}{\'\i} {\v{C}}ern{\'y}.
+\newblock Random matrices and complexity of spin glasses.
+\newblock {\em Communications on Pure and Applied Mathematics}, 66(2):165--201,
+  2013.
+
+\bibitem{bowman2022}
+Samuel~R. Bowman, Jeeyoon Hyun, Ethan Perez, Edwin Chen, Craig Pettit, Scott
+  Heiner, Kamil{\.e} Luko{\v{s}}i{\=u}t{\.e}, Amanda Askell, Andy Jones, Anna
+  Chen, et~al.
+\newblock Measuring progress on scalable oversight for large language models.
+\newblock arXiv:2211.03540, 2022.
+
+\bibitem{bray2007}
+Alan~J. Bray and David~S. Dean.
+\newblock Statistics of critical points of {G}aussian fields on
+  large-dimensional spaces.
+\newblock {\em Physical Review Letters}, 98(15):150201, 2007.
+
+\bibitem{bricken2023}
+Trenton Bricken, Adly Templeton, Joshua Batson, Brian Chen, Adam Jermyn, Tom
+  Conerly, Nick Turner, Cem Anil, Carson Denison, Amanda Askell, et~al.
+\newblock Towards monosemanticity: Decomposing language models with dictionary
+  learning.
+\newblock Transformer Circuits Thread, 2023.
+
+\bibitem{brockett1997}
+Roger~W. Brockett.
+\newblock Minimum attention control.
+\newblock In {\em Proceedings of the 36th IEEE Conference on Decision and
+  Control}, volume~3, pages 2628--2632, 1997.
+
+\bibitem{brunton2022}
+Steven~L. Brunton, Marko Budi{\v{s}}i{\'c}, Eurika Kaiser, and J.~Nathan Kutz.
+\newblock Modern {K}oopman theory for dynamical systems.
+\newblock {\em SIAM Review}, 64(2):229--340, 2022.
+
+\bibitem{burns2023}
+Collin Burns, Pavel Izmailov, Jan~Hendrik Kirchner, Bowen Baker, Leo Gao,
+  Leopold Aschenbrenner, Yining Chen, Adrien Ecoffet, Manas Joglekar, Jan
+  Leike, Ilya Sutskever, and Jeff Wu.
+\newblock Weak-to-strong generalization: Eliciting strong capabilities with
+  weak supervision.
+\newblock arXiv:2312.09390, 2023.
+
+\bibitem{choromanska2015}
+Anna Choromanska, Mikael Henaff, Micha{\"e}l Mathieu, G{\'e}rard Ben~Arous, and
+  Yann LeCun.
+\newblock The loss surfaces of multilayer networks.
+\newblock In {\em Proceedings of the 18th International Conference on
+  Artificial Intelligence and Statistics (AISTATS)}, volume~38 of {\em PMLR},
+  pages 192--204, 2015.
+
+\bibitem{christiano2018}
+Paul Christiano, Buck Shlegeris, and Dario Amodei.
+\newblock Supervising strong learners by amplifying weak experts.
+\newblock arXiv:1810.08575, 2018.
+
+\bibitem{colonius2009}
+Fritz Colonius and Christoph Kawan.
+\newblock Invariance entropy for control systems.
+\newblock {\em SIAM Journal on Control and Optimization}, 48(3):1701--1721,
+  2009.
+
+\bibitem{colonius2013}
+Fritz Colonius, Christoph Kawan, and Girish~N. Nair.
+\newblock A note on topological feedback entropy and invariance entropy.
+\newblock {\em Systems \& Control Letters}, 62(5):377--381, 2013.
+
+\bibitem{cunningham2023}
+Hoagy Cunningham, Aidan Ewart, Logan Riggs, Robert Huben, and Lee Sharkey.
+\newblock Sparse autoencoders find highly interpretable features in language
+  models.
+\newblock arXiv:2309.08600, 2023.
+
+\bibitem{dauphin2014}
+Yann~N. Dauphin, Razvan Pascanu, Caglar Gulcehre, Kyunghyun Cho, Surya Ganguli,
+  and Yoshua Bengio.
+\newblock Identifying and attacking the saddle point problem in
+  high-dimensional non-convex optimization.
+\newblock In {\em Advances in Neural Information Processing Systems 27}, 2014.
+
+\bibitem{davis2026ldt}
+Liam Davis, Leopold Haller, Alberto Alfarano, and Mark Santolucito.
+\newblock Lattice deduction transformers.
+\newblock Preprint, 2026.
+
+\bibitem{demoura2021}
+Leonardo de~Moura and Sebastian Ullrich.
+\newblock The {L}ean 4 theorem prover and programming language.
+\newblock In {\em Automated Deduction -- CADE 28}, volume 12699 of {\em Lecture
+  Notes in Computer Science}, pages 625--635. Springer, 2021.
+
+\bibitem{dean2006}
+David~S. Dean and Satya~N. Majumdar.
+\newblock Large deviations of extreme eigenvalues of random matrices.
+\newblock {\em Physical Review Letters}, 97(16):160201, 2006.
+
+\bibitem{donkers2014}
+M.~C.~F. Donkers, Paulo Tabuada, and W.~P. M.~H. Heemels.
+\newblock Minimum attention control for linear systems: A linear programming
+  approach.
+\newblock {\em Discrete Event Dynamic Systems}, 24(2):199--218, 2014.
+
+\bibitem{dugan2026harness}
+Patrick Dugan.
+\newblock Control-harness: storyworld evals, {M}esh{E}scape{P}it, oracle
+  control matrix, and the control observability pilot.
+\newblock Software and data,
+  \url{https://github.com/MoralityLabAI/control-harness}, revision c7c1b3d
+  (October 11, 2026), 2026.
+
+\bibitem{dugan2025frc}
+Patrick Dugan.
+\newblock Towards {S}uper{A}lignment intractability proofs: Eigensystem escape
+  and fidelity recursive complexity show lower bounds on corrigibility for
+  {RSI} agents.
+\newblock Draft, August 15, 2025; revised October 10, 2026.
+  \url{https://moralitylab.xyz/papers/SuperAlignment_Intractability_1.pdf},
+  2026.
+
+\bibitem{dugan2026trmldt}
+Patrick Dugan.
+\newblock Trade offs between {TRM}/{LDT} hybrids.
+\newblock Draft, June 19, 2026.
+  \url{https://moralitylab.xyz/papers/Trade_Offs_between_TRM_LDT_Hybrids__1.pdf},
+  2026.
+
+\bibitem{dugan2025collapse}
+Patrick~B. Dugan and {GPT-5 Thinking}.
+\newblock Corrigibility collapse at the limit of {FRC}: {N}$\to${N}+1
+  forecasting for {RSI} super-alignment.
+\newblock Draft, August 25, 2025; revised October 10, 2026.
+  \url{https://moralitylab.xyz/papers/SuperAlignment_Intractability_2.pdf},
+  2026.
+
+\bibitem{freudenberg1985}
+James~S. Freudenberg and Douglas~P. Looze.
+\newblock Right half plane poles and zeros and design tradeoffs in feedback
+  systems.
+\newblock {\em IEEE Transactions on Automatic Control}, 30(6):555--565, 1985.
+
+\bibitem{fyodorov2004}
+Yan~V. Fyodorov.
+\newblock Complexity of random energy landscapes, glass transition, and
+  absolute value of the spectral determinant of random matrices.
+\newblock {\em Physical Review Letters}, 92(24):240601, 2004.
+
+\bibitem{fyodorov2007}
+Yan~V. Fyodorov and Ian Williams.
+\newblock Replica symmetry breaking condition exposed by random matrix
+  calculation of landscape complexity.
+\newblock {\em Journal of Statistical Physics}, 129(5--6):1081--1116, 2007.
+
+\bibitem{ghorbani2019}
+Behrooz Ghorbani, Shankar Krishnan, and Ying Xiao.
+\newblock An investigation into neural net optimization via {H}essian
+  eigenvalue density.
+\newblock In {\em Proceedings of the 36th International Conference on Machine
+  Learning (ICML)}, volume~97 of {\em PMLR}, pages 2232--2241, 2019.
+
+\bibitem{girard2007}
+Antoine Girard and George~J. Pappas.
+\newblock Approximation metrics for discrete and continuous systems.
+\newblock {\em IEEE Transactions on Automatic Control}, 52(5):782--798, 2007.
+
+\bibitem{goertzel2010}
+Ben Goertzel.
+\newblock Toward a formal characterization of real-world general intelligence.
+\newblock In {\em Proceedings of the 3rd Conference on Artificial General
+  Intelligence (AGI-10)}, pages 74--79. Atlantis Press, 2010.
+
+\bibitem{goldreich1998}
+Oded Goldreich, Shafi Goldwasser, and Dana Ron.
+\newblock Property testing and its connection to learning and approximation.
+\newblock {\em Journal of the ACM}, 45(4):653--750, 1998.
+
+\bibitem{greenblatt2023}
+Ryan Greenblatt, Buck Shlegeris, Kshitij Sachan, and Fabien Roger.
+\newblock {AI} control: Improving safety despite intentional subversion.
+\newblock arXiv:2312.06942, 2023.
+
+\bibitem{hespanha2007}
+Jo{\~a}o~P. Hespanha, Payam Naghshtabrizi, and Yonggang Xu.
+\newblock A survey of recent results in networked control systems.
+\newblock {\em Proceedings of the IEEE}, 95(1):138--162, 2007.
+
+\bibitem{irving2018}
+Geoffrey Irving, Paul Christiano, and Dario Amodei.
+\newblock {AI} safety via debate.
+\newblock arXiv:1805.00899, 2018.
+
+\bibitem{jolicoeur2025}
+Alexia Jolicoeur-Martineau.
+\newblock Less is more: Recursive reasoning with tiny networks.
+\newblock arXiv:2510.04871, 2025.
+
+\bibitem{kaelbling1998}
+Leslie~Pack Kaelbling, Michael~L. Littman, and Anthony~R. Cassandra.
+\newblock Planning and acting in partially observable stochastic domains.
+\newblock {\em Artificial Intelligence}, 101(1--2):99--134, 1998.
+
+\bibitem{kawan2011}
+Christoph Kawan.
+\newblock Invariance entropy of control sets.
+\newblock {\em SIAM Journal on Control and Optimization}, 49(2):732--751, 2011.
+
+\bibitem{kawan2013}
+Christoph Kawan.
+\newblock {\em Invariance Entropy for Deterministic Control Systems: An
+  Introduction}, volume 2089 of {\em Lecture Notes in Mathematics}.
+\newblock Springer, Cham, 2013.
+
+\bibitem{khajenejad2021}
+Mohammad Khajenejad, Matthew Cavorsi, Ruochen Niu, Qiang Shen, and Sze~Zheng
+  Yong.
+\newblock Tractable compositions of discrete-time control barrier functions
+  with application to driving safety control.
+\newblock In {\em 2021 European Control Conference (ECC)}, 2021.
+
+\bibitem{koopman1931}
+Bernard~O. Koopman.
+\newblock Hamiltonian systems and transformation in {H}ilbert space.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  17(5):315--318, 1931.
+
+\bibitem{lee2022}
+Pilhwa Lee and Frank~C. Park.
+\newblock On the existence and computation of minimum attention optimal control
+  laws.
+\newblock {\em IEEE Transactions on Automatic Control}, 67(5):2576--2581, 2022.
+
+\bibitem{li2023iti}
+Kenneth Li, Oam Patel, Fernanda Vi{\'e}gas, Hanspeter Pfister, and Martin
+  Wattenberg.
+\newblock Inference-time intervention: Eliciting truthful answers from a
+  language model.
+\newblock In {\em Advances in Neural Information Processing Systems 36}, 2023.
+
+\bibitem{livitanyi2019}
+Ming Li and Paul Vit{\'a}nyi.
+\newblock {\em An Introduction to {K}olmogorov Complexity and Its
+  Applications}.
+\newblock Springer, 4th edition, 2019.
+
+\bibitem{lin2021}
+Kevin~K. Lin and Fei Lu.
+\newblock Data-driven model reduction, {W}iener projections, and the
+  {K}oopman--{M}ori--{Z}wanzig formalism.
+\newblock {\em Journal of Computational Physics}, 424:109864, 2021.
+
+\bibitem{manheim2018}
+David Manheim and Scott Garrabrant.
+\newblock Categorizing variants of {G}oodhart's law.
+\newblock arXiv:1803.04585, 2018.
+
+\bibitem{marsh2012}
+David Marsh, Liam McAllister, and Timm Wrase.
+\newblock The wasteland of random supergravities.
+\newblock {\em Journal of High Energy Physics}, 2012(3):102, 2012.
+
+\bibitem{martins2008}
+Nuno~C. Martins and Munther~A. Dahleh.
+\newblock Feedback control in the presence of noisy channels: {B}ode-like
+  fundamental limitations of performance.
+\newblock {\em IEEE Transactions on Automatic Control}, 53(7):1604--1615, 2008.
+
+\bibitem{martins2007}
+Nuno~C. Martins, Munther~A. Dahleh, and John~C. Doyle.
+\newblock Fundamental limitations of disturbance attenuation in the presence of
+  side information.
+\newblock {\em IEEE Transactions on Automatic Control}, 52(1):56--66, 2007.
+
+\bibitem{mezic2005}
+Igor Mezi{\'c}.
+\newblock Spectral properties of dynamical systems, model reduction and
+  decompositions.
+\newblock {\em Nonlinear Dynamics}, 41(1--3):309--325, 2005.
+
+\bibitem{mohtadi1990}
+C.~Mohtadi.
+\newblock Bode's integral theorem for discrete-time systems.
+\newblock {\em IEE Proceedings D -- Control Theory and Applications},
+  137(2):57--66, 1990.
+
+\bibitem{mori1965}
+Hazime Mori.
+\newblock Transport, collective motion, and {B}rownian motion.
+\newblock {\em Progress of Theoretical Physics}, 33(3):423--455, 1965.
+
+\bibitem{musat2026}
+Tiberiu Musat.
+\newblock Neural weight norm = {K}olmogorov complexity.
+\newblock Preprint, arXiv:2605.10878, 2026.
+
+\bibitem{nair2000}
+Girish~N. Nair and Robin~J. Evans.
+\newblock Stabilization with data-rate-limited feedback: Tightest attainable
+  bounds.
+\newblock {\em Systems \& Control Letters}, 41(1):49--56, 2000.
+
+\bibitem{nair2004}
+Girish~N. Nair, Robin~J. Evans, Iven M.~Y. Mareels, and William Moran.
+\newblock Topological feedback entropy and nonlinear stabilization.
+\newblock {\em IEEE Transactions on Automatic Control}, 49(9):1585--1597, 2004.
+
+\bibitem{nair2007}
+Girish~N. Nair, Fabio Fagnani, Sandro Zampieri, and Robin~J. Evans.
+\newblock Feedback control under data rate constraints: An overview.
+\newblock {\em Proceedings of the IEEE}, 95(1):108--137, 2007.
+
+\bibitem{papyan2020}
+Vardan Papyan.
+\newblock Traces of class/cross-class structure pervade deep learning spectra.
+\newblock {\em Journal of Machine Learning Research}, 21(252):1--64, 2020.
+
+\bibitem{sagun2018}
+Levent Sagun, Utku Evci, V.~Ugur G{\"u}ney, Yann Dauphin, and L{\'e}on Bottou.
+\newblock Empirical analysis of the {H}essian of over-parametrized neural
+  networks.
+\newblock arXiv:1706.04454; ICLR 2018 Workshop, 2018.
+
+\bibitem{sahai2006}
+Anant Sahai and Sanjoy~K. Mitter.
+\newblock The necessity and sufficiency of anytime capacity for stabilization
+  of a linear system over a noisy communication link---{P}art {I}: Scalar
+  systems.
+\newblock {\em IEEE Transactions on Information Theory}, 52(8):3369--3395,
+  2006.
+
+\bibitem{sharkey2025}
+Lee Sharkey, Bilal Chughtai, Joshua Batson, Jack Lindsey, Jeff Wu, Lucius
+  Bushnaq, Nicholas Goldowsky-Dill, Stefan Heimersheim, Alejandro Ortega,
+  Joseph Bloom, et~al.
+\newblock Open problems in mechanistic interpretability.
+\newblock arXiv:2501.16496, 2025.
+
+\bibitem{skalse2022}
+Joar Skalse, Nikolaus H.~R. Howe, Dmitrii Krasheninnikov, and David Krueger.
+\newblock Defining and characterizing reward gaming.
+\newblock In {\em Advances in Neural Information Processing Systems 35}, 2022.
+
+\bibitem{srivastava2026}
+Vishal Srivastava.
+\newblock Fundamental limits of black-box safety evaluation:
+  Information-theoretic and computational barriers from latent context
+  conditioning.
+\newblock Preprint, arXiv:2602.16984, 2026.
+
+\bibitem{subag2017}
+Eliran Subag.
+\newblock The complexity of spherical {$p$}-spin models---a second moment
+  approach.
+\newblock {\em The Annals of Probability}, 45(5):3385--3450, 2017.
+
+\bibitem{tabuada2009}
+Paulo Tabuada.
+\newblock {\em Verification and Control of Hybrid Systems: A Symbolic
+  Approach}.
+\newblock Springer, 2009.
+
+\bibitem{tatikonda2004}
+Sekhar Tatikonda and Sanjoy~K. Mitter.
+\newblock Control under communication constraints.
+\newblock {\em IEEE Transactions on Automatic Control}, 49(7):1056--1068, 2004.
+
+\bibitem{mathlib2020}
+{The mathlib Community}.
+\newblock The {L}ean mathematical library.
+\newblock In {\em Proceedings of the 9th ACM SIGPLAN International Conference
+  on Certified Programs and Proofs (CPP 2020)}, pages 367--381, 2020.
+
+\bibitem{tomar2022}
+Mahendra~Singh Tomar, Christoph Kawan, and Majid Zamani.
+\newblock Numerical over-approximation of invariance entropy via finite
+  abstractions.
+\newblock {\em Systems \& Control Letters}, 170:105395, 2022.
+
+\bibitem{turner2023}
+Alexander~Matt Turner, Lisa Thiergart, David Udell, Gavin Leech, Ulisse Mini,
+  and Monte MacDiarmid.
+\newblock Activation addition: Steering language models without optimization.
+\newblock arXiv:2308.10248, 2023.
+
+\bibitem{wang2025hrm}
+Guan Wang, Jin Li, Yuhao Sun, Xing Chen, Changling Liu, Yue Wu, Meng Lu, Sen
+  Song, and Yasin Abbasi-Yadkori.
+\newblock Hierarchical reasoning model.
+\newblock arXiv:2506.21734, 2025.
+
+\bibitem{wong1999}
+Wing~Shing Wong and Roger~W. Brockett.
+\newblock Systems with finite communication bandwidth constraints. {II}.
+  {S}tabilization with limited information feedback.
+\newblock {\em IEEE Transactions on Automatic Control}, 44(5):1049--1053, 1999.
+
+\bibitem{yao1977}
+Andrew Chi-Chih Yao.
+\newblock Probabilistic computations: Toward a unified measure of complexity.
+\newblock In {\em 18th Annual Symposium on Foundations of Computer Science
+  (FOCS)}, pages 222--227, 1977.
+
+\bibitem{yao2025trap}
+Jasper Yao.
+\newblock The alignment trap: Complexity barriers.
+\newblock Preprint, arXiv:2506.10304, 2025.
+
+\bibitem{zhuang2020}
+Simon Zhuang and Dylan Hadfield-Menell.
+\newblock Consequences of misaligned {AI}.
+\newblock In {\em Advances in Neural Information Processing Systems 33}, 2020.
+
+\bibitem{zou2023}
+Andy Zou, Long Phan, Sarah Chen, James Campbell, Phillip Guo, Richard Ren,
+  Alexander Pan, Xuwang Yin, Mantas Mazeika, Ann-Kathrin Dombrowski, et~al.
+\newblock Representation engineering: A top-down approach to {AI} transparency.
+\newblock arXiv:2310.01405, 2023.
+
+\bibitem{zwanzig1961}
+Robert Zwanzig.
+\newblock Memory effects in irreversible thermodynamics.
+\newblock {\em Physical Review}, 124(4):983--992, 1961.
+
+\end{thebibliography}

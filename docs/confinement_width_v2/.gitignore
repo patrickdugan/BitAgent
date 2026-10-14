@@ -1,0 +1,6 @@
+*.aux
+*.out
+*.toc
+*.blg
+*.log
+lean/.lake/
