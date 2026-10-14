@@ -26,16 +26,18 @@ theorem one_le_pow {a : Nat} (ha : 1 ≤ a) : ∀ n, 1 ≤ a ^ n
   | 0     => Nat.le_refl 1
   | n + 1 => by
     rw [Nat.pow_succ]
-    exact Nat.le_trans (one_le_pow ha n) (Nat.le_mul_of_pos_right _ ha)
+    exact Nat.le_trans (one_le_pow ha n)
+      (Nat.le_mul_of_pos_right _ (Nat.lt_of_lt_of_le Nat.zero_lt_one ha))
 
 /-- Bernoulli-type inequality in `Nat`: `(a+1)^(n+1) ≥ a^(n+1) + (n+1) a^n`. -/
 theorem pow_succ_lower (a : Nat) : ∀ n, a ^ (n + 1) + (n + 1) * a ^ n ≤ (a + 1) ^ (n + 1)
-  | 0 => by simp [Nat.pow_succ]
+  | 0 => by simp only [Nat.pow_succ, Nat.pow_zero]; omega
   | n + 1 => by
     have ih := pow_succ_lower a n
     have h1 : (a ^ (n + 1) + (n + 1) * a ^ n) * (a + 1) ≤ (a + 1) ^ (n + 1) * (a + 1) :=
       Nat.mul_le_mul_right (a + 1) ih
-    rw [Nat.pow_succ (a + 1) (n + 1)]
+    have h2 : (a + 1) ^ (n + 1 + 1) = (a + 1) ^ (n + 1) * (a + 1) := Nat.pow_succ
+    rw [h2]
     refine Nat.le_trans ?_ h1
     have e1 : a ^ (n + 1) * a = a ^ (n + 1 + 1) := (Nat.pow_succ a (n + 1)).symm
     have e2 : a ^ n * a = a ^ (n + 1) := (Nat.pow_succ a n).symm
@@ -53,7 +55,8 @@ theorem weighted_growth (A Lam : Nat) (u : Nat → Nat) (hu0 : 1 ≤ u 0)
       _ ≤ Lam * (u t * A ^ t) := Nat.mul_le_mul_left Lam ih
       _ = (Lam * u t) * A ^ t := by rw [Nat.mul_assoc]
       _ ≤ (u (t + 1) * A) * A ^ t := Nat.mul_le_mul_right _ (hrec t)
-      _ = u (t + 1) * A ^ (t + 1) := by rw [Nat.pow_succ, Nat.mul_assoc]
+      _ = u (t + 1) * A ^ (t + 1) := by
+          rw [Nat.pow_succ, Nat.mul_assoc, Nat.mul_comm A (A ^ t)]
 
 /-- If `Λ > A`, the uncertainty cardinality is unbounded. -/
 theorem uncertainty_unbounded (A Lam : Nat) (hA : 1 ≤ A) (hLam : A + 1 ≤ Lam)
@@ -61,8 +64,8 @@ theorem uncertainty_unbounded (A Lam : Nat) (hA : 1 ≤ A) (hLam : A + 1 ≤ Lam
     ∀ K, ∃ T, K < u T := by
   intro K
   refine ⟨K * A + 1, ?_⟩
-  by_contra hle
-  have hle : u (K * A + 1) ≤ K := Nat.le_of_not_lt hle
+  apply Nat.gt_of_not_le
+  intro hle
   have hw := weighted_growth A Lam u hu0 hrec (K * A + 1)
   have hpow : (A + 1) ^ (K * A + 1) ≤ Lam ^ (K * A + 1) := Nat.pow_le_pow_left hLam _
   have hb := pow_succ_lower A (K * A)
@@ -71,7 +74,7 @@ theorem uncertainty_unbounded (A Lam : Nat) (hA : 1 ≤ A) (hLam : A + 1 ≤ Lam
   have hone := one_le_pow hA (K * A)
   -- (K*A+1) * A^(K*A) = K * A^(K*A+1) + A^(K*A)
   have hsplit : (K * A + 1) * A ^ (K * A) = K * A ^ (K * A + 1) + A ^ (K * A) := by
-    rw [Nat.add_mul, Nat.one_mul, Nat.pow_succ, Nat.mul_assoc]
+    rw [Nat.add_mul, Nat.one_mul, Nat.pow_succ, Nat.mul_assoc, Nat.mul_comm A (A ^ (K * A))]
   rw [hsplit] at hb
   omega
 
@@ -80,10 +83,13 @@ with `A = 2^R`, this is `R ≥ log2 Λ` bits per step. -/
 theorem data_rate_necessity (A Lam K : Nat) (hA : 1 ≤ A)
     (u : Nat → Nat) (hu0 : 1 ≤ u 0) (hrec : ∀ t, Lam * u t ≤ u (t + 1) * A)
     (hbound : ∀ t, u t ≤ K) : Lam ≤ A := by
-  by_contra h
-  have hLam : A + 1 ≤ Lam := Nat.lt_of_not_le h
-  obtain ⟨T, hT⟩ := uncertainty_unbounded A Lam hA hLam u hu0 hrec K
-  exact Nat.lt_irrefl _ (Nat.lt_of_lt_of_le hT (hbound T))
+  cases Nat.lt_or_ge A Lam with
+  | inr hge => exact hge
+  | inl hlt =>
+    exfalso
+    obtain ⟨T, hT⟩ :=
+      uncertainty_unbounded A Lam hA (Nat.succ_le_of_lt hlt) u hu0 hrec K
+    exact Nat.lt_irrefl _ (Nat.lt_of_lt_of_le hT (hbound T))
 
 /-- Port form: with `s` ports of `b` bits each, `A = 2^(s*b)`; invariance in a
 finite target needs `Λ ≤ 2^(s*b)`. -/

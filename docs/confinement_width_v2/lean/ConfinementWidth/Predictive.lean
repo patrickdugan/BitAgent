@@ -17,7 +17,7 @@ def geom (L : Nat) : Nat → Nat
 
 theorem geom_one : ∀ T, geom 1 T = T
   | 0     => rfl
-  | T + 1 => by simp [geom, geom_one T]; omega
+  | T + 1 => by simp only [geom, geom_one T]; omega
 
 theorem predictive_defect_bound (L eta : Nat) (d : Nat → Nat)
     (h0 : d 0 = 0) (hstep : ∀ t, d (t + 1) ≤ L * d t + eta) :
@@ -32,7 +32,7 @@ theorem predictive_defect_bound (L eta : Nat) (d : Nat → Nat)
       _ = eta * geom L (T + 1) := by
           simp only [geom, Nat.mul_add, Nat.mul_one]
           rw [Nat.mul_left_comm L eta (geom L T)]
-          omega
+          exact Nat.add_comm _ _
 
 /-- The `L = 1` case: linear compounding `d_T ≤ η̄ T`. -/
 theorem predictive_defect_bound_contractive_edge (eta : Nat) (d : Nat → Nat)
