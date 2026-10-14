@@ -1,0 +1,5 @@
+name = "ConfinementWidth"
+defaultTargets = ["ConfinementWidth"]
+
+[[lean_lib]]
+name = "ConfinementWidth"

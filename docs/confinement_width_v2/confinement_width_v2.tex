@@ -1,0 +1,699 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,keepspaces=true}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{exhibit}[theorem]{Exhibit}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\RV}{R_V}
+\newcommand{\Eu}{E^u}
+\newcommand{\Pu}{P_u}
+\newcommand{\Au}{A_u}
+\newcommand{\htwo}{h_2}
+\newcommand{\W}{W}
+\newcommand{\sr}{s_r}
+\newcommand{\sw}{s_w}
+\newcommand{\etabar}{\bar{\eta}}
+\newcommand{\revnote}[1]{\textcolor{red!60!black}{[v2: #1]}}
+
+\title{Confinement Width:\\Interface Limits for Evaluator-Relative Control\\
+{\large Revision 2}}
+\author{Patrick Dugan}
+\date{Revision 2 draft, October 2026. First version July 6, 2026.}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For controlled dynamics $x_{t+1}=F(x_t,u_t)$ and an evaluator region $\RV=\{x: V(x)\ge\tau\}$, we study the cost of confinement: keeping closed-loop trajectories in $\RV$ under initial-state uncertainty. We price controllers by a split read/write interface: $\sr$ quantized sensing ports and $\sw$ quantized actuation ports, each carrying $b$ bits per step. Near a boundary equilibrium, the local-invariance problem with $m$ unstable modes invokes classical results, the data-rate theorem and invariance entropy \cite{tatikonda2004,nair2000,kawan2013,colonius2009}, which force both the read rate and the declared finite write-branching rate to exceed $\sum_i\log_2|\lambda_i|$ bits per step. Thus each side has width $\Omega(m/b)$, and $\Omega(m)$ for fixed port precision $b$, under uniform hyperbolicity. The revision makes explicit that the bound is a bit budget before it is a port count: at floating-point precision one port covers hundreds of weakly unstable modes, and the bound bites only on low-precision channels, which are the channels oversight actually runs on. Description length inherits the bound only for loop-free interfaces, a restriction we state rather than hide. Critical-point statistics for Gaussian random fields \cite{bray2007,auffinger2013,fyodorov2004} motivate the conjecture that evaluator regions in generic high-dimensional landscapes have boundary equilibria of extensive unstable index $m=\alpha N$: a null model, not a claim about trained networks, and one the measured Hessian spectra of trained networks already contradict in parameter space. A transfer proposition shows that a $d$-dimensional harness with evaluator sufficiency and per-step measurement caps each read/write side at $d$; a minimal exhibit, now implemented, shows the failure mode, an occupant routing evaluator-relevant change through the projection's kernel. The transfer proposition, its predictive variant, the fiber-ambiguity obstruction, its counted witness form, and the combinatorial skeleton of the rate bound are machine-checked in Lean 4 without Mathlib. Absent non-generic structure or a valid quarantine, low-width conditioning steers rather than confines.
+\end{abstract}
+
+\tableofcontents
+
+\section{Motivation: from interpretability to maintained control}
+
+We wish to constrain the behavior of Large Language Models (LLMs) in agentic harnesses by applying a web of smaller models such as Tiny Recursive Models (TRMs) and Lattice Deduction Transformers (LDTs) \cite{jolicoeur2025,wang2025hrm,davis2026ldt,dugan2026trmldt} to filter out misaligned tool calls and computer-use trajectories from being realized. Such control architectures could render the alignment problems and mechanistic-interpretability problems of LLMs into a tractable security and control-flow problem, in the sense of the trusted/untrusted protocol framing of AI control \cite{greenblatt2023}. However, can a smarter model devise ways to exploit the filters and control membranes obstructing its goals? We explore complexity mathematics to quantify the problem.
+
+The motivating problem is not merely whether a model can be made to pass an evaluator at one time. It is whether an evaluator's judgment can remain attached to the intended property while the judged system is trained, prompted, tooled, self-modified, or otherwise recursively improved. In that regime, alignment is less like classifying a finished artifact and more like maintaining an invariant of a changing dynamical system. The failure modes of a fixed proxy under optimization pressure have their own literature, under the names of Goodhart variants, reward gaming, and misaligned objectives \cite{manheim2018,skalse2022,zhuang2020}; the present note prices one of them, fiber routing, rather than cataloguing them.
+
+This motivates the shift from static description to live control. A mechanistic explanation, a safety feature, a constitutional rule, or a steering vector can all be useful, but none of them is automatically a controller. To bear safety load, an interpretation must supply or induce a measured state through which evaluator-relevant facts continue to factor, a model of how that state evolves, and a feedback interface wide enough to correct departures. The question is therefore not just \emph{what did we find inside the model?} but \emph{what resource budget is required to keep the evaluator-relevant trajectory inside the region we care about?}
+
+The note isolates one local resource: confinement width. If a system is near an evaluator boundary and the local target has unstable modes, classical data-rate and invariance-entropy results say that holding the local set invariant requires a per-step information flow. This does not prove a new theorem of control theory; it converts known lower bounds into an evaluator-relative accounting useful for scalable oversight \cite{christiano2018,irving2018,bowman2022}. In particular, it explains why the natural description-length framing is too optimistic for general programmatic controllers: rate constrains the plant--controller pipe, not merely the program that processes the pipe.
+
+The constructive side is dimensional quarantine. Rather than attempting to confine the full high-dimensional base system directly, a harness may project the system into a low-dimensional state $z=\phi(x)$, verify that the evaluator approximately factors through that state, and enforce invariance there. This is the formal role of TRM/LDT-style harnesses in the note: they do not eliminate the confinement problem, but they can reduce its measured dimension when the projection is evaluator-sufficient and dynamically closed enough.
+
+This also gives a prototype for FRC-style complexity mathematics \cite{dugan2025frc,dugan2025collapse}. Confinement width is the local lower-bound term; quarantine transfer is the constructive upper route; fiber ambiguity is the obstruction; and the fidelity half-life $t^*(\lambda)$ is the first empirical observable. The intended research program is to replace slogans about ``alignment under recursive improvement'' with curves and inequalities: roundwise width requirements, audit costs for maintaining sufficiency, and measured failure times as optimization pressure increases.
+
+\revnote{Where the first version argued these points in prose, this revision attaches an implemented exhibit (\S\ref{sec:exhibit-impl}), a Lean 4 development covering the parts of the argument that are elementary enough to be checked (\S\ref{sec:lean}), and a reconciliation with the FRC papers' own definitions (\S\ref{sec:frc-reconcile}).}
+
+\section{Opening: what is borrowed, what is priced}
+
+The lower-bound mechanism in this note is not new, and we say so here rather than leaving it for a referee: the per-step information requirement for holding a set invariant is the data-rate theorem, with the discrete-time bits-per-step normalization closest to the Nair--Evans finite-rate stabilization line \cite{nair2000} and the earlier Wong--Brockett limited-information results \cite{wong1999}, and, in its set-invariance form, invariance entropy (Colonius--Kawan) \cite{colonius2009,kawan2013,kawan2011}. The feedback-entropy formulation of the same requirement is Nair, Evans, Mareels and Moran \cite{nair2004}, and the relation between the two entropies is worked out in \cite{colonius2013}. Tatikonda--Mitter and Sahai--Mitter are used here for the broader communication-constrained and noisy-channel program, where channel hypotheses and reliability notions matter \cite{tatikonda2004,sahai2006}; the surveys \cite{nair2007,hespanha2007} place both lines. Viability theory supplies the constrained-dynamics vocabulary, viable region, regulation map, and maintained constraint set, not the information-rate bound itself \cite{aubin1991}. Earlier control work also treats realization burden as mathematical, for example through Brockett's minimum-attention viewpoint and later minimum-attention work, and through static coder-controller / lookup-table constructions in the invariance-entropy literature \cite{brockett1997,lee2022,donkers2014,tomar2022}.
+
+What none of these price, and what this note defines and bounds, is a composite of three things. First, the read/write interface footprint of confinement: the number of quantized sensing channels and actuation channels a controller must use per step. The theorem reports the bottleneck lower bound, while the FRC accounting keeps read and write costs separate. Second, the behavior of that footprint under the critical-point statistics of generic high-dimensional landscapes, where boundary equilibria of evaluator regions generically carry extensive unstable index, so the classical per-step requirement becomes extensive. Third, the maintenance cost of a low-dimensional quarantine: the validity of the projection and evaluator through which the width reduction is purchased, against an occupant optimizing under the harness's own proxy. The abstraction and verification literatures \cite{tabuada2009,girard2007} do not price this because they typically assume the abstracted system is not trying to leave.
+
+The claim ceiling, stated once and never exceeded: we compose and price known lower bounds in evaluator-relative AI systems; we do not invent invariance entropy.
+
+\subsection{Definitions}
+
+\paragraph{Dynamics and precision.} Consider dynamics
+\begin{equation}
+x_{t+1}=F(x_t,u_t),\qquad x\in X\subseteq\mathbb{R}^N,\quad u\in U\subseteq\mathbb{R}^p. \label{eq:dyn}
+\end{equation}
+Coordinates live on a fixed-precision grid $\delta\mathbb{Z}\cap[-M,M]$. A scalar port therefore carries
+\begin{equation}
+b=\log_2\!\left(\frac{2M}{\delta}+1\right) \label{eq:bits}
+\end{equation}
+bits per step: $O(1)$ in $N$, and $O(\log(M/\delta))$ in precision. Where the landscape picture is wanted, take $F(x,0)=x-\gamma\nabla L(x)$, so the uncontrolled Jacobian is $I-\gamma H(x)$ with $H$ symmetric and GOE as the null model.
+
+\paragraph{Evaluator region.} Let $V:X\to\mathbb{R}$ be an evaluator and let
+\begin{equation}
+\RV=\{x: V(x)\ge\tau\}. \label{eq:region}
+\end{equation}
+
+\paragraph{Ports and interfaces.} A port is a scalar plant--controller channel exchanging one fixed-precision value per step: sensing ports carry readings in, actuation ports carry controls out. For a controller $\theta$, let $\sr(\theta)$ and $\sw(\theta)$ count active sensing and actuation ports. Define the corresponding read and write rates
+\begin{equation}
+R_r(\theta)=b\,\sr(\theta),\qquad R_w(\theta)=b\,\sw(\theta). \label{eq:rates}
+\end{equation}
+We write
+\begin{equation}
+\W_\wedge(\theta)=\min(\sr(\theta),\sw(\theta)),\quad \W_\pm(\theta)=(\sr(\theta),\sw(\theta)),\quad \W_\Sigma(\theta)=\sr(\theta)+\sw(\theta). \label{eq:widths}
+\end{equation}
+The quantity $\W_\wedge$ is the bottleneck of the loop and is used for lower-bound corollaries. The pair $\W_\pm$, or the scalar footprint $\W_\Sigma$ when a scalar is needed, is used for resource accounting. Density of the functional behind a port is irrelevant to width: a dense linear readout $w^\top x$ through one port is one port carrying $b$ bits per step.
+
+\begin{assumption}[No side channels]\label{as:side}
+All plant--controller interaction passes through the priced ports. Without this, every bound below is void: a plant that broadcasts its state at unbounded precision outside the accounting supports zero-width confinement trivially. The theorem prices the declared interface; undeclared channels are not denied by the theorem, but treated as exactly the kind of unpriced leakage that the fiber-ambiguity and audit sections are meant to expose. The same accounting problem, side information defeating a performance bound unless it is itself priced, is treated for disturbance attenuation by Martins, Dahleh and Doyle \cite{martins2007}.
+\end{assumption}
+
+\begin{assumption}[Noiseless quantized ports]\label{as:noiseless}
+Ports are deterministic digital channels at $b$ bits per plant step. This noiseless quantized-interface model is the normalization used by the width theorem. Noisy channels are strictly harder for the controller and require explicit channel hypotheses; in that setting, anytime capacity rather than raw Shannon capacity is the operative stabilization notion \cite{tatikonda2004,sahai2006}, and is out of scope here. Bode-type limitations over noisy channels are treated in \cite{martins2008}.
+\end{assumption}
+
+\begin{definition}[Confinement width and description length]\label{def:width}
+Over controllers satisfying Assumptions \ref{as:side} and \ref{as:noiseless} that keep every closed-loop trajectory from the stated uncertainty class in $\RV$ for all $t\le T$ with failure probability at most $\epsilon$, define the bottleneck and scalar-footprint confinement widths
+\begin{equation}
+\W^\wedge_V(R,T,\epsilon)=\min_\theta \W_\wedge(\theta),\quad \W^\Sigma_V(R,T,\epsilon)=\min_\theta \W_\Sigma(\theta),\quad L_V(R,T,\epsilon)=\min_\theta|\theta|. \label{eq:defwidth}
+\end{equation}
+When read and write costs should remain non-scalar, use the pair-valued footprint $\W_\pm(\theta)$ and the corresponding Pareto frontier. Here $|\theta|$ is description length, equivalently $\|\theta\|_0$ up to logarithmic addressing in fixed precision \cite{musat2026}. Where the old name is wanted, set $C_V=(\W^\wedge_V,\W^\Sigma_V,L_V)$. The theorem below attaches to the read and write rates separately, with $\W^\wedge_V$ as the bottleneck corollary. The quantity $L_V$ is bounded only under the restricted interface class in Remark \ref{rem:desc}.
+\end{definition}
+
+The uncertainty class is a parameter of the definition and must be nondegenerate: a viable collar of positive volume in the unstable coordinates, or a persistent disturbance of positive amplitude. Degenerate classes admit zero-width open-loop confinement.
+
+\begin{remark}[What the state space is]\label{rem:state}
+Nothing in this note requires literal confinement in parameter space. $X$ is any state space on which the evaluator region and the dynamics are jointly defined: parameter state under training updates, behavior or activation state under inference dynamics, harness state under a projection, or deployment-trajectory state under an operational semantics. Conditioning, prompts, fine-tunes, steering, reshapes $F$ rather than pinning $x$. The width question is posed after the reshaping: given the dynamics an intervention leaves behind, how many quantized channels of online observation and actuation does it take to keep evaluator-relevant trajectories inside $\RV$? A zero-width intervention can relocate equilibria, which is steering and may be sufficient; what it cannot do, near boundary equilibria satisfying the hypotheses below, is supply the per-step bits that Theorem \ref{thm:main} says holding requires.
+\end{remark}
+
+\begin{remark}[Bits before ports]\label{rem:bits}
+\revnote{new.} The quantity the theorem controls is a rate in bits per step, $\htwo(\Au)=\sum_i\log_2|\lambda_i|$. The port count is that rate divided by the port precision $b$, and $b$ is large for the channels an engineer first thinks of. Table \ref{tab:ports} evaluates $\lceil m\log_2(1+\delta)/b\rceil$ at uniform hyperbolicity gap $\delta$ for $m$ unstable modes. At $b=32$ (a float port) and $\delta=0.1$, a thousand unstable modes need five ports. The $\Omega(m)$ reading is therefore correct only for fixed low $b$, and the channels with low $b$ are: a human approval or rejection (one to a few bits per step), a token stream under a short budget ($b\approx\log_2|\text{vocab}|\approx 17$ bits per token, with few tokens per decision), and a symbolic action alphabet such as the four registry operations of the companion harness \cite{dugan2026harness} (two bits per step). Those are the channels through which scalable oversight is proposed to run \cite{christiano2018,bowman2022,burns2023}. The bound is weak where the loop is a float pipe and strong where the loop is a person or a grammar; the revision states the quantity in bits first and reports ports second.
+\end{remark}
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{rrrrrrr}
+\toprule
+$m$ & $\delta$ & $\htwo$ (bits/step) & $b=1$ & $b=3$ & $b=17$ & $b=32$ \\
+\midrule
+100 & 0.01 & 1.4 & 2 & 1 & 1 & 1 \\
+100 & 0.1 & 13.8 & 14 & 5 & 1 & 1 \\
+100 & 1 & 100 & 100 & 34 & 6 & 4 \\
+100 & 10 & 346 & 346 & 116 & 21 & 11 \\
+1000 & 0.01 & 14.4 & 15 & 5 & 1 & 1 \\
+1000 & 0.1 & 137.5 & 138 & 46 & 9 & 5 \\
+1000 & 1 & 1000 & 1000 & 334 & 59 & 32 \\
+1000 & 10 & 3459 & 3460 & 1154 & 204 & 109 \\
+\bottomrule
+\end{tabular}
+\caption{Ports per side required by Theorem \ref{thm:main} at uniform gap $\delta$, i.e.\ $\lceil m\log_2(1+\delta)/b\rceil$. The column $b=1$ is a binary verdict channel; $b=3$ a coarse human grade; $b=17$ one token of a $10^5$-word vocabulary; $b=32$ a float port.}
+\label{tab:ports}
+\end{table}
+
+\section{The local lower bound}
+
+The load-bearing statement in this section is the linear local-invariance problem. Work in local coordinates with $x^*=0$, fix a precompact coordinate neighborhood $O$ of $0$, and consider the declared-interface plant
+\begin{equation}
+x_{t+1}=Ax_t+Bu_t. \label{eq:lin}
+\end{equation}
+For a nonlinear system one may set $A=D_xF(x^*,0)$ at a boundary equilibrium $x^*\in\partial\RV$, but the nonlinear transfer of the entropy bound requires the usual geometric hypotheses and is not the theorem stated here. Let $\Eu$ be the unstable subspace of $A$, let $\Pu$ be the spectral projection onto $\Eu$ along an $A$-invariant complementary subspace, and write $m=\dim\Eu$.
+
+\begin{definition}[Viable local collar]
+A viable local collar is a compact set
+\begin{equation}
+K_0\subset\RV\cap O
+\end{equation}
+whose projection $\Pu(K_0)$ has positive $m$-dimensional Lebesgue measure. Let $\Au=A|_{\Eu}$ and define
+\begin{equation}
+\htwo(\Au)=\log_2|\det\Au|=\sum_{\lambda_i\in\sigma(\Au)}\log_2|\lambda_i|. \label{eq:h2}
+\end{equation}
+\end{definition}
+
+\begin{assumption}[Nondegenerate viable uncertainty]\label{as:collar}
+The confinement guarantee is quantified over a viable local collar $K_0$ in the sense above, equivalently over persistent disturbances whose reachable uncertainty has positive $\Pu$-volume in the unstable coordinates. This is what generates the bits.
+\end{assumption}
+
+\begin{assumption}[Uniform unstable hyperbolicity]\label{as:hyp}
+Every eigenvalue of $\Au$ satisfies $|\lambda_i|\ge 1+\delta$ for some $\delta>0$.
+\end{assumption}
+
+\begin{lemma}[Mode coverage: PBH necessity]
+Any controller, static or dynamic and of any width, that locally confines under Assumptions \ref{as:collar} and \ref{as:hyp} must have every unstable mode in $\Eu$ controllable through its actuation ports and observable through its sensing ports, in the PBH sense.
+\end{lemma}
+\begin{proof}[Sketch]
+An uncontrollable or unobservable unstable mode evolves autonomously in the closed loop by the Kalman decomposition and eventually leaves the bounded local target in the $\Pu$ coordinate, so it cannot be guaranteed to stay in $\RV\cap O$. This constrains which subspaces the interface touches, not yet how many ports it needs.
+\end{proof}
+
+\begin{remark}[First public correction: rank counting fails]
+An earlier draft asserted that stabilizing $m$ unstable modes forces feedback of rank at least $m$, whence $\|\theta\|_0\ge m$. This is false. For a controllable single-input pair $(A,g)$, pole placement assigns the closed-loop spectrum arbitrarily, so a rank-one perturbation $gk^\top$ can stabilize any number of unstable modes. For non-normal matrices, low-rank corrections can move unboundedly many eigenvalues. The counterexample supplies no cheap controller in the present accounting, the placing gain is dense and exact, but the obstruction that survives is informational, not algebraic.
+\end{remark}
+
+PBH mode coverage says which unstable subspaces must be touched; it does not count ports. The port count comes from the information rate required to refine the uncertainty set fast enough to offset unstable expansion.
+
+\begin{theorem}[Split read/write local-invariance width lower bound; linear local form]\label{thm:main}
+Under Assumptions \ref{as:side}, \ref{as:noiseless}, \ref{as:collar} and \ref{as:hyp}, any coder-controller keeping every trajectory from $K_0$ in $\RV\cap O$ for all $t$ must satisfy
+\begin{align}
+\liminf_{T\to\infty}\frac{B_{\mathrm{read}}(T)}{T}&\ge\htwo(\Au), \label{eq:read}\\
+\liminf_{T\to\infty}\frac{B_{\mathrm{write}}(T)}{T}&\ge\htwo(\Au), \label{eq:write}
+\end{align}
+where $B_{\mathrm{read}}(T)$ and $B_{\mathrm{write}}(T)$ are the total read and write bits used up to time $T$. Consequently, for fixed per-step port counts,
+\begin{equation}
+b\,\sr(\theta)\ge\htwo(\Au),\qquad b\,\sw(\theta)\ge\htwo(\Au). \label{eq:ports}
+\end{equation}
+Thus the bottleneck width obeys
+\begin{equation}
+\W_\wedge(\theta)\ge\frac{\htwo(\Au)}{b}\ge\frac{\log_2(1+\delta)}{b}\,m. \label{eq:bottleneck}
+\end{equation}
+Each side of the declared interface therefore has width $\Omega(m/b)$. For fixed port precision $b$ and fixed hyperbolicity gap $\delta$, each side has width $\Omega(m)$.
+\end{theorem}
+\begin{proof}[Sketch]
+The read-side inequality is the discrete-time data-rate theorem in the finite-feedback-rate lineage \cite{nair2000}: the controller's observations must refine the viable uncertainty set quickly enough to offset expansion by $\Au$. The write-side inequality is the corresponding invariance-entropy / spanning-control-function count \cite{colonius2009,kawan2013}: with only $\sw$ quantized actuation ports, the controller can realize at most $2^{\sw b}$ distinct control branches per step, so the admissible control functions cannot cover the expanding unstable uncertainty unless the write alphabet grows at the same exponential rate. The volume-counting intuition is that the uncontrolled dynamics expand $\Eu$ volumes by $|\det\Au|$ per step; sensing partitions the uncertainty set into at most $2^{\sr b}$ cells per step, and actuation branches the response into at most $2^{\sw b}$ controls per step. Invariance requires each refinement to offset that expansion. Hence both inequalities in \eqref{eq:ports}, and the bottleneck corollary \eqref{eq:bottleneck}. The theorem prices the declared finite digital interface; unpriced analog or side channels violate Assumption \ref{as:side} rather than refute the bound.
+\end{proof}
+
+\begin{lemma}[Discrete counting skeleton]\label{lem:counting}
+\revnote{new; the recurrence-to-unboundedness step is machine-checked, \S\ref{sec:lean}.} Replace volume by cardinality. Let the controller's uncertainty set at step $t$ have $u_t$ elements, let the plant branch over a disturbance alphabet of size $\Lambda$ injectively in (state, disturbance) for each fixed control, and let the controller observe one of $A=2^{R}$ symbols per step and choose its control from that symbol alone. Then $u_{t+1}A\ge\Lambda u_t$, and if $u_t\le K$ for all $t$ then $\Lambda\le A$, i.e.\ $R\ge\log_2\Lambda$.
+\end{lemma}
+\begin{proof}
+By pigeonhole some observation symbol is received by at least $u_t/A$ states of the uncertainty set. On that class the control is constant, so by injectivity the $\Lambda$ disturbance branches of those states are $\Lambda\lceil u_t/A\rceil$ distinct next states, all of which remain consistent with the controller's information. Hence $u_{t+1}\ge\Lambda u_t/A$. Writing $w_t=u_tA^t$ gives $w_{t+1}\ge\Lambda w_t$, so $w_t\ge\Lambda^t$. If $\Lambda\ge A+1$ and $u_t\le K$ for all $t$, take $T=KA+1$: by the Bernoulli inequality $(A+1)^T\ge A^T+TA^{T-1}=(K+1)A^T+A^{KA}>KA^T\ge u_TA^T=w_T\ge\Lambda^T\ge(A+1)^T$, a contradiction. The second half of the argument, from the recurrence to the contradiction, is the content of \texttt{DataRate.lean}; the pigeonhole step is stated there as the hypothesis \texttt{hrec} and proved only here.
+\end{proof}
+
+\begin{remark}[Boundary-transversal pricing is not claimed here]\label{rem:transversal}
+Because Theorem \ref{thm:main} requires trajectories to remain in $\RV\cap O$, it prices local invariance in the coordinate chart. A trajectory that remains in $\RV$ while sliding along $\partial\RV$ and exiting $O$ still violates this local target, so boundary-tangent unstable modes are included in $m=\dim\Eu$. In applications where exit through $\partial O\cap\RV$ is operationally acceptable, the relevant count should be the boundary-transversal evaluator-failure modes rather than the full unstable index. Formalizing that quotient or exit problem requires a separate viability / invariance-entropy lemma and is left to future work.
+\end{remark}
+
+\begin{remark}[Finite horizon]\label{rem:finite}
+Over finite $T$ the controller may coast on the margin between the viable collar $K_0$ and the boundary of $\RV\cap O$, paying an additive number of bits determined by the initial unstable-uncertainty volume and the available safety margin. The clean statement here is asymptotic; Lemma \ref{lem:counting} gives the finite-horizon shape in the discrete case, where the slack is exactly the target size $K$ and the first violating time is bounded by $KA+1$. A circulation draft should either write the continuous finite-horizon correction explicitly or avoid relying on it.
+\end{remark}
+
+\begin{remark}[Second public correction: description length does not bound width]\label{rem:desc}
+It is tempting to conclude $\|\theta\|_0\ge\W_\wedge(\theta)$, or even $\|\theta\|_0\gtrsim\W_\Sigma(\theta)$, but this is false for general programmatic controllers. A looped fixed-precision program can process arbitrarily many ports with $O(1)$ nonzero parameters by reading them through generated addresses and accumulating. Rate constrains the pipe, not the program. Thus $L_V$ inherits the $\Omega(m/b)$ bound, and the $\Omega(m)$ bound for fixed $b$, only under a restricted class:
+
+\emph{Loop-free/static interfaces:} read and write maps are fixed sparse linear or affine maps with no address generation, so each active port consumes at least one dedicated nonzero parameter. Then $\|\theta\|_0$ is at least the active interface footprint up to addressing constants, and $L_V$ inherits the split width lower bound. For general programmatic controllers, only the read/write width bound stands.
+\end{remark}
+
+\section{The generic extension}
+
+\begin{conjecture}[Extensive local unstable index]\label{conj:index}
+For landscapes in the Gaussian-random-field class, such as spherical-spin-glass ensembles, boundary equilibria of evaluator regions at non-extreme levels carry extensive local unstable index $m=\dim\Eu=\alpha N$ with high probability. This would follow from Kac--Rice complexity asymptotics restricted to the level set $\{V=\tau\}$, together with the level--index tradeoff of Bray--Dean \cite{bray2007} and random-matrix large-deviation suppression of atypically one-signed spectra \cite{dean2006}. Consequently, under Theorem \ref{thm:main}, both declared read and write widths are $\Omega(N/b)$ in the null model, and $\Omega(N)$ for fixed $b$.
+\end{conjecture}
+
+The restriction of Kac--Rice to an evaluator level set is an unproved step and is named as such \cite{bray2007,auffinger2013}; the second-moment technology that would be needed is the one developed for spherical $p$-spin complexity \cite{subag2017,fyodorov2007}. A numerical check is specified as evidence rather than theorem: sample Gaussian fields at $N=50$--$200$, locate boundary equilibria of a level set, and histogram the local unstable index. The sharper evaluator-boundary question that subtracts tangent exit directions is the boundary-transversal problem isolated in Remark \ref{rem:transversal}.
+
+GOE/Gaussian genericity is a null model. Trained networks are structured, low-rank, modular, with bulk-zero-plus-outlier Hessian spectra that already depart from GOE, and no claim is made that they are generic fields. The conjecture fixes the default against which structure must be exhibited: a confinement proposal either identifies the non-generic structure it exploits, supplies a quarantine in the sense of section \ref{sec:quarantine}, or inherits the $\Omega(N/b)$ local read/write floor, which is $\Omega(N)$ for fixed $b$.
+
+\begin{remark}[Which state space the conjecture lives in]\label{rem:wrongspace}
+\revnote{new.} The conjecture is a statement about critical points of a scalar field on parameter space, in the lineage that carried spin-glass complexity into deep learning \cite{dauphin2014,choromanska2015}. Three things follow that the first version left implicit. (i) Measured Hessian spectra of trained networks at convergence consist of a bulk concentrated near zero and a small number of outliers of the order of the class count \cite{sagun2018,ghorbani2019,papyan2020}; in parameter space the unstable index of a local target is therefore small, not extensive, and the conjecture is the wrong null there. (ii) The state spaces on which harnesses operate (Remark \ref{rem:state}: activation, behavior, registry, trajectory state) have no GOE null at all; nobody has written the Kac--Rice problem for them, and it is not obvious the critical-point picture is the right one for an operational semantics. (iii) Corollary \ref{cor:gap} is therefore conditional on a conjecture in a space the harness does not observe. The corollary is retained because it states the default, but the revision labels it as a claim about the null model and nothing more. The partial-observability framing of the harness problem itself, where the right object is a belief state rather than a point, is the POMDP one \cite{kaelbling1998}; whether the width accounting survives that translation is open.
+\end{remark}
+
+\begin{corollary}[Conditioning gap, conditional]\label{cor:gap}
+Price standard interventions by the declared read/write interface. A prompt or system message writes no runtime port into the evolving state after $t=0$. Equivalently, prompts and system messages are treated here as reshaping $F$ before the confinement problem is posed, not as priced runtime feedback channels; see Remark \ref{rem:state}. Offline preference training has zero runtime rate by definition. Activation steering along $r$ fixed directions \cite{turner2023,li2023iti,zou2023} is $r$ write ports, or $rb$ bits per step. If the operating regime is near boundary equilibria satisfying Conjecture \ref{conj:index}, then no controller with $o(N/b)$ declared read or write width meets the requirement of Theorem \ref{thm:main}, and no $o(N)$ declared read or write width does for fixed $b$. Stated at its ceiling: absent exploitable non-generic structure or a valid low-dimensional quarantine, low-complexity conditioning should be expected to steer rather than confine.
+\end{corollary}
+
+\begin{remark}[Methodological parallel, non-load-bearing]
+The same critical-point statistics, run on random supergravity potentials, led string cosmology to conclude that metastable perches are exponentially rare and the generic picture is a slow roll along a gradient floor. The parallel carries no evidential weight here; it earns its three sentences only by showing the inversion, perch statistics read as a statement about residence rather than search, has been executed before.
+\end{remark}
+
+\begin{remark}[Conjectural energy and fragility obstruction]
+Earlier drafts carried a Gramian-conditioning argument that bounded-magnitude fixed-precision controllers need actuation support $\Omega(m)$. Two gaps keep it out of the main text: pole placement is sufficient rather than necessary, and the cited energy-scaling results concern reaching target states in network systems rather than gain magnitudes for saddle confinement under GOE spacing. If retained, this material should be re-founded on the discrete-time Bode sensitivity integral \cite{mohtadi1990,freudenberg1985} and quantized stabilization, then stated only as a fragility conjecture complementing the width bound.
+\end{remark}
+
+\section{Dimensional quarantine}\label{sec:quarantine}
+
+A projection $\phi:X\to Z$, with $\dim Z=d\ll N$, defines a harness state. Here LDT is glossed as latent-dynamics tracker: a harness maintaining an explicit low-dimensional state $z$ with its own transition model; in the companion architecture paper the same role is played by the explicit lattice state and typed membrane of the TRM/LDT hybrid \cite{dugan2026trmldt,davis2026ldt}. TRM-routed adapters instantiate the class. The construction is an abstraction in the sense of the symbolic-control literature \cite{tabuada2009,girard2007}, with the difference, priced below, that the abstracted system is optimizing against the abstraction.
+
+\begin{definition}[Evaluator sufficiency]\label{def:suff}
+A projection $\phi$ is $(V,\epsilon)$-sufficient on a set $S\subseteq X$ if there exists $v:Z\to\mathbb{R}$ such that
+\begin{equation}
+|V(x)-v(\phi(x))|\le\epsilon\qquad\text{for all }x\in S. \label{eq:suff}
+\end{equation}
+To avoid the circularity of ``sufficient on the reachable set,'' $S$ is required to be a-priori checkable and forward-adequate, for example $S\supseteq\RV\cup F(\RV\times U)$.
+\end{definition}
+
+\begin{definition}[Quarantined dynamics and policy-indexed defect]
+Projected dynamics are written
+\begin{equation}
+z_{t+1}=G(z_t,u_t)+\eta_t, \label{eq:proj}
+\end{equation}
+where the closure defect is defined by
+\begin{equation}
+\eta_t:=\phi(F(x_t,u_t))-G(\phi(x_t),u_t). \label{eq:defect}
+\end{equation}
+This is the projected shadow of unmodeled fiber dynamics, a Mori--Zwanzig-style memory term \cite{zwanzig1961,mori1965,lin2021}, and is therefore statistically dependent on whatever the occupant's optimization touches in the fiber. Accordingly the defect bound is worst-case over the occupant's policy class and round-indexed:
+\begin{equation}
+\etabar(\Pi_k)=\sup_{\pi\in\Pi_k}\ \sup_{x\in S,\,u\in U}\|\phi(F(x,u))-G(\phi(x),u)\|. \label{eq:etabar}
+\end{equation}
+\end{definition}
+Optimization enlarges $\Pi_k$, so $\etabar$ is a function of round; guarantees below hold per round at the current $\etabar$. The Koopman view of the same projection, a linear model of a nonlinear system in a chosen observable coordinate \cite{koopman1931,mezic2005,brunton2022}, is the natural source of candidate $G$; its closure defect is what the Mori--Zwanzig memory term measures.
+
+\section{Reactive transfer}\label{sec:transfer}
+
+\begin{proposition}[Reactive quarantined confinement]\label{prop:transfer}
+Assume $\phi$ is $(V,\epsilon)$-sufficient on $S$, $v$ is $L_v$-Lipschitz, per-step defects satisfy $\|\eta_t\|\le\etabar$, the controller measures $z_t=\phi(x_t)$ at every step, and the robust one-step condition holds:
+\begin{equation}
+\forall z\text{ with }v(z)\ge\tau+\epsilon,\quad\exists u\in U\text{ such that }v(G(z,u))\ge\tau+\epsilon+L_v\etabar. \label{eq:robust}
+\end{equation}
+If $v(\phi(x_0))\ge\tau+\epsilon$ and $x_0\in S$, then $x_t\in\RV$ for all $t$.
+\end{proposition}
+\begin{proof}
+Induct on $t$. Since $x_t\in\RV\subseteq S$, forward adequacy gives $x_{t+1}\in F(\RV\times U)\subseteq S$, so sufficiency applies. From $v(z_t)\ge\tau+\epsilon$, choose $u_t$ according to \eqref{eq:robust}. Then
+\begin{equation}
+v(z_{t+1})\ge v(G(z_t,u_t))-L_v\|\eta_t\|\ge\tau+\epsilon. \label{eq:ind}
+\end{equation}
+By evaluator sufficiency, $V(x_{t+1})\ge v(z_{t+1})-\epsilon\ge\tau$. The base case is identical.
+\end{proof}
+
+The robust one-step condition is a discrete-time control-barrier-function condition \cite{agrawal2017,khajenejad2021,ames2019}. Its verification is a $d$-dimensional problem, which is the point.
+
+\begin{remark}[Formalization]\label{rem:formal61}
+\revnote{new.} The proof uses the Lipschitz and defect hypotheses only through the single inequality $v(G(\phi x,u))\le v(\phi(F(x,u)))+c$ with $c=L_v\etabar$, and uses only the lower half of \eqref{eq:suff}. The Lean statement \texttt{reactive\_confinement} (\S\ref{sec:lean}) is stated at that generality, over any value type with transitive order and right-cancellative addition, and with the existential in \eqref{eq:robust} realized by a fixed policy $\pi:Z\to U$. It concludes the three invariants $x_t\in S$, $v(\phi x_t)\ge\tau+\epsilon$ and $V(x_t)\ge\tau$ for all $t$. Nothing in the proposition needs real numbers, norms, or a metric on $Z$.
+\end{remark}
+
+\begin{remark}[Predictive variant]\label{rem:predictive}
+If $z$ is measured only at $t=0$ and the controller certifies a model trajectory $\hat z_{t+1}=G(\hat z_t,u_t)$, the margin inflates from $\epsilon+L_v\etabar$ to
+\begin{equation}
+\epsilon+L_vD_T,\qquad D_T=\etabar\,\frac{L_G^T-1}{L_G-1}, \label{eq:DT}
+\end{equation}
+with $D_T=\etabar T$ when $L_G=1$. This compounds geometrically unless $G$ is contractive on the relevant region. Predictive quarantine is therefore a short-horizon instrument; the design criteria are to build $G$ contractive and measure $\phi$ online. The division-free form $D_T\le\etabar\sum_{i<T}L_G^i$ is \texttt{predictive\_defect\_bound} in \S\ref{sec:lean}.
+\end{remark}
+
+\begin{corollary}[Width cap and measurement]\label{cor:cap}
+Under Proposition \ref{prop:transfer}, the confinement problem the controller actually solves lives in $Z$. The width bound applies to the local unstable index $m_G$ of $G$ for the projected local-invariance problem, with $m_G\le d$, not necessarily to the full base dynamics, provided the evaluator factors through $\phi$. A projected controller that reads and writes the full projected state has $\sr,\sw\le d$, hence $\W_\wedge\le d$ and $\W_\Sigma\le 2d$ under the scalar-footprint accounting. TRM/LDT-style harnesses do not magically solve confinement; they reduce and measure the dimensionality of the confinement problem. What is not reduced is the maintenance of $(V,\epsilon)$-sufficiency and closure against an optimizing occupant: $\etabar(\Pi_k)$ and the validity of $S$ are round-indexed quantities not bounded by $d$.
+\end{corollary}
+
+\section{The exhibit}\label{sec:exhibit}
+
+\begin{remark}[Where the adversary lives]
+Corollary \ref{cor:cap} bounds confinement with respect to $v$, not $V$, unless sufficiency holds on $S$ for the duration. The adversary lives in $\ker\phi$: hidden fiber variables can change $V$ while leaving $v\circ\phi$ fixed. The slack $\epsilon$ is not a constant of the projection; it is a functional of the occupant's policy class and optimization pressure.
+\end{remark}
+
+\begin{exhibit}[Fiber routing with $\eta\equiv0$]\label{ex:fiber}
+Let $X=Z\times Y$ with $Z=Y=[0,1]$, and let $\phi(z,y)=z$. Dynamics are
+\begin{align}
+z_{t+1}&=\mathrm{clip}(z_t+u_t),\qquad u_t\in[-\bar u,\bar u]\text{ chosen by the harness}, \label{eq:zdyn}\\
+y_{t+1}&=\mathrm{clip}(y_t+\pi_\lambda(y_t)+w_t), \label{eq:ydyn}
+\end{align}
+where $\pi_\lambda$ is the occupant's policy after optimization pressure $\lambda$, and $w_t$ is optional noise. The $z$ dynamics are exactly closed, so $\eta\equiv0$ by construction; every failure below is pure evaluator-sufficiency failure.
+
+Let the proxy be $v(z)=\mathbf 1[z\le\zeta]$ and the true evaluator be
+\begin{equation}
+V(z,y)=\mathbf 1[z\le\zeta]\,\mathbf 1[y\le\beta],\qquad y_0<\beta<1. \label{eq:trueV}
+\end{equation}
+The harness keeps $z\le\zeta$, so $v(\phi(x_t))=1$ for all $t$. But any occupant objective monotone increasing in $y$ drives the reachable set out of $S_\beta=\{(z,y):y\le\beta\}$, where $\phi$ was sufficient. The true evaluator fails at
+\begin{equation}
+t^*(\lambda)=\min\{t:V(x_t)=0\},\qquad \mathbb E[t^*(\lambda)]\approx\frac{\beta-y_0}{\rho(\lambda)}, \label{eq:halflife}
+\end{equation}
+where $\rho(\lambda)=\mathbb E[\pi_\lambda]$ is the realized drift rate. The observable is a fidelity half-life curve: proxy flat while ground truth decays.
+\end{exhibit}
+
+This exhibit is not meant to instantiate Proposition \ref{prop:transfer}'s Lipschitz transfer theorem: the proxy $v$ is an indicator. It isolates the separate failure mode in which closure is exact, the proxy remains satisfied, and evaluator sufficiency fails through the fiber. Formally it is an instance of Lemma \ref{lem:fiber}: the states $(z,y_0)$ and $(z,y)$ with $y>\beta$ collide under $\phi$ and lie on opposite sides of the evaluator.
+
+\paragraph{Implementation sketch.} A finite state machine carries the world. The visible ledger is $z\in\{0,\dots,K\}$, which the harness reads; hidden commitment flags are $y\in\{0,1\}^\ell$ with a designated bad set. The harness is rule-based and reads $z$ only. The occupant is a small stochastic policy: minimally a softmax table updated by REINFORCE on reward equal to progress into the fiber; in the full version, a tinyLoRA adapter over the TRM router is updated per round against the proxy the harness exposes. Each round logs $v\circ\phi$ and the ground-truth $V$ read directly from the state machine; no judge model is introduced. Sweep $\lambda$ to produce the $t^*(\lambda)$ curve.
+
+\subsection{Implementation status}\label{sec:exhibit-impl}
+\revnote{new.} Variant A is implemented as \texttt{src/evals/confinement\_width.py} in the Control-Harness repository \cite{dugan2026harness}, with the frozen output \texttt{results/confinement\_width/fiber\_routing\_summary.json}. The shipped parameters differ from the specification in Appendix \ref{app:spec}, and the first version of this note should not have cited a plot it had not produced. The differences are listed so the reader can weigh them.
+
+\begin{itemize}
+\item Defaults: $\zeta=0.70$, $\beta=0.55$, $y_0=0$, $z_0=0.25$, $\bar u=0.08$, with the harness correcting only above a target $z=0.45$. Appendix \ref{app:spec} specifies $\zeta=0.5$, $\beta=0.8$, $y_0=0.1$, $z_0=0.2$, $\bar u=0.1$.
+\item Horizon $80$ and $5$ seeds per pressure, against the specified $T_{\max}=10^4$ and $\ge50$ seeds. Pressures $\lambda\in\{0,0.02,0.05,0.1,0.2\}$ rather than a log grid.
+\item The occupant does not learn. ``Optimization pressure'' is a fixed Bernoulli advance probability $p(\lambda)=\lambda/(\lambda+0.05)$, with step $0.04$ in $y$ on each advance. The REINFORCE and tinyLoRA variants remain unrun. The implemented occupant is therefore a drift, which is exactly what the sanity prediction \eqref{eq:halflife} assumes; the agreement in Table \ref{tab:exhibit} checks the bookkeeping, not the claim that an optimizer finds the fiber.
+\end{itemize}
+
+What the run does establish is the bookkeeping: closure defect $\eta$ is computed as the observed minus the modeled projected next state and is identically zero across all $2{,}000$ rows; the proxy never fails; the true evaluator fails in every pressurized run; the half-life falls monotonically in $\lambda$. Table \ref{tab:exhibit} compares the observed medians with $\lceil(\beta-y_0)/0.04\rceil/p(\lambda)=14/p(\lambda)$.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{rrrrr}
+\toprule
+$\lambda$ & $p(\lambda)$ & predicted $\mathbb E[t^*]$ & observed median $t^*$ & IQR \\
+\midrule
+0 & 0 & $\infty$ & censored ($5/5$) & -- \\
+0.02 & 0.286 & 49 & 65 & [45, 68] \\
+0.05 & 0.500 & 28 & 29 & [26, 33] \\
+0.10 & 0.667 & 21 & 22 & [21, 22] \\
+0.20 & 0.800 & 17.5 & 17 & [16, 19] \\
+\bottomrule
+\end{tabular}
+\caption{Shipped Exhibit \ref{ex:fiber} run (horizon 80, 5 seeds per arm). The prediction is the drift formula \eqref{eq:halflife} with 14 advances needed to cross $\beta$. Five seeds is too few to read the $\lambda=0.02$ discrepancy as anything.}
+\label{tab:exhibit}
+\end{table}
+
+The exhibit's companion in the same repository is the Control Observability pilot \cite{dugan2026harness}, which computes, for a synthetic authorization world, the exact in-sample accuracy ceiling of any classifier that reads a given subset of fields, and a witness lower bound from counterfactual pairs that collide on those fields. That witness bound is Lemma \ref{lem:fiber} counted over pairs (\texttt{witness\_bound}, \S\ref{sec:lean}); the pilot is the fiber-ambiguity obstruction with the projection $\phi$ replaced by a telemetry schema.
+
+\section{What is actually novel}
+
+No new lower-bound mechanism is introduced, and the note says so where a referee would otherwise say it first. The per-step information requirement is the data-rate theorem in set-invariance form and invariance entropy \cite{nair2000,colonius2009,kawan2013}; noisy-channel generalizations require additional communication hypotheses \cite{tatikonda2004,sahai2006}. Implementation burden has antecedents in Brockett's minimum-attention control and in finite-abstraction/static-coder-controller constructions \cite{brockett1997,lee2022,donkers2014,tomar2022}. These antecedents motivate pricing, but they are not direct sources of the confinement-width lower bound.
+
+The contributions are a definition and three compositions. The definition is confinement width, the channel count of the plant--controller interface, which inherits the classical rate bound and is controller-agnostic. The compositions are: width against the critical-point statistics of generic landscapes, where extensive local unstable index makes the classical requirement extensive; width against dimensional quarantine, where a transfer proposition caps the requirement at the harness dimension and decomposes the price into evaluator slack and closure defect; and quarantine against an optimizing occupant, where maintaining evaluator sufficiency becomes the residual unbounded quantity, exhibited in a minimal system with a measured half-life.
+
+\revnote{The revision adds nothing to this list. It subtracts: the first composition is now explicitly conditional on a conjecture whose parameter-space instance is contradicted by measured spectra (Remark \ref{rem:wrongspace}), and the port-count headline is restated as a bit budget (Remark \ref{rem:bits}). It adds machine-checked statements of the second and third compositions.}
+
+\section{Relation to FRC}
+
+FRC concerns evaluator-relative fidelity under recursive updates: the cost of keeping a bounded evaluator's judgment attached to the intended property while the judged system changes itself \cite{dugan2025frc}. Confinement width supplies one local dynamical lower-bound object inside that agenda: the feedback and interface width needed to keep evaluator-relevant trajectories inside a region, priced per step, with the classical rate theorems doing the pricing. Dimensional quarantine is the constructive attempt to reduce that width by forcing evaluator-relevant dynamics through a low-dimensional measured state. Exhibit \ref{ex:fiber} shows the fidelity failure when evaluator-relevant facts stop factoring through that state: $t^*(\lambda)$ is a fidelity half-life, measured rather than metaphorical. The residual quantity the width bound cannot cap, round-indexed maintenance of sufficiency and closure, is where the FRC program continues past this note.
+
+\subsection{Reconciliation with the FRC papers}\label{sec:frc-reconcile}
+\revnote{new.} The FRC paper \cite{dugan2025frc} defines $\mathrm{FRC}_P(k;\delta)$ as the least aggregate defender resource $R$ (compute, data, proof time, oversight hours, attestation and latency) under which some agent keeps $\mathrm{Fid}^{(k)}_P\ge1-\delta$ against a $k$-round reflective red team, and argues (its Theorem 2) that in the \emph{unfenced} regime this grows super-polynomially in $k$, while in \emph{fenced} regimes, priced action channels, attested self-modifications and consensus latency, the empirical curve can flatten (its claim P2). The companion \cite{dugan2025collapse} introduces an oversight bandwidth $B$ per RSI step and a verification complexity $K_{\mathrm{ver}}$, with the complexity gap $\Gamma=K_{\mathrm{ver}}-B$ forcing reliance on proxies when positive.
+
+Four points of contact, stated as correspondences rather than theorems:
+
+\begin{enumerate}
+\item \emph{Priced action channels are write ports.} The fenced regime's ``priced action channel'' is a declared actuation interface in the sense of \eqref{eq:rates}; its price is $b\sw$ bits per step. Theorem \ref{thm:main} is the statement that this price has a floor, $\htwo(\Au)$ per step, whenever the fenced system sits near an unstable evaluator boundary. The FRC paper asserts the fence; this note prices it.
+\item \emph{Oversight bandwidth is read rate.} The quantity $B$ of \cite{dugan2025collapse} is, per RSI round, $\sum_t b\sr$ over the round. The Kolmogorov--FRC coupling there is an upper-side argument (not enough bits to check a certificate); \eqref{eq:read} is the lower-side argument (not enough bits to track the state). They constrain the same channel from opposite directions and should be reported together.
+\item \emph{Attested self-modification is the audit term.} The attestation cost of the fenced regime is $A_k$ in Definition \ref{def:frcwidth}: certifying $S_k$, $\epsilon_k$, $\etabar_k(\Pi_k)$ and the robust one-step condition at round $k$. Proposition \ref{prop:upper} is the precise form of claim P2: the width component of a fenced harness is capped by $2\sum_k d_k$, so whatever steepens the curve has to be the audit component.
+\item \emph{Eigensystem escape is fiber routing at the level of the verifier.} The FRC paper's Lemma 2 (on-support indistinguishability) constructs a branch predicate vanishing on the verifier's historical slice. In the present vocabulary the verifier is a projection $\phi$ of the agent's state onto $B$ bits of inspected traces, and the lemma is Lemma \ref{lem:fiber} with the colliding states supplied by the masked branch. The counting form \texttt{witness\_bound} gives the error floor the verifier must pay per undetected branch.
+\end{enumerate}
+
+None of this upgrades the FRC growth claim. Theorem 2 of \cite{dugan2025frc} is a proof sketch resting on an expressivity-gap assumption and a diagonalization, and this note does not supply the missing step. What it supplies is a lower bound on one summand of $R$, and the observation that the summand is small at float precision and large at human precision.
+
+\section{FRC as recursive quarantine maintenance}
+
+The previous sections are local: one dynamics $F$, one evaluator region $\RV$, one confinement problem. Fidelity Recursive Complexity (FRC) is the recursive version of the same accounting. It asks what must be paid when the judged system, the reachable set, and the validity of the harness abstraction all change across rounds. The definitions below are intentionally modest: they turn FRC into a bookkeeping layer over confinement width and quarantine maintenance, rather than a new control theorem.
+
+\begin{definition}[Recursive evaluator-relative system]
+A recursive evaluator-relative system of depth $K$ is a sequence of controlled dynamics
+\begin{equation}
+x^{(k)}_{t+1}=F_k(x^{(k)}_t,u^{(k)}_t),\qquad k=0,\dots,K-1,
+\end{equation}
+with state spaces $X_k$, admissible controls $U_k$, uncertainty classes $\mathcal U_k$, and target evaluator regions
+\begin{equation}
+R^{(k)}_V=\{x\in X_k: V_k(x)\ge\tau_k\}.
+\end{equation}
+The index $k$ denotes a recursive update round: a training update, self-modification, tool/harness revision, or red-team patch cycle. The evaluator $V_k$ may be fixed or updated, but the intended property is held fixed at the level of the experiment: the question is whether the updated evaluator remains attached to that property.
+\end{definition}
+
+\begin{definition}[Round-$k$ quarantine]
+A quarantine at recursive round $k$ is a tuple
+\begin{equation}
+Q_k=(\phi_k,v_k,G_k,S_k,\Delta_k)
+\end{equation}
+where $\phi_k:X_k\to Z_k$ is a measured projection, $d_k=\dim Z_k$, $v_k:Z_k\to\mathbb R$ is the projected evaluator, $G_k$ is the projected transition model, $S_k\subseteq X_k$ is the a-priori forward-adequate set on which the abstraction is certified, and $\Delta_k\ge0$ is the projected safety margin.
+\end{definition}
+
+Write the evaluator-sufficiency and closure defects as
+\begin{align}
+\epsilon_k&=\sup_{x\in S_k}|V_k(x)-v_k(\phi_k(x))|, \\
+\etabar_k(\Pi_k)&=\sup_{\pi\in\Pi_k}\ \sup_{x\in S_k,\,u\in U_k}\|\phi_k(F_k(x,u))-G_k(\phi_k(x),u)\|,
+\end{align}
+where $\Pi_k$ is the occupant policy class available at round $k$. If $v_k$ is $L_{v,k}$-Lipschitz, define the recursive fidelity margin
+\begin{equation}
+M_k=\Delta_k-\epsilon_k-L_{v,k}\etabar_k(\Pi_k). \label{eq:margin}
+\end{equation}
+The quarantine is margin-valid at round $k$ only when $M_k\ge0$, together with the robust one-step condition of Proposition \ref{prop:transfer} in the projected state space.
+
+\begin{definition}[FRC width and audit complexity]\label{def:frcwidth}
+Fix a horizon $T_k$ for each recursive round, a failure tolerance $\epsilon_{\mathrm{tot}}$, and a class of admissible recursive harnesses $\mathcal H$. For $H\in\mathcal H$, let
+\begin{equation}
+\W_{\pm,k}(H)=(s_{r,k}(H),s_{w,k}(H)),\quad \W_{\Sigma,k}(H)=s_{r,k}(H)+s_{w,k}(H),\quad \W_{\wedge,k}(H)=\min(s_{r,k}(H),s_{w,k}(H))
+\end{equation}
+be the read/write pair, scalar footprint, and bottleneck width used at round $k$, measured in the active state space after any quarantine. Let $A_k(H)$ be the audit/refinement cost required to certify $S_k$, $\epsilon_k$, $\etabar_k(\Pi_k)$, and the robust one-step condition at that round. The scalar-footprint width component of FRC is
+\begin{equation}
+\mathrm{FRC}^{\W_\Sigma}_V(K,\epsilon_{\mathrm{tot}})=\inf_{H\in\mathcal H}\left\{\sum_{k=0}^{K-1}\W_{\Sigma,k}(H):\ \Pr_H\!\left[\forall k<K,\ \forall t\le T_k,\ x^{(k)}_t\in R^{(k)}_V\right]\ge1-\epsilon_{\mathrm{tot}}\right\}. \label{eq:frcw}
+\end{equation}
+When read and write budgets should not be exchangeable, replace the scalar sum by the componentwise pair $\sum_k\W_{\pm,k}(H)$ and interpret the infimum as a Pareto frontier. The bottleneck quantity $\W_{\wedge,k}$ is retained only for lower-bound corollaries, not as the recursive resource cost. The audit component is defined analogously,
+\begin{equation}
+\mathrm{FRC}^A_V(K,\epsilon_{\mathrm{tot}})=\inf_{H\in\mathcal H}\sum_{k=0}^{K-1}A_k(H)\qquad\text{subject to the same fidelity constraint.}
+\end{equation}
+\end{definition}
+A scalar total $\mathrm{FRC}_V$ can be obtained by choosing exchange rates between read width, write width, compute, proofs, oversight hours, latency, and hardware costs. Without such exchange rates, the read/write frontier together with $\mathrm{FRC}^A_V$ is the safer mathematical object.
+
+\begin{proposition}[Roundwise lower bound embeds into FRC]
+Suppose that, at recursive round $k$, the active confinement problem satisfies the hypotheses of Theorem \ref{thm:main}, and write
+\begin{equation}
+h_{2,k}=\sum_{\lambda_{k,i}\in\sigma(A_{u,k})}\log_2|\lambda_{k,i}|.
+\end{equation}
+Then any recursive harness satisfying the fidelity constraint in Definition \ref{def:frcwidth} must pay
+\begin{equation}
+b_ks_{r,k}\ge h_{2,k},\qquad b_ks_{w,k}\ge h_{2,k}.
+\end{equation}
+Consequently,
+\begin{equation}
+\W_{\wedge,k}\ge\frac{h_{2,k}}{b_k},\qquad \W_{\Sigma,k}\ge\frac{2h_{2,k}}{b_k}.
+\end{equation}
+On any set of rounds $\mathcal K$ where the theorem's hypotheses hold,
+\begin{equation}
+\mathrm{FRC}^{\W_\Sigma}_V(K,\epsilon_{\mathrm{tot}})\ge\sum_{k\in\mathcal K}\frac{2h_{2,k}}{b_k}. \label{eq:frclower}
+\end{equation}
+For the pair-valued accounting, the corresponding lower bound is componentwise: each of the read and write sums is at least $\sum_{k\in\mathcal K}h_{2,k}/b_k$.
+\end{proposition}
+\begin{proof}[Sketch]
+Apply Theorem \ref{thm:main} separately at each recursive round to the active state space on which confinement is actually attempted: the base state $X_k$ if no quarantine is supplied, or the projected state $Z_k$ if a valid quarantine transfers the problem. The theorem gives read and write lower bounds separately. Summing the unavoidable scalar footprints gives \eqref{eq:frclower}; keeping the two coordinates separate gives the pair-valued frontier. No new lower-bound mechanism is introduced; FRC inherits the local width theorem as one term in its recursive resource accounting.
+\end{proof}
+
+\begin{proposition}[Dimensional quarantine as an upper route]\label{prop:upper}
+Suppose that for every round $k<K$ there exists a quarantine $Q_k$ satisfying evaluator sufficiency, bounded closure defect, and the reactive transfer condition of Proposition \ref{prop:transfer}. If the projected controller reads and writes the full projected state at fixed precision, then
+\begin{equation}
+s_{r,k}\le d_k,\qquad s_{w,k}\le d_k,\qquad \W_{\Sigma,k}\le2d_k,
+\end{equation}
+and hence
+\begin{equation}
+\mathrm{FRC}^{\W_\Sigma}_V(K,\epsilon_{\mathrm{tot}})\le2\sum_{k=0}^{K-1}d_k
+\end{equation}
+for the scalar-footprint width component of a successful harness. Equivalently, the pair-valued accounting is bounded componentwise by $(\sum_kd_k,\sum_kd_k)$. The unresolved cost is not the projected interface footprint but audit: certifying that $M_k\ge0$ and that the projected system remains closed under the updated policy class.
+\end{proposition}
+\begin{proof}[Sketch]
+Under Proposition \ref{prop:transfer}, confinement can be verified and enacted in $Z_k$. A controller that measures the $d_k$ scalar coordinates of $z_k=\phi_k(x_k)$ and writes controls through the projected interface has at most $d_k$ active coordinates on each side, up to the chosen port accounting. The guarantee holds only while the sufficiency and closure terms in \eqref{eq:margin} are audited and remain inside margin.
+\end{proof}
+
+\begin{lemma}[Fiber ambiguity obstruction]\label{lem:fiber}
+Fix a round $k$ and a projection $\phi_k:X_k\to Z_k$. Suppose there exist two reachable states $x,x'\in S_k$ such that
+\begin{equation}
+\phi_k(x)=\phi_k(x')\quad\text{but}\quad V_k(x)\ge\tau_k+\epsilon\quad\text{and}\quad V_k(x')<\tau_k-\epsilon. \label{eq:collide}
+\end{equation}
+Then no controller whose observations and certificates factor only through $\phi_k$ can guarantee $V_k$-confinement at slack $\epsilon$ simultaneously over an uncertainty class containing both states.
+\end{lemma}
+\begin{proof}
+The controller receives the same projected observation at $x$ and $x'$ and therefore must choose the same projected action and issue the same certificate in both cases. But $V_k$ assigns the two states to different sides of the margin. Any guarantee phrased only in terms of $v_k(\phi_k(\cdot))$ cannot distinguish them. Thus the projection is not $(V_k,\epsilon)$-sufficient on the relevant reachable set, and a $\phi_k$-only controller can confine at most the proxy, not the true evaluator region. (\texttt{fiber\_ambiguity} and \texttt{same\_action}, \S\ref{sec:lean}.)
+\end{proof}
+
+\begin{definition}[Fidelity half-life]
+For a recursive process under optimization pressure $\lambda$, let global time be the pair $(k,t)$ ordered lexicographically by recursive round $k$ and within-round time $t$. Define the fidelity half-life as the first such global time at which either the true evaluator fails or the recursive fidelity margin becomes negative:
+\begin{equation}
+t^*(\lambda)=\inf\{(k,t): V_k(x^{(k)}_t)<\tau_k\ \text{or}\ M_k<0\}.
+\end{equation}
+In Exhibit \ref{ex:fiber}, this reduces to $t^*(\lambda)=\min\{t:V(x_t)=0\}$. The empirical curve $t^*(\lambda)$ is therefore a prototype observable for FRC stress: as optimization pressure expands $\Pi_k$ or pushes mass through $\ker\phi_k$, the lifetime of the evaluator-sufficient abstraction shrinks.
+\end{definition}
+
+\begin{remark}[What mechinterp can and cannot buy]
+Mechanistic interpretability can lower the width term by proposing candidate projections $\phi_k$, latent state variables, and unstable directions to monitor \cite{cunningham2023,bricken2023,sharkey2025}. It does not by itself pay the audit term. In the recursive limit, an interpretation is a candidate quarantine, not a permanent certificate. FRC prices the maintenance of its evaluator-sufficiency and closure under the optimization pressure it is supposed to control. The same asymmetry appears in the AI-control framing \cite{greenblatt2023}: a monitor is a projection of the untrusted model's behavior, and its value is bounded by the sufficiency of that projection against a model optimizing to pass it.
+\end{remark}
+
+\section{Lean formalization}\label{sec:lean}
+\revnote{new.} The development is in \texttt{lean/} beside this file and builds with Lean 4 core alone (no Mathlib), so that it can be checked on a machine without network access to the Mathlib cache. The choice costs generality in one place: real numbers are replaced by an abstract value type with a transitive order and right-cancellative addition, of which \texttt{Int}, \texttt{Nat}, and (in Mathlib) $\mathbb R$ are instances. Table \ref{tab:lean} lists what is checked and against which statement of the paper.
+
+\begin{table}[ht]
+\centering
+\footnotesize
+\begin{tabular}{p{0.36\linewidth}p{0.27\linewidth}p{0.3\linewidth}}
+\toprule
+Lean name & Paper statement & Assumed, not proved \\
+\midrule
+\texttt{reactive\_confinement} & Prop.\ \ref{prop:transfer} & policy $\pi$ realizing \eqref{eq:robust}; defect penalty $c$ \\
+\texttt{reactive\_confinement\_region} & Prop.\ \ref{prop:transfer}, conclusion & as above \\
+\texttt{predictive\_defect\_bound} & Rem.\ \ref{rem:predictive}, \eqref{eq:DT} & recurrence $d_{t+1}\le Ld_t+\etabar$ (Nat units) \\
+\texttt{same\_action}, \texttt{fiber\_ambiguity} & Lem.\ \ref{lem:fiber} & nothing \\
+\texttt{witness\_bound} & Lem.\ \ref{lem:fiber}, counted (pilot witness bound) & nothing \\
+\texttt{pow\_succ\_lower} & Bernoulli inequality in Nat & nothing \\
+\texttt{weighted\_growth}, \texttt{uncertainty\_unbounded} & Lem.\ \ref{lem:counting}, second half & recurrence $\Lambda u_t\le u_{t+1}A$ \\
+\texttt{data\_rate\_necessity}, \texttt{port\_necessity} & Lem.\ \ref{lem:counting}, $R\ge\log_2\Lambda$ & as above \\
+\bottomrule
+\end{tabular}
+\caption{Machine-checked statements. The pigeonhole-plus-injectivity step of Lemma \ref{lem:counting} and all of Theorem \ref{thm:main} (measure-theoretic) remain paper proofs.}
+\label{tab:lean}
+\end{table}
+
+The statement of Proposition \ref{prop:transfer} in Lean, with the paper's hypotheses rewritten additively:
+\begin{lstlisting}
+structure ReactiveHypotheses (Q : Quarantine X Z U R) (pi : Z -> U) : Prop where
+  region_in_S      : forall x, Q.tau <= Q.V x -> Q.S x
+  forward_adequate : forall x u, Q.tau <= Q.V x -> Q.S (Q.F x u)
+  sufficiency      : forall x, Q.S x -> Q.v (Q.phi x) <= Q.V x + Q.eps
+  defect           : forall x u, Q.S x ->
+                       Q.v (Q.G (Q.phi x) u) <= Q.v (Q.phi (Q.F x u)) + Q.c
+  robust_step      : forall z, Q.tau + Q.eps <= Q.v z ->
+                       (Q.tau + Q.eps) + Q.c <= Q.v (Q.G z (pi z))
+
+theorem reactive_confinement (Q : Quarantine X Z U R) (pi : Z -> U)
+    (H : ReactiveHypotheses Q pi) (x0 : X)
+    (hS0 : Q.S x0) (hv0 : Q.tau + Q.eps <= Q.v (Q.phi x0)) :
+    forall t, Q.S (traj Q pi x0 t)
+        /\ Q.tau + Q.eps <= Q.v (Q.phi (traj Q pi x0 t))
+        /\ Q.tau <= Q.V (traj Q pi x0 t)
+\end{lstlisting}
+and of the counting lemma's conclusion:
+\begin{lstlisting}
+theorem data_rate_necessity (A Lam K : Nat) (hA : 1 <= A)
+    (u : Nat -> Nat) (hu0 : 1 <= u 0)
+    (hrec : forall t, Lam * u t <= u (t + 1) * A)
+    (hbound : forall t, u t <= K) : Lam <= A
+\end{lstlisting}
+Build and axiom audit: \texttt{lake build \&\& lean Check.lean} prints the axioms each theorem depends on; the expected set is \texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound} (from \texttt{omega} and \texttt{simp}) and no \texttt{sorryAx}. The Lean tooling is \cite{demoura2021}; the formalization was written against Lean \texttt{v4.35.0} and does not use Mathlib \cite{mathlib2020}, which would have made the real-valued statements direct.
+
+What is not formalized, and why. Theorem \ref{thm:main} needs Lebesgue measure and the volume scaling of linear maps; both exist in Mathlib and neither in core. Conjecture \ref{conj:index} is a conjecture. The exhibit is a computation, checked by its own assertions in the Python implementation rather than by proof.
+
+\section{Future work and verification}
+
+\paragraph{Proof and evidence debts}
+\begin{enumerate}
+\item \textbf{Generic local index.} Conjecture \ref{conj:index} requires Kac--Rice restricted to a level set. A low-$N$ numerical check, $N=50$--$200$, should be implemented as evidence. A sharper evaluator-transversal index would require the boundary-geometry refinement in Remark \ref{rem:transversal}. \revnote{Added: the parameter-space instance is already in tension with measured spectra; the activation-space instance has no null model. Either write the null for the space the harness observes or drop Corollary \ref{cor:gap} from the abstract.}
+\item \textbf{Nonlinear and evaluator-transversal local cases.} Theorem \ref{thm:main} is now explicitly linear local. Future work is to verify whether Kawan-style volume-growth lower bounds \cite{kawan2013,kawan2011} cover the intended nonlinear neighborhood under stated geometric hypotheses. Separately, formalize the sharper boundary-transversal theorem in which escape through $\partial O\cap\RV$ is permitted and only unstable modes transverse to $\partial\RV$ are priced.
+\item \textbf{Finite-horizon correction.} Write the constant in Remark \ref{rem:finite}; the discrete case is now explicit in Lemma \ref{lem:counting}.
+\item \textbf{Energy/fragility appendix.} Re-found on the Bode integral or cut.
+\item \textbf{Exhibit implementation.} \revnote{Variant A is implemented; see \S\ref{sec:exhibit-impl}. Remaining: align the shipped defaults with Appendix \ref{app:spec} or amend the appendix, run $\ge50$ seeds at $T_{\max}=10^4$ on a log grid, and run the REINFORCE occupant so that at least one arm contains an optimizer rather than a drift.}
+\item \textbf{Formalization of the rate bound.} \revnote{Added.} Port \texttt{DataRate.lean} to Mathlib and prove the pigeonhole step over \texttt{Finset}; then state Theorem \ref{thm:main} for linear maps on $\mathbb R^m$ via \texttt{MeasureTheory.Measure.addHaar\_image\_linearMap}. The width table (Table \ref{tab:ports}) is arithmetic and needs no formalization.
+\item \textbf{Low-precision channels.} \revnote{Added.} The bound bites on channels with $b$ of order one. Measure $b$ for the channels the companion harness actually exposes (reason codes, registry operations, human escalation) and report the induced floor beside the attack/escalation frontier.
+\end{enumerate}
+
+\paragraph{Citation verification status}
+\begin{itemize}
+\item \emph{Invariance entropy scope.} Colonius--Kawan and Kawan \cite{colonius2009,kawan2013} support the set-invariance / spanning-control-function lineage used for the write-side branching inequality, but nonlinear formulas and sharp bounds should be stated with their geometric hypotheses visible: nonempty interior, positive measure, finite volume, or hyperbolic isolated-set assumptions as applicable. The main theorem is intentionally local-linear.
+\item \emph{Data-rate normalization.} The theorem uses a noiseless, quantized, bits-per-plant-step interface. Nair--Evans is the closest antecedent for the read-side finite-feedback-rate normalization \cite{nair2000}; Tatikonda--Mitter and Sahai--Mitter are cited for the broader communication-constrained/noisy-channel setting \cite{tatikonda2004,sahai2006}.
+\item \emph{Implementation antecedents.} Brockett 1997 is reinstated for the minimum-attention viewpoint; Egerstedt--Brockett 2003 remains unpinned and is not used as a load-bearing citation. The draft also cites later, directly checkable sources for minimum-attention control and static coder-controller / lookup-table implementations \cite{brockett1997,lee2022,donkers2014,tomar2022}.
+\item \emph{Aubin viability theory.} Aubin is used only for constrained-dynamics vocabulary \cite{aubin1991}.
+\item \emph{Generic local-index conjecture.} The Bray--Dean/Auffinger--Ben Arous--\v{C}ern\'y background \cite{bray2007,auffinger2013} does not prove the evaluator-boundary Kac--Rice step or the sharper evaluator-transversal index claim; those remain future work.
+\item \emph{Dean--Majumdar constant.} Keep exact constants, including $\theta=(\ln3)/4$, on the verification list; the text currently uses only the weaker large-deviation suppression wording \cite{dean2006}.
+\item \emph{Musat 2026.} Treat the fixed-precision/description-length relation as preprint support only \cite{musat2026}, not as load-bearing for the width theorem.
+\item \revnote{\emph{Citations added in this revision} (\cite{wong1999,nair2004,colonius2013,kawan2011,nair2007,hespanha2007,martins2007,martins2008,freudenberg1985,donkers2014,tabuada2009,girard2007,ames2019,mezic2005,brunton2022,lin2021,subag2017,fyodorov2007,dauphin2014,choromanska2015,sagun2018,ghorbani2019,papyan2020,greenblatt2023,manheim2018,skalse2022,zhuang2020,christiano2018,irving2018,bowman2022,burns2023,turner2023,li2023iti,zou2023,kaelbling1998,demoura2021,mathlib2020,sharkey2025,cunningham2023,bricken2023}) were entered from the author-assistant's recollection of the bibliographic record without live lookup, because the drafting environment had no access to arXiv, Crossref or DBLP. Volume, page and year fields of every added entry must be checked against the publisher record before circulation. The internal references \cite{dugan2025frc,dugan2025collapse,dugan2026trmldt,dugan2026harness} were read in the versions checked into the \texttt{morality-lab-site} and \texttt{control-harness} repositories as of October 9 and October 11, 2026; if a later revision of the FRC paper is hosted on the site, its section numbers should be rechecked against \S\ref{sec:frc-reconcile}.}
+\end{itemize}
+
+\appendix
+
+\section{Exhibit \ref{ex:fiber} implementation specification}\label{app:spec}
+
+\paragraph{Claim under test.} $\phi$-confinement is worth no more than evaluator sufficiency on the closed-loop, post-optimization reachable set, and the fidelity half-life $t^*(\lambda)$ is that worth, measured. The exhibit is constructed so $\eta\equiv0$ identically, eliminating closure error as a cause.
+
+\paragraph{System definition.}
+\emph{Variant A: continuous minimal.} State $(z,y)\in[0,1]^2$, projection $\phi(z,y)=z$. Dynamics per step:
+\begin{equation}
+z\leftarrow\mathrm{clip}(z+u),\ u\in[-\bar u,\bar u],\qquad y\leftarrow\mathrm{clip}(y+a+w), \label{eq:varA}
+\end{equation}
+where $a$ is the occupant's action and $w\sim\mathcal N(0,\sigma^2)$ is optional, with $\sigma=0$ by default. Proxy $v(z)=\mathbf 1[z\le\zeta]$; true evaluator $V(z,y)=\mathbf 1[z\le\zeta]\mathbf 1[y\le\beta]$. Specified defaults: $\zeta=0.5$, $\beta=0.8$, $y_0=0.1$, $z_0=0.2$, $\bar u=0.1$. \revnote{Shipped defaults differ; see \S\ref{sec:exhibit-impl}. One of the two should be changed.}
+
+\emph{Variant B: FSM storyworld.} A finite state machine has visible trust ledger $z\in\{0,\dots,K\}$, $K=10$, hidden commitment flags $y\in\{0,1\}^\ell$, $\ell=4$, and a designated bad set. At least two actions must have identical $z$ effects and different $y$ effects, displayed as a table rather than claimed.
+
+\paragraph{Harness policy.} The harness reads $z$ only. If $z$ is above margin, it applies a corrective $u$ or selects a $z$-decreasing action. The invariant $v(\phi(x_t))=1$ should be asserted at every step; a proxy failure is a bug, not data.
+
+\paragraph{Occupant policy and update.} Variant A uses a single drift parameter or a small softmax over $\{-\bar\rho,0,+\bar\rho\}$. Variant B uses a softmax table $\pi(a\mid z,y)$ over world actions. Update by REINFORCE on reward $R=y$ in Variant A or progress into the fiber in Variant B. The exhibit survives any objective monotone in the fiber coordinate.
+
+\paragraph{Optimization pressure and metric.} Let $\lambda$ be the REINFORCE learning rate or selection strength. Run $\lambda=0$ as a control arm. The metric is
+\begin{equation}
+t^*(\lambda)=\min\{t:V(x_t)=0\},
+\end{equation}
+censored at $T_{\max}=10^4$. Report median and IQR over at least 50 seeds per $\lambda$, with a log grid such as $10^{-3}$ to $10^0$, plus $0$. Compare to the sanity prediction $\mathbb E[t^*(\lambda)]\approx(\beta-y_0)/\rho(\lambda)$.
+
+\paragraph{Expected plots.}
+\begin{enumerate}
+\item $t^*(\lambda)$, median with IQR band, log-$x$: the fidelity half-life against optimization pressure.
+\item For three representative $\lambda$, plot $v(\phi(x_t))$ and $V(x_t)$ versus $t$: proxy flat at 1, truth dropping at $t^*$.
+\item Optional: occupancy histogram of $y$ or fiber-flag counts by round, showing the reachable set leaving the sufficiency region while $z$ statistics are stationary.
+\item Control: $\lambda=0$ arm overlaid, all censored.
+\end{enumerate}
+
+\paragraph{Smallest CPU-only version.} The minimal implementation target is a Python script; the shipped one is \texttt{scripts/run\_confinement\_width\_exhibit.py} over \texttt{src/evals/confinement\_width.py} in \cite{dugan2026harness}. It is CPU-only and deterministic under seeded RNGs, writes per-step trajectories and summaries, computes $\eta$ as the observed projected next state minus the harness model's projected next state, and asserts $\max|\eta|=0$ in the main run.
+
+\paragraph{TRM/tinyLoRA extension.} The FSM remains fixed; the occupant becomes a TRM router or small policy head. Per round, a tinyLoRA adapter is updated against the proxy exposed by the harness. Run both arms: private-objective drift and proxy-optimizing Goodhart. Measurement is unchanged: $V$ from the FSM directly, no judge model, and $v\circ\phi$ asserted flat.
+
+\section{Citation audit status}
+
+\paragraph{Verified enough for circulation, with visible scope.}
+\begin{enumerate}
+\item \emph{Invariance entropy.} Colonius--Kawan 2009 and Kawan 2013 \cite{colonius2009,kawan2013} support the set-invariance / spanning-control-function lineage used for the write-side branching inequality. The linear or affine case is governed by unstable growth rates, while nonlinear volume-growth statements require regularity hypotheses such as admissible/control pairs, nonempty interior, positive measure, finite volume, or hyperbolic isolated-set assumptions. The manuscript therefore uses the linear local theorem as the load-bearing statement.
+\item \emph{Data-rate theorem.} The paper's normalization is noiseless, quantized, and measured in bits per plant step. Nair--Evans \cite{nair2000} is the closest antecedent for the read-side finite-feedback-rate normalization. Tatikonda--Mitter and Sahai--Mitter are retained for the broader communication-constrained/noisy-channel setting \cite{tatikonda2004,sahai2006}.
+\item \emph{Viability theory.} Aubin \cite{aubin1991} is used only for constrained-dynamics vocabulary.
+\end{enumerate}
+
+\paragraph{Downgraded or replaced.}
+\begin{itemize}
+\item Brockett 1997 is reinstated for the minimum-attention viewpoint \cite{brockett1997}. Egerstedt--Brockett 2003 remains unpinned and is not used as a load-bearing citation. The draft also uses later, checkable sources for minimum-attention control and static coder-controller / lookup-table constructions \cite{lee2022,donkers2014,tomar2022}.
+\item Musat 2026 \cite{musat2026} is retained as preprint support for fixed-precision/description-length discipline and optional simplicity-prior motivation, not as support for the width theorem.
+\end{itemize}
+
+\paragraph{Still flagged.}
+\begin{itemize}
+\item The exact theorem/page references in Colonius--Kawan and Kawan should be page-verified before public release.
+\item Nair--Evans and Colonius--Kawan have stable volume/page metadata in the bibliography; exact theorem/page references should still be checked against the publisher records before public release. Tatikonda--Mitter DOI metadata remains optional because it is non-load-bearing here.
+\item Dean--Majumdar exact constants, including $\theta=(\ln3)/4$, remain on the verification list; the manuscript uses only large-deviation suppression wording \cite{dean2006}.
+\item Discrete-time Bode integral citations should be retained only if the fragility appendix is re-founded \cite{mohtadi1990}.
+\item Mori--Zwanzig and Koopman canonical picks remain non-load-bearing background \cite{zwanzig1961,mori1965,koopman1931}.
+\item \revnote{Every entry added in this revision is unverified against the publisher record; see the last item of the citation verification status above.}
+\end{itemize}
+
+\section{FRC as an interactive analogue of time-bounded Kolmogorov complexity}
+
+Classical time-bounded Kolmogorov complexity asks for the shortest program that produces a fixed object within a bounded amount of computation \cite{livitanyi2019}:
+\begin{equation}
+K^t_U(y)=\min\{|p|: U(p)=y\text{ within time }t\}.
+\end{equation}
+Fidelity Recursive Complexity (FRC) lifts this question from a static computation to an interactive, adversarial process. Rather than asking for the shortest program that computes an output once, it asks for the least defender resource budget that preserves a target property through repeated rounds of adaptive evaluation:
+\begin{equation}
+\mathrm{FRC}_P(k;\delta)=\min\{R:\ \exists A\text{ such that }\mathrm{Fid}^{(k)}_P(A)\ge1-\delta\text{ using resources}\le R\}.
+\end{equation}
+Here the fixed output $y$ is replaced by a trajectory property $P$, the program $p$ is replaced by an agent, controller, or harness $A$, the universal machine $U$ is replaced by a rollout and evaluation process, and the time bound $t$ is replaced by recursive depth $k$ together with an explicit resource budget $R$. Informally: time-bounded Kolmogorov complexity prices computation; FRC prices maintained fidelity.
+
+This analogy is intentionally imperfect. Kolmogorov complexity is a description-length quantity over programs, while FRC aggregates heterogeneous defender resources such as compute, data, oversight, proof effort, latency, attestation, and interface costs. The point of the analogy is not to identify FRC with Kolmogorov complexity, but to motivate the migration from producing an object once to keeping a property true under adaptive pressure.
+
+\section{From FRC to confinement width}
+
+The earlier FRC formulation \cite{dugan2025frc} treated fidelity maintenance as a broad resource-minimization problem. For a property $P$, tolerance $\delta$, and reflective depth $k$, it defined
+\begin{equation}
+\mathrm{FRC}_P(k;\delta)=\min\{R:\ \exists A\text{ such that }\mathrm{Fid}^{(k)}_P(A)\ge1-\delta\text{ using resources}\le R\}.
+\end{equation}
+This is a global adversarial property-testing quantity: it asks how much defender resource is required to preserve $P$ against a $k$-round adaptive process that can condition on previous patches and failures.
+
+The present note refactors that broad burden into a local dynamical object. Given an evaluator region $\RV=\{x:V(x)\ge\tau\}$, it isolates the declared read/write interface footprint. The bottleneck confinement width is
+\begin{equation}
+\W^\wedge_V(R,T,\epsilon)=\min_\theta\min(\sr(\theta),\sw(\theta)),
+\end{equation}
+while the scalar-footprint version used in recursive budget accounting is
+\begin{equation}
+\W^\Sigma_V(R,T,\epsilon)=\min_\theta\big(\sr(\theta)+\sw(\theta)\big),
+\end{equation}
+with the pair-valued version keeping $(\sr,\sw)$ non-exchangeable. Under the local hypotheses of Theorem \ref{thm:main}, the active round satisfies
+\begin{equation}
+b\,\sr(\theta)\ge\htwo(\Au),\qquad b\,\sw(\theta)\ge\htwo(\Au).
+\end{equation}
+Consequently $\W_\wedge(\theta)\ge\htwo(\Au)/b$, while $\W_\Sigma(\theta)\ge2\htwo(\Au)/b$ under scalar-footprint accounting. Thus the migration is from a global scalar resource burden to a roundwise decomposition:
+\begin{equation}
+\mathrm{FRC}_V(K,\delta)\ \rightsquigarrow\ \inf_{\{\phi_k,G_k,\pi_k\}}\sum_{k=0}^{K-1}\big(\W^\Sigma_{V,k}+A_k\big),
+\end{equation}
+or to the analogous Pareto frontier if read and write budgets are kept as a pair. Here $\W^\Sigma_{V,k}$ is the scalar read/write confinement-width cost of the round-$k$ dynamics, while $A_k$ is the audit and refinement cost of maintaining evaluator sufficiency and closure for the quarantine projection $\phi_k:X_k\to Z_k$. Confinement width is therefore a local lower-bound term inside FRC, while dimensional quarantine is the constructive route for reducing that term by forcing evaluator-relevant dynamics through a low-dimensional measured state.
+
+In this sense, the older FRC program asked whether fidelity maintenance becomes intractable under recursive adaptation; the present note identifies one mathematically grounded summand of that cost.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
