@@ -560,7 +560,7 @@ theorem data_rate_necessity (A Lam K : Nat) (hA : 1 <= A)
     (hrec : forall t, Lam * u t <= u (t + 1) * A)
     (hbound : forall t, u t <= K) : Lam <= A
 \end{lstlisting}
-Build and axiom audit: \texttt{lake build \&\& lean Check.lean} prints the axioms each theorem depends on; the expected set is \texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound} (from \texttt{omega} and \texttt{simp}) and no \texttt{sorryAx}. The Lean tooling is \cite{demoura2021}; the formalization was written against Lean \texttt{v4.35.0} and does not use Mathlib \cite{mathlib2020}, which would have made the real-valued statements direct.
+Build and axiom audit: \texttt{lake build \&\& lean Check.lean} prints the axioms each theorem depends on. On the checked build (\texttt{lean/CHECK\_OUTPUT.txt}), \texttt{reactive\_confinement} and \texttt{fiber\_ambiguity} depend on no axioms at all; \texttt{predictive\_defect\_bound}, \texttt{witness\_bound}, \texttt{data\_rate\_necessity} and \texttt{port\_necessity} depend on \texttt{propext} and \texttt{Quot.sound} (through \texttt{omega} and \texttt{simp}); none depends on \texttt{Classical.choice} or \texttt{sorryAx}. The Lean tooling is \cite{demoura2021}; the formalization was written against Lean \texttt{v4.35.0} and does not use Mathlib \cite{mathlib2020}, which would have made the real-valued statements direct.
 
 What is not formalized, and why. Theorem \ref{thm:main} needs Lebesgue measure and the volume scaling of linear maps; both exist in Mathlib and neither in core. Conjecture \ref{conj:index} is a conjecture. The exhibit is a computation, checked by its own assertions in the Python implementation rather than by proof.
 

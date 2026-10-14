@@ -98,10 +98,14 @@ macro's body to strip the markers before circulation.
   checking first: `donkers2014`, `lee2022`, `colonius2013`, `kawan2011`,
   `subag2017`, `fyodorov2007`, `skalse2022` (title: "reward gaming" vs.
   "reward hacking"), `papyan2020`, `demoura2021`.
-- **Lean build.** The development was written against Lean `v4.35.0` built
-  from source. If `lake build` fails on a different toolchain, the likely
-  culprits are lemma names (`Nat.pow_le_pow_left`, `Nat.le_mul_of_pos_right`,
-  `Nat.mul_left_comm`) rather than the proofs' structure.
+- **Lean build.** All five modules and `Check.lean` were checked with Lean
+  `v4.35.0` built from source (transcript in `lean/CHECK_OUTPUT.txt`): no
+  `sorryAx`, no `Classical.choice`; two theorems are axiom-free, four use
+  `propext` and `Quot.sound`. `lake` itself was not exercised (the toolchain
+  build was stopped after the core library), so `lake build` on an elan
+  toolchain is untested; lemma names (`Nat.pow_le_pow_left`,
+  `Nat.le_mul_of_pos_right`, `Nat.mul_left_comm`) are the likely breakage on
+  a different version.
 - **Exhibit numbers.** Table 2 reads `results/confinement_width/fiber_routing_summary.json`
   at control-harness `c7c1b3d`. If the exhibit is re-run with the Appendix A
   defaults, regenerate the table.

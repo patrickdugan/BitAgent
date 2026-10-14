@@ -36,7 +36,7 @@ theorem pow_succ_lower (a : Nat) : ∀ n, a ^ (n + 1) + (n + 1) * a ^ n ≤ (a +
     have ih := pow_succ_lower a n
     have h1 : (a ^ (n + 1) + (n + 1) * a ^ n) * (a + 1) ≤ (a + 1) ^ (n + 1) * (a + 1) :=
       Nat.mul_le_mul_right (a + 1) ih
-    have h2 : (a + 1) ^ (n + 1 + 1) = (a + 1) ^ (n + 1) * (a + 1) := Nat.pow_succ
+    have h2 : (a + 1) ^ (n + 1 + 1) = (a + 1) ^ (n + 1) * (a + 1) := Nat.pow_succ (a + 1) (n + 1)
     rw [h2]
     refine Nat.le_trans ?_ h1
     have e1 : a ^ (n + 1) * a = a ^ (n + 1 + 1) := (Nat.pow_succ a (n + 1)).symm

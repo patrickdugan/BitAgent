@@ -1,0 +1,15 @@
+# Verification transcript (Lean 4.35.0 built from source, core library only)
+Lean (version 4.35.0, commit 5f4537b2840f5ea5f81ae1bcd7373ce7ea116b37, Release)
+ConfinementWidth/CancelOrder.lean: ok
+ConfinementWidth/Quarantine.lean: ok
+ConfinementWidth/Predictive.lean: ok
+ConfinementWidth/FiberAmbiguity.lean: ok
+ConfinementWidth/DataRate.lean: ok
+ConfinementWidth.lean: ok
+Check.lean:
+'ConfinementWidth.reactive_confinement' does not depend on any axioms
+'ConfinementWidth.predictive_defect_bound' depends on axioms: [propext, Quot.sound]
+'ConfinementWidth.fiber_ambiguity' does not depend on any axioms
+'ConfinementWidth.witness_bound' depends on axioms: [propext, Quot.sound]
+'ConfinementWidth.data_rate_necessity' depends on axioms: [propext, Quot.sound]
+'ConfinementWidth.port_necessity' depends on axioms: [propext, Quot.sound]
