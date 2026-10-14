@@ -1,5 +1,10 @@
 \begin{thebibliography}{10}
 
+\bibitem{agarwal2026}
+Ayushi Agarwal.
+\newblock On the formal limits of alignment verification.
+\newblock Preprint, arXiv:2603.08761, 2026.
+
 \bibitem{agrawal2017}
 Ayush Agrawal and Koushil Sreenath.
 \newblock Discrete control barrier functions for safety-critical control of
@@ -123,15 +128,6 @@ M.~C.~F. Donkers, Paulo Tabuada, and W.~P. M.~H. Heemels.
   approach.
 \newblock {\em Discrete Event Dynamic Systems}, 24(2):199--218, 2014.
 
-\bibitem{dugan2025frc}
-Patrick Dugan.
-\newblock Towards {S}uper{A}lignment intractability proofs: Eigensystem escape
-  and fidelity recursive complexity show lower bounds on corrigibility for
-  {RSI} agents.
-\newblock Draft, August 15, 2025.
-  \url{https://moralitylab.xyz/papers/SuperAlignment_Intractability_1.pdf},
-  2025.
-
 \bibitem{dugan2026harness}
 Patrick Dugan.
 \newblock Control-harness: storyworld evals, {M}esh{E}scape{P}it, oracle
@@ -139,6 +135,15 @@ Patrick Dugan.
 \newblock Software and data,
   \url{https://github.com/MoralityLabAI/control-harness}, revision c7c1b3d
   (October 11, 2026), 2026.
+
+\bibitem{dugan2025frc}
+Patrick Dugan.
+\newblock Towards {S}uper{A}lignment intractability proofs: Eigensystem escape
+  and fidelity recursive complexity show lower bounds on corrigibility for
+  {RSI} agents.
+\newblock Draft, August 15, 2025; revised October 10, 2026.
+  \url{https://moralitylab.xyz/papers/SuperAlignment_Intractability_1.pdf},
+  2026.
 
 \bibitem{dugan2026trmldt}
 Patrick Dugan.
@@ -148,12 +153,12 @@ Patrick Dugan.
   2026.
 
 \bibitem{dugan2025collapse}
-Patrick~B. Dugan.
+Patrick~B. Dugan and {GPT-5 Thinking}.
 \newblock Corrigibility collapse at the limit of {FRC}: {N}$\to${N}+1
   forecasting for {RSI} super-alignment.
-\newblock Draft, August 25, 2025.
+\newblock Draft, August 25, 2025; revised October 10, 2026.
   \url{https://moralitylab.xyz/papers/SuperAlignment_Intractability_2.pdf},
-  2025.
+  2026.
 
 \bibitem{freudenberg1985}
 James~S. Freudenberg and Douglas~P. Looze.
@@ -184,6 +189,17 @@ Behrooz Ghorbani, Shankar Krishnan, and Ying Xiao.
 Antoine Girard and George~J. Pappas.
 \newblock Approximation metrics for discrete and continuous systems.
 \newblock {\em IEEE Transactions on Automatic Control}, 52(5):782--798, 2007.
+
+\bibitem{goertzel2010}
+Ben Goertzel.
+\newblock Toward a formal characterization of real-world general intelligence.
+\newblock In {\em Proceedings of the 3rd Conference on Artificial General
+  Intelligence (AGI-10)}, pages 74--79. Atlantis Press, 2010.
+
+\bibitem{goldreich1998}
+Oded Goldreich, Shafi Goldwasser, and Dana Ron.
+\newblock Property testing and its connection to learning and approximation.
+\newblock {\em Journal of the ACM}, 45(4):653--750, 1998.
 
 \bibitem{greenblatt2023}
 Ryan Greenblatt, Buck Shlegeris, Kshitij Sachan, and Fabien Roger.
@@ -264,6 +280,11 @@ David Manheim and Scott Garrabrant.
 \newblock Categorizing variants of {G}oodhart's law.
 \newblock arXiv:1803.04585, 2018.
 
+\bibitem{marsh2012}
+David Marsh, Liam McAllister, and Timm Wrase.
+\newblock The wasteland of random supergravities.
+\newblock {\em Journal of High Energy Physics}, 2012(3):102, 2012.
+
 \bibitem{martins2008}
 Nuno~C. Martins and Munther~A. Dahleh.
 \newblock Feedback control in the presence of noisy channels: {B}ode-like
@@ -296,7 +317,7 @@ Hazime Mori.
 \bibitem{musat2026}
 Tiberiu Musat.
 \newblock Neural weight norm = {K}olmogorov complexity.
-\newblock Preprint, 2026.
+\newblock Preprint, arXiv:2605.10878, 2026.
 
 \bibitem{nair2000}
 Girish~N. Nair and Robin~J. Evans.
@@ -345,6 +366,13 @@ Joar Skalse, Nikolaus H.~R. Howe, Dmitrii Krasheninnikov, and David Krueger.
 \newblock Defining and characterizing reward gaming.
 \newblock In {\em Advances in Neural Information Processing Systems 35}, 2022.
 
+\bibitem{srivastava2026}
+Vishal Srivastava.
+\newblock Fundamental limits of black-box safety evaluation:
+  Information-theoretic and computational barriers from latent context
+  conditioning.
+\newblock Preprint, arXiv:2602.16984, 2026.
+
 \bibitem{subag2017}
 Eliran Subag.
 \newblock The complexity of spherical {$p$}-spin models---a second moment
@@ -391,6 +419,17 @@ Wing~Shing Wong and Roger~W. Brockett.
 \newblock Systems with finite communication bandwidth constraints. {II}.
   {S}tabilization with limited information feedback.
 \newblock {\em IEEE Transactions on Automatic Control}, 44(5):1049--1053, 1999.
+
+\bibitem{yao1977}
+Andrew Chi-Chih Yao.
+\newblock Probabilistic computations: Toward a unified measure of complexity.
+\newblock In {\em 18th Annual Symposium on Foundations of Computer Science
+  (FOCS)}, pages 222--227, 1977.
+
+\bibitem{yao2025trap}
+Jasper Yao.
+\newblock The alignment trap: Complexity barriers.
+\newblock Preprint, arXiv:2506.10304, 2025.
 
 \bibitem{zhuang2020}
 Simon Zhuang and Dylan Hadfield-Menell.

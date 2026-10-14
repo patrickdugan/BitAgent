@@ -1,119 +1,105 @@
-# Confinement Width, revision 2: change log
+# Confinement Width, revision 3 draft: change log
 
-Base: `Confinement_Width__Interface_Limits_for_Evaluator_Relative_Control_.pdf`
-(July 6, 2026) as checked into `MoralityLabAI/morality-lab-site` at commit
-`9477211` (October 9, 2026). The revision was prepared with coding-agent
-assistance in an offline container; see "Sourcing" below for what that
-implies.
+Base: the **October 10, 2026** revision of
+`Confinement_Width__Interface_Limits_for_Evaluator_Relative_Control_.pdf` as
+checked into `MoralityLabAI/morality-lab-site` at commit `5caf645`
+(October 14, 2026). The author's October 10 text, numbering, revision log and
+open items are reproduced verbatim (re-typeset from the PDF). Everything
+added here is marked `[r3: ...]` in red by the `\revnote` macro; empty the
+macro to strip the markers. New theorem-like items are lettered (Remark 2.A,
+Lemma 3.A, Remark 4.A, Remark 6.A, Remark 10.A) and new displays tagged
+(D1), so no October 10 number moves.
 
-The retained text is the author's, re-typeset from the PDF. Insertions are
-marked `[v2: ...]` in red in the compiled PDF (macro `\revnote`); delete the
-macro's body to strip the markers before circulation.
+An earlier draft of this directory (commits `fe142a9`..`9f6b728`) was built on
+the July 6 text before the October 10 revision was available in the repo; it
+has been superseded in full.
 
-## What changed and why
+## What revision 3 adds
 
-1. **Bits before ports (new Remark 2.4, Table 1).** The bound is a rate,
-   `h2 = m log2(1+delta)` bits per step; the port count is that divided by
-   `b`. At `b = 32` and `delta = 0.1` a thousand unstable modes need five ports.
-   v1's `Omega(m)` headline holds only for fixed low `b`. The table makes the
-   regime explicit and names the low-`b` channels where the bound actually
-   constrains: human approvals, short token budgets, symbolic action
-   alphabets. The abstract and Section 8 were adjusted to match.
-
-2. **Conjecture 4.1 relabelled (new Remark 4.3).** The conjecture lives in
-   parameter space under a GOE null. Measured Hessian spectra of trained
-   networks (Sagun et al., Ghorbani et al., Papyan) are bulk-near-zero plus few
-   outliers, so the parameter-space instance is contradicted; the harness
-   state spaces have no null model at all. Corollary 4.2 is kept but
-   explicitly conditional. Item 1 of Future Work now says: write the null for
-   the observed space or drop the corollary from the abstract.
-
-3. **Discrete counting skeleton (new Lemma 3.2).** A cardinality version of
-   the read-side data-rate argument: disturbance alphabet `Lambda`,
-   observation alphabet `A = 2^R`, uncertainty cardinality `u_t`, recurrence
-   `u_{t+1} A >= Lambda u_t`, hence bounded uncertainty forces `Lambda <= A`.
-   The pigeonhole step is a paper proof; the recurrence-to-contradiction
-   step is machine-checked. This also gives the finite-horizon shape that
-   Remark 3.3 lacked.
-
-4. **Exhibit 7.1 implementation status (new Section 7.1, Table 2).** The
-   exhibit shipped in `MoralityLabAI/control-harness`
-   (`src/evals/confinement_width.py`) with parameters that differ from
-   Appendix A (`zeta`, `beta`, `y0`, `z0`, `u_bar`, horizon 80 not 10^4,
-   5 seeds not 50, Bernoulli drift not REINFORCE). The section lists the
-   deviations, tabulates observed medians against the drift prediction
-   `14 / p(lambda)`, and says plainly that no optimizer is in the loop yet.
-   v1 promised to cite its own plot; v2 cites the run it has.
-
-5. **Lean 4 formalization (new Section 12, Table 3, `lean/`).** Core Lean
-   only, no Mathlib, so it checks offline. Covered: Proposition 6.1 and its
-   region conclusion; Remark 6.1 (division-free geometric bound); Lemma 10.1
-   and `same_action`; the counted witness bound that the Control
-   Observability pilot uses; Bernoulli in Nat; the counting lemma's second
-   half; `data_rate_necessity` and its port form. Not covered: Theorem 3.1
-   (needs Lebesgue measure), Conjecture 4.1, the exhibit.
-
-6. **FRC reconciliation (new Section 9.1).** Four correspondences with the
-   FRC papers as checked into the site repo: priced action channels are
-   write ports; oversight bandwidth `B` is read rate; attested self-mods are
-   the audit term `A_k`; eigensystem escape (FRC Lemma 2) is fiber ambiguity
-   with the colliding states supplied by the masked branch. Stated as
-   correspondences, not theorems. The section says explicitly that nothing
-   here upgrades FRC Theorem 2.
-
-7. **Citations.** 41 entries added (networked-control surveys and the
-   feedback/invariance entropy relation; side-information limits; symbolic
-   abstraction; CBF survey; Koopman/Mori-Zwanzig in data-driven form;
-   spin-glass complexity and its deep-learning lineage; Hessian spectra; AI
-   control, scalable oversight, steering, Goodhart; POMDPs; Lean and
-   Mathlib; the TRM, HRM, LDT and FRC sources; the harness repository).
-   Every added entry is flagged unverified (see Sourcing).
-
-8. **Minor.** Remark 3.3 points at the discrete finite-horizon shape.
-   Remark 6.1 names the Lean statement. Section 5 cites the TRM/LDT hybrid
-   paper for the LDT gloss. Future Work gains items 6 (Mathlib port) and 7
-   (measure `b` for the harness's real channels).
+1. **Remark 2.A, Table 1: bits before ports.** The bound restated as a bit
+   budget, tabulated at four port precisions, and tied to the October
+   revision's own Remark 4.3 (null-model rate `N c(gamma)`, about 0.03
+   bits per dimension per step at `gamma sigma = 0.05`) and Remark 6.2 (cap
+   `d ceil(b'/b)` at coarse `b`). Names the low-`b` channels (human verdicts,
+   short token budgets, symbolic action alphabets) where the bound binds.
+2. **Lemma 3.A: discrete skeleton of Proposition 3.1.** Cardinality version
+   of the volume count, display (D1), with `log2(K/u0)` in the role of `c0`.
+   The recurrence-to-contradiction half is machine-checked; the pigeonhole
+   step is a paper proof.
+3. **Remark 4.A: the conjecture's state space.** Measured Hessian spectra
+   cited (Sagun, Ghorbani, Papyan) behind the October text's
+   "bulk-zero-plus-outlier" sentence; no null model exists for harness state
+   spaces; Corollary 4.1 read as conditional.
+4. **Remark 6.A and Appendix E: Lean 4 development** (core only, no
+   Mathlib). Checked: Proposition 6.1 and its region conclusion; Remark 6.1
+   (division-free geometric bound); **Remark 6.2 (quantized measurement),
+   new in this revision of the Lean code**; Lemma 10.1 and `same_action`;
+   the counted witness bound the Control Observability pilot uses;
+   Bernoulli in Nat; Lemma 3.A's second half; `data_rate_necessity` and
+   its port form. Axiom audit in `lean/CHECK_OUTPUT.txt`: three theorems
+   axiom-free, four use `propext` and `Quot.sound`, none uses
+   `Classical.choice` or `sorryAx`.
+5. **Section 7.1, Table 2: implementation status of Exhibit 7.1** from
+   `MoralityLabAI/control-harness` at `c7c1b3d`, with the deviations from
+   Appendix A listed (defaults, horizon 80 vs 10^4, 5 seeds vs 50,
+   Bernoulli drift vs REINFORCE) and the drift prediction `14/p(lambda)`
+   checked against observed medians. Half-discharges debt 5.
+6. **Section 9.1: reconciliation with the October 10 FRC papers.** Written
+   against the revised papers: competence floor, on-support verifiers,
+   Theorem 2 demoted to Conjecture 1, the new conditional Theorem 3, the
+   `2^l - |H_l|` masked-branch count, Corollary 2 as the cost of one
+   defence, and the companion's split Lemma 1 (verification gap vs.
+   Hypothesis 1). Five correspondences, none a theorem; the last one
+   separates the two linear floors so a reader does not take them for one
+   result. Both FRC revisions now cite this paper's Lemma 10.1; the
+   section records that it is also the machine-checked one.
+7. **Remark 10.A.** What the checked statements do and do not add (nothing
+   to Conjecture 4.1, Corollary 4.1, or Remark 10.2's status).
+8. **Section 11.** Debts 8 (Mathlib port of the rate bound) and 9 (measure
+   `b` on the harness's real channels) added; debt 5 annotated; debt 1
+   annotated.
+9. **Citations.** 42 external entries added, all flagged unverified (see
+   Sourcing); the six entries the October revision added ([21]-[26]) and the
+   Yao 1977 / Goldreich-Goldwasser-Ron 1998 sources for the query bound
+   carried into `references.bib`.
 
 ## Not changed
 
-- No theorem statement was altered. Theorem 3.1, Proposition 6.1, Corollary
-  6.3, Lemma 10.1, Propositions 10.1 and 10.2 are verbatim up to notation.
-- Both public corrections (Remarks 3.2 and 3.5) are retained verbatim.
-- Appendices B, C, D retained; B gained one flagged item.
-- The cosmology remark (4.4) is retained as the author wrote it.
+- No October 10 statement, proof, remark, equation number, revision note,
+  revision-log item or open item was altered.
+- The semicircle lower bound in Remark 4.3 was re-derived (Appendix B, last
+  paragraph) and agrees.
 
 ## Sourcing: what to check before circulation
 
 - **Live site vs. repo.** `moralitylab.xyz` was unreachable from the drafting
-  container (proxy policy denial), so every "site" document was read from
-  the `morality-lab-site` repository at `9477211`. The FRC paper there is the
-  August 15, 2025 draft (PDF created September 3, 2025). If the live site
-  carries a later FRC revision, Section 9.1's references to its Theorem 2,
-  Lemma 2, claim P2, Definition 4/11, and the companion's `Gamma = K_ver - B`
-  must be re-checked against that version.
-- **Bibliographic fields.** The container had no access to arXiv, Crossref,
-  DBLP or Semantic Scholar. All 41 added entries were written from memory of
-  the record. Titles and author lists are the parts most likely to be right;
-  volume, issue, page and year fields need checking. Entries most worth
-  checking first: `donkers2014`, `lee2022`, `colonius2013`, `kawan2011`,
-  `subag2017`, `fyodorov2007`, `skalse2022` (title: "reward gaming" vs.
-  "reward hacking"), `papyan2020`, `demoura2021`.
+  container (proxy policy denial). All three papers were read from the
+  `morality-lab-site` repository at `5caf645`, which the author pushed on
+  October 14 carrying the October 10 revisions. If the live site is newer
+  still, Section 9.1 should be re-read against it.
+- **Bibliographic fields.** No access to arXiv, Crossref, DBLP or Semantic
+  Scholar. The 42 added entries were written from memory of the record.
+  Titles and author lists are the parts most likely to be right; volume,
+  issue, page and year fields need checking. Check first: `donkers2014`,
+  `lee2022`, `colonius2013`, `kawan2011`, `subag2017`, `fyodorov2007`,
+  `skalse2022` (title: "reward gaming" vs. "reward hacking"), `papyan2020`,
+  `demoura2021`, `yao1977`, `goldreich1998`.
 - **Lean build.** All five modules and `Check.lean` were checked with Lean
-  `v4.35.0` built from source (transcript in `lean/CHECK_OUTPUT.txt`): no
-  `sorryAx`, no `Classical.choice`; two theorems are axiom-free, four use
-  `propext` and `Quot.sound`. `lake` itself was not exercised (the toolchain
-  build was stopped after the core library), so `lake build` on an elan
-  toolchain is untested; lemma names (`Nat.pow_le_pow_left`,
-  `Nat.le_mul_of_pos_right`, `Nat.mul_left_comm`) are the likely breakage on
-  a different version.
-- **Exhibit numbers.** Table 2 reads `results/confinement_width/fiber_routing_summary.json`
-  at control-harness `c7c1b3d`. If the exhibit is re-run with the Appendix A
-  defaults, regenerate the table.
+  `v4.35.0` built from source (transcript in `lean/CHECK_OUTPUT.txt`).
+  `lake` itself was not exercised, so `lake build` on an elan toolchain is
+  untested; lemma names (`Nat.pow_le_pow_left`, `Nat.le_mul_of_pos_right`,
+  `Nat.mul_left_comm`, `Nat.gt_of_not_le`) are the likely breakage on a
+  different version.
+- **Exhibit numbers.** Table 2 reads
+  `results/confinement_width/fiber_routing_summary.json` at control-harness
+  `c7c1b3d` and was re-verified against the file. If the exhibit is re-run
+  with the Appendix A defaults, regenerate the table.
+- **Typesetting.** The October build used Computer Modern (the author's
+  open item (c)); this build does the same. Theorem-like environments use
+  one counter per type, as the author's builds do.
 
-## Suggested next edits the author may not want from an assistant
+## Open for the author (revision 3)
 
-- Decide whether Corollary 4.2 belongs in the abstract at all given Remark 4.3.
-- Decide whether the exhibit's shipped defaults or the Appendix A defaults
-  are canonical, and change the other.
-- Port `lean/` to Mathlib so Proposition 6.1 is stated over the reals and
-  Lemma 3.2's pigeonhole step is proved over `Finset`.
+- Whether Corollary 4.1 belongs in the abstract given Remark 4.A.
+- Whether the shipped exhibit defaults or Appendix A's are canonical.
+- Whether Section 9.1 should move into the FRC paper, which now cites this one.

@@ -8,6 +8,7 @@ ConfinementWidth/DataRate.lean: ok
 ConfinementWidth.lean: ok
 Check.lean:
 'ConfinementWidth.reactive_confinement' does not depend on any axioms
+'ConfinementWidth.reactive_confinement_quantized' does not depend on any axioms
 'ConfinementWidth.predictive_defect_bound' depends on axioms: [propext, Quot.sound]
 'ConfinementWidth.fiber_ambiguity' does not depend on any axioms
 'ConfinementWidth.witness_bound' depends on axioms: [propext, Quot.sound]
