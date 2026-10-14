@@ -805,8 +805,8 @@ theorem data_rate_necessity (A Lam K : Nat) (hA : 1 <= A)
 \end{lstlisting}
 Build and axiom audit: \texttt{lake build \&\& lean Check.lean} prints the axioms each theorem depends on. On the checked build (\texttt{lean/CHECK\_OUTPUT.txt}):
 \begin{itemize}
-\item no axioms at all: \texttt{reactive\_confinement}, \texttt{reactive\_confinement\_quantized}, \texttt{fiber\_ambiguity};
-\item \texttt{propext} and \texttt{Quot.sound} (through \texttt{omega} and \texttt{simp}): \texttt{predictive\_defect\_bound}, \texttt{witness\_bound}, \texttt{data\_rate\_necessity}, \texttt{port\_necessity};
+\item no axioms at all:\newline \texttt{reactive\_confinement}, \texttt{reactive\_confinement\_quantized}, \texttt{fiber\_ambiguity};
+\item \texttt{propext} and \texttt{Quot.sound} (through \texttt{omega} and \texttt{simp}):\newline \texttt{predictive\_defect\_bound}, \texttt{witness\_bound}, \texttt{data\_rate\_necessity}, \texttt{port\_necessity};
 \item none depends on \texttt{Classical.choice} or \texttt{sorryAx}.
 \end{itemize}
 The Lean tooling is \cite{demoura2021}; the formalization was written against Lean \texttt{v4.35.0} and does not use Mathlib \cite{mathlib2020}, which would have made the real-valued statements direct.
