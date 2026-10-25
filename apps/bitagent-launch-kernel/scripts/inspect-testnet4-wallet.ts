@@ -37,6 +37,15 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : "Wallet inspection failed");
+  const code = typeof error === "object" && error !== null && "code" in error
+    ? String((error as { code?: unknown }).code || "")
+    : "";
+  if (code === "ENOENT") {
+    console.error(
+      "Bitcoin Core CLI was not found. Set BITCOIN_BIN to the directory containing bitcoin-cli.exe, then rerun this read-only inspector."
+    );
+  } else {
+    console.error(error instanceof Error ? error.message : "Wallet inspection failed");
+  }
   process.exitCode = 1;
 });
