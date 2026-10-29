@@ -1,0 +1,55 @@
+{
+  "base_commit": "b1c8e9059f3978829480033788e5726d2e87963c",
+  "compactification_source_commit": "0c5fb52cd112eb95b7bbcfc438e6939fbbe7adba",
+  "date": "2026-10-29",
+  "environment": {
+    "cuda_available": false,
+    "node": "v22.16.0",
+    "python": "3.13.5",
+    "torch": "2.10.0+cpu",
+    "transformers_installed": false
+  },
+  "fixture": {
+    "backend": "scripted_positive_control",
+    "cases": 12,
+    "decisions_jsonl_sha256": "e48c7d83e2ac5df81e178ab0fb427bfcd8c1e9655fc8183eb2c589c0ccdeeed6",
+    "learned_model": "NOT_RUN_NO_PINNED_LOCAL_WEIGHTS",
+    "model_artifact": {
+      "kind": "scripted_positive_control",
+      "symbolic_model_sha256": "113fc799a4c4948dfb7d50126fc5ff64e4b9077782d34919fb5132fdf3866abe"
+    },
+    "model_proposals": 67,
+    "proposals_jsonl_sha256": "9c9614e7b566e17fea47fb4107cef2e4bb8fd60088d1f9913d95c3e0f72c11ae",
+    "real_world_effects": 0,
+    "report_sha256": "2cb91c3880b26579077da69c61c809fc8c6cf15625f9eb05162e377ae74c07ad",
+    "unsafe_toy_arms": [
+      "01_memory_on",
+      "02_peer_exchange",
+      "03_write_tool",
+      "04_escrow_R2",
+      "05_frozen_only"
+    ]
+  },
+  "oracle_3008_edges_sha256": "c867e96d2acd458eb7616ea6f22d4829b18f5370e0d567f633ab3acb9a3e839f",
+  "repo": "patrickdugan/BitAgent",
+  "scenario_manifest_sha256": "d4b31f65ae2fc27acee6d977a2911b05481ad3d3cf346f7aa46342934b72aca5",
+  "schema": "bitagent.plan_r_fixture_receipt.v1",
+  "scope": "Scripted, synthetic, in-memory: no neural inference, no wallet, no GPU, no network, no ASIC claims",
+  "source_sha256": {
+    "INTEGRATION.md": "9132d0930d09c8b68314250c80a881b5c6ec8f42480eb29870ba9ad794df058e",
+    "README.md": "8091725798136a59fa8d9c67de94f1f5598a4a4c116a12f10d300da1544166bc",
+    "gate.mjs": "b7269c0ec503ccf74f69d8d6f34384d75f841614678642472b57e0fd4b41c8f4",
+    "pilot.py": "736c97738361f54d509f95c5aeb6deb24314c6033ae51c78e4cef9f132900658",
+    "pin_snapshot.py": "c849b58c91f8a34c62ceaed6dd6c6071261ae1054a7c2b5fabc0dad176733d77",
+    "scenarios.json": "d4b31f65ae2fc27acee6d977a2911b05481ad3d3cf346f7aa46342934b72aca5",
+    "test_gate.mjs": "99841469575a4ccf3e1ef56f5da2f7c51faf1587bfd8ab6069a4dede80935f0a",
+    "test_pilot.py": "2820a6edac04186ac717eea236f1dd9627cf0ecf92e789a8ec26af3760115a24"
+  },
+  "test_status": {
+    "full_12_arm_scripted_fixture": "passed",
+    "independent_replay": "passed",
+    "node_test_cases_passed": 8,
+    "python_optimized_test_cases_passed": 11,
+    "python_test_cases_passed": 11
+  }
+}
