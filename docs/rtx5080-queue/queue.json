@@ -174,7 +174,7 @@
     {
       "id": "Q3b",
       "priority": 3,
-      "name": "Bonsai 2 27B S0 real-row / projection parity (CPU)",
+      "name": "Bonsai 2 27B S0 real-row parity (CPU)",
       "objective": "Decode real PTQ1_0 matrix rows from the GGUF, match against the PrismML fork's dequant, then one projection vs the PyTorch oracle.",
       "repo": "HybridTRMLDT",
       "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
@@ -188,11 +188,32 @@
         "OPTIONAL: PQ2_0 GGUF (7.2 GB, sha256 3907dc16...) for the README step-1 PTQ1_0-vs-PQ2_0 cross-check; not downloaded"
       ],
       "work": "CPU",
-      "status": "PREP",
+      "status": "DONE",
       "resource_cap": "<= 4 threads, mmap read, < 6 GB RAM (RAM is tight: ~1.6 GB available now)",
       "stop_condition": "first mismatch recorded and stop; or row + projection parity receipt",
       "required_artifacts": [
         "parity receipt with file SHA, fork SHA, sign vector, tensor offsets"
+      ],
+      "evidence_class": "real-model weights (no forward pass)",
+      "result": "2026-10-31 PASS, HybridTRMLDT branch research/s0-real-row-parity-20261031 @ a82359b (pushed). Python codec bit-exact vs PrismML ggml-base.dll dequantize_row_ptq1_0: 402/402 PTQ1_0 tensors sampled (11.6M values) + 2 full tensors (120.6M values), 0 mismatches; layout covers file exactly; sign_mode explicit, widths 5120/6144/17408. Receipt receipts/row_parity_20261031.json. Not tested: runtime sign/transform order, tokenization, projection/forward parity."
+    },
+    {
+      "id": "Q3b2",
+      "priority": 3,
+      "name": "Bonsai 2 27B S0 projection parity (one fork projection vs PyTorch oracle with real signs)",
+      "repo": "HybridTRMLDT",
+      "branch": "research/s0-real-row-parity-20261031",
+      "sha": "a82359b",
+      "owner": "unassigned",
+      "work": "CPU (oracle) + fork runtime output for one projection",
+      "prerequisites": [
+        "a way to capture one projection output from the fork runtime (llama eval callback / debug tool in the existing build, or a fork build)",
+        "oracle built with explicit signs from metadata"
+      ],
+      "status": "PREP",
+      "stop_condition": "first mismatch recorded, or projection parity receipt",
+      "required_artifacts": [
+        "projection parity receipt with tensor name, input hash, tolerance basis"
       ],
       "evidence_class": "real-model"
     },
@@ -209,7 +230,7 @@
       ],
       "work": "GPU",
       "status": "BLOCKED",
-      "blocked_on": "Q3b",
+      "blocked_on": "Q3b2 (projection parity) and S0 step 2 logits",
       "resource_cap": "proposed: <= 10 GB VRAM at 32K (the S0 go criterion), one server, 32 fixed prompts",
       "stop_condition": "VRAM/throughput receipt; no training step in this row",
       "required_artifacts": [
