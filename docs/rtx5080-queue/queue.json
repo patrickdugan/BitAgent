@@ -162,13 +162,14 @@
         "git worktree of the branch (no install; torch tests skip without the neural extra)"
       ],
       "work": "CPU",
-      "status": "READY",
+      "status": "DONE",
       "resource_cap": "1 core, < 1 GB RAM, < 5 min",
       "stop_condition": "unittest result recorded",
       "required_artifacts": [
         "test log with SHA"
       ],
-      "evidence_class": "synthetic (codec round-trip; cannot detect a layout error shared by encoder and decoder)"
+      "evidence_class": "synthetic (codec round-trip; cannot detect a layout error shared by encoder and decoder)",
+      "result": "2026-10-31 at 0064ab4 (detached worktree C:/Users/patri/Documents/Codex/HybridTRMLDT-s0): 23/23 pass with torch 2.11 (bvg-v03 venv, read-only); 18 pass + 5 torch tests skipped under stdlib Python 3.12. The PQ2 scale-first and non-integer-trit rejection tests pass. The \"known vectors\" are hand-written expected bytes, not output of PrismML C code, so a layout misreading shared by test and codec would still pass. Real-row parity (Q3b) remains the actual check."
     },
     {
       "id": "Q3b",
