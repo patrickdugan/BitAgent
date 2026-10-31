@@ -19,7 +19,7 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q2a | 2 | ConstitutionalAlignment format diagnosis (chat-template render, tokenizer only) | CPU | PREP | find training render code; write script |
 | Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | PREP | Q2a; script review |
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | DONE | 2026-10-31: 23/23 pass (torch); vectors hand-written, still synthetic |
-| Q3b | 3 | Bonsai 2 27B S0 real-row / projection parity | CPU | BLOCKED | PTQ1_0 GGUF and PrismML fork `c96baf4` not on disk |
+| Q3b | 3 | Bonsai 2 27B S0 real-row / projection parity | CPU | PREP | GGUF + fork on disk (hash verified); needs tensor-offset reader script |
 | Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b |
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | BLOCKED | model + revision not chosen |

@@ -14,7 +14,7 @@
     "gpu": "RTX 5080 Laptop 16303 MiB; 5 MiB used; no compute process; enforced power limit 150 W, P8 idle",
     "cpu": "Ryzen AI 9 365, 10C/20T",
     "ram": "31.1 GB physical, ~1.6 GB available; commit 67/113 GB (~46 GB headroom)",
-    "disk": "C: 185 GB free, D: 715 GB free",
+    "disk": "C: ~179 GB free after the 5.9 GB GGUF, D: 715 GB free",
     "active_workers": "No GPU holders. Codex app-server + sandboxes idle; one cargo test --locked (other session); Spiral grab_server python helpers. Nothing to stop or duplicate.",
     "runtimes": {
       "venv bvg-v03": "torch 2.11.0+cu128, transformers 4.46.3",
@@ -25,9 +25,9 @@
       ],
       "vramorama": "C:/Users/patri/AppData/Local/Programs/vramorama/vramorama.exe",
       "not_present": [
-        "vllm",
-        "PrismML llama.cpp source at c96baf4 (llama.cpp-src is ggml-org 318a471)"
-      ]
+        "vllm"
+      ],
+      "PrismML llama.cpp": "source C:/Users/patri/Documents/Codex/llama.cpp-prism at c96baf4 (defines PQ2_0=142, PTQ1_0=143); unbuilt. Existing build tools/llama-prism-b10743 = commit adfffbe41, an ancestor of the pin 84 commits back, with ggml-quants.c and ggml-common.h identical to the pin"
     },
     "cached_models": {
       "Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775": "model.safetensors sha256 fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe",
@@ -35,7 +35,7 @@
       "Qwen/Qwen3-8B, prism-ml/Bonsai-8B-unpacked, Qwen3.5-4B (C:/Users/patri/models)": "present",
       "Bonsai-8B-Q1_0.gguf": "C:/Users/patri/models/bonsai-8b",
       "Bonsai-27B-Q1_0.gguf (gen 1)": "NOT FOUND (memory pointed at Codex/BitAgent-LatentBench/models; directory gone)",
-      "prism-ml/Ternary-Bonsai-2-27B-gguf PTQ1_0": "NOT FOUND"
+      "prism-ml/Ternary-Bonsai-2-27B-gguf PTQ1_0": "C:/Users/patri/models/ternary-bonsai-2-27b/Ternary-Bonsai-2-27B-PTQ1_0.gguf, repo rev 94dd51cdbbec5309ed8b76a12f3268bc4fdceb93, 5946648928 bytes, sha256 53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3 (matches HF LFS oid), downloaded 2026-10-31"
     }
   },
   "rows": [
@@ -179,15 +179,16 @@
       "repo": "HybridTRMLDT",
       "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
       "owner": "unassigned",
-      "model": "prism-ml/Ternary-Bonsai-2-27B-gguf PTQ1_0 (checkpoint sha PENDING)",
+      "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf sha256 53107f53...33ee3 (rev 94dd51cd)",
       "prerequisites": [
-        "GGUF on disk (download needs your approval; size not checked)",
-        "PrismML llama.cpp source/build at c96baf4 with type 143 (tools/llama-prism-b10743 build: type-143 support unverified)",
-        "GGUF tensor-offset reader (stub; not in branch)"
+        "DONE: PTQ1_0 GGUF on disk, hash verified",
+        "DONE: PrismML source at c96baf4; quant code identical in existing build adfffbe41",
+        "TODO: GGUF tensor-offset + sign-vector metadata reader (stub, not in branch)",
+        "TODO: independent row decoder for comparison (fork dequant via existing build or gguf-py)",
+        "OPTIONAL: PQ2_0 GGUF (7.2 GB, sha256 3907dc16...) for the README step-1 PTQ1_0-vs-PQ2_0 cross-check; not downloaded"
       ],
       "work": "CPU",
-      "status": "BLOCKED",
-      "blocked_on": "checkpoint and pinned fork not present locally",
+      "status": "PREP",
       "resource_cap": "<= 4 threads, mmap read, < 6 GB RAM (RAM is tight: ~1.6 GB available now)",
       "stop_condition": "first mismatch recorded and stop; or row + projection parity receipt",
       "required_artifacts": [
