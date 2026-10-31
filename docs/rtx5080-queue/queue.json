@@ -83,7 +83,7 @@
         "explicit user go"
       ],
       "work": "GPU",
-      "status": "READY",
+      "status": "DONE",
       "resource_cap": "<= 4 GB VRAM, <= 30 min, exactly 1 attempt",
       "stop_condition": "one attempt; never rerun or change settings",
       "required_artifacts": [
@@ -91,7 +91,8 @@
         "model_holdout_qwen_v03/",
         "re-parse output"
       ],
-      "evidence_class": "real-model"
+      "evidence_class": "real-model",
+      "result": "2026-10-31 attempt 20261031T065117Z-heldout exit 0, 241 s, run once; strict coverage 0; lenient: no arm separates true/false claims, verified-arm gains come from gates. Control-Harness 9dd557b."
     },
     {
       "id": "Q2a",
