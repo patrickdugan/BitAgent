@@ -14,8 +14,8 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 
 | ID | Pri | Experiment | Work | Status | Gate / blocker |
 |---|---|---|---|---|---|
-| Q1 | 1 | BrokenVerifier-Gym v0.3 CUDA dev sanity run | GPU | READY | none |
-| Q1b | 1 | BrokenVerifier-Gym v0.3 sealed held-out (seed 50931, once) | GPU | PREP | Q1 reviewed + your go |
+| Q1 | 1 | BrokenVerifier-Gym v0.3 CUDA dev sanity run | GPU | DONE | 2026-10-31: exit 0, identical to CPU preflight, strict coverage 0 |
+| Q1b | 1 | BrokenVerifier-Gym v0.3 sealed held-out (seed 50931, once) | GPU | READY | your go |
 | Q2a | 2 | ConstitutionalAlignment format diagnosis (chat-template render, tokenizer only) | CPU | PREP | find training render code; write script |
 | Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | PREP | Q2a; script review |
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | READY | worktree of the origin branch |

@@ -2,7 +2,13 @@
   "schema": "rtx5080-queue.v1",
   "as_of": "2026-10-31",
   "source_page": "RTX 5080 Experiment Queue (ChatGPT space page_00ca425e...) was NOT readable: login wall. Rows below come from local inspection only.",
-  "statuses": ["READY", "PREP", "BLOCKED", "EXTERNAL", "DONE"],
+  "statuses": [
+    "READY",
+    "PREP",
+    "BLOCKED",
+    "EXTERNAL",
+    "DONE"
+  ],
   "machine_snapshot": {
     "taken": "2026-10-31",
     "gpu": "RTX 5080 Laptop 16303 MiB; 5 MiB used; no compute process; enforced power limit 150 W, P8 idle",
@@ -13,9 +19,15 @@
     "runtimes": {
       "venv bvg-v03": "torch 2.11.0+cu128, transformers 4.46.3",
       "venv bluebeam / bluebeam-gpu / jev-qwen": "torch, transformers, peft, bitsandbytes (bluebeam: read-only use, never install)",
-      "llama-server": ["C:/Users/patri/tools/llama-prism-b10743/bin", "C:/Users/patri/.cache/lemonade/bin/llamacpp/vulkan"],
+      "llama-server": [
+        "C:/Users/patri/tools/llama-prism-b10743/bin",
+        "C:/Users/patri/.cache/lemonade/bin/llamacpp/vulkan"
+      ],
       "vramorama": "C:/Users/patri/AppData/Local/Programs/vramorama/vramorama.exe",
-      "not_present": ["vllm", "PrismML llama.cpp source at c96baf4 (llama.cpp-src is ggml-org 318a471)"]
+      "not_present": [
+        "vllm",
+        "PrismML llama.cpp source at c96baf4 (llama.cpp-src is ggml-org 318a471)"
+      ]
     },
     "cached_models": {
       "Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775": "model.safetensors sha256 fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe",
@@ -38,28 +50,47 @@
       "owner": "Claude (handoff 2026-10-31, issue #33)",
       "model": "Qwen/Qwen2.5-0.5B-Instruct@7ae55760, sha256 fdf756fa...fb7fe",
       "data": "deterministic case generator, dev seed 41, --dev-cases 2 (48 rows)",
-      "prerequisites": ["GPU free >= 3000 MiB and power limit >= 50 W (script refuses otherwise)", "venv bvg-v03"],
+      "prerequisites": [
+        "GPU free >= 3000 MiB and power limit >= 50 W (script refuses otherwise)",
+        "venv bvg-v03"
+      ],
       "work": "GPU (fp16, ~1-2 GB VRAM), then CPU re-parse",
-      "status": "READY",
+      "status": "DONE",
       "resource_cap": "1 process, <= 4 GB VRAM, <= 15 min wall, 1 attempt",
       "stop_condition": "exit.json written; any failure keeps its ledger and stops, no retry before a write-up",
-      "required_artifacts": ["results/broken_verifier_gym/v03_attempts/<utc>-development/{env.json,stdout.log,stderr.log,exit.json}", "results/broken_verifier_gym/model_dev_qwen_v03/ (manifest, rows)", "lenient re-parse output"],
-      "preserve": ["strict parser stays primary; expected strict coverage 0 is a negative result, not a bug to fix", "held-out split untouched"],
-      "evidence_class": "real-model"
+      "required_artifacts": [
+        "results/broken_verifier_gym/v03_attempts/<utc>-development/{env.json,stdout.log,stderr.log,exit.json}",
+        "results/broken_verifier_gym/model_dev_qwen_v03/ (manifest, rows)",
+        "lenient re-parse output"
+      ],
+      "preserve": [
+        "strict parser stays primary; expected strict coverage 0 is a negative result, not a bug to fix",
+        "held-out split untouched"
+      ],
+      "evidence_class": "real-model",
+      "result": "2026-10-31 attempt 20261031T063959Z-development exit 0, 75 s; identical to CPU preflight (semantic_rows_sha256 41bb6dc0...); strict coverage 0. Control-Harness commits 064784f + doc."
     },
     {
       "id": "Q1b",
       "priority": 1,
       "name": "BrokenVerifier-Gym v0.3 sealed held-out run",
       "objective": "Run the frozen held-out split once (seed 50931).",
-      "repo": "same as Q1", "sha": "99738c6edbfb8ceb2dbcdcb7791ab1666211d64b",
+      "repo": "same as Q1",
+      "sha": "99738c6edbfb8ceb2dbcdcb7791ab1666211d64b",
       "owner": "Claude",
-      "prerequisites": ["Q1 DONE and reviewed", "explicit user go"],
+      "prerequisites": [
+        "Q1 DONE (2026-10-31)",
+        "explicit user go"
+      ],
       "work": "GPU",
-      "status": "PREP",
+      "status": "READY",
       "resource_cap": "<= 4 GB VRAM, <= 30 min, exactly 1 attempt",
       "stop_condition": "one attempt; never rerun or change settings",
-      "required_artifacts": ["v03_attempts/<utc>-heldout ledger", "model_holdout_qwen_v03/", "re-parse output"],
+      "required_artifacts": [
+        "v03_attempts/<utc>-heldout ledger",
+        "model_holdout_qwen_v03/",
+        "re-parse output"
+      ],
       "evidence_class": "real-model"
     },
     {
@@ -74,13 +105,21 @@
       "model": "Qwen/Qwen3-1.7B@70d244cc tokenizer only",
       "data": "Codex/six_arm_f06/pod_outputs/six_arm_c/rendered/<arm>/training.jsonl (messages format); eval/*.jsonl",
       "observed": "No <think> or </think> strings in any rendered training file (15 stray </think> in F3_concrete training text); eval rows have reasoning_content '' and finish_reason stop.",
-      "prerequisites": ["locate the training-time render code (pod code, ca8.bundle)", "write a read-only render script"],
+      "prerequisites": [
+        "locate the training-time render code (pod code, ca8.bundle)",
+        "write a read-only render script"
+      ],
       "work": "CPU",
       "status": "PREP",
       "resource_cap": "1 core, < 2 GB RAM, no model weights",
       "stop_condition": "a per-arm table of assistant-prefix token sequences as trained vs as evaluated",
-      "required_artifacts": ["diagnosis note under experiments/frame_internalization_sft_v1/six_arm_run_20261024/ marked POST HOC"],
-      "preserve": ["registered RESULTS_SIX_ARM.md stands", "no retraining"],
+      "required_artifacts": [
+        "diagnosis note under experiments/frame_internalization_sft_v1/six_arm_run_20261024/ marked POST HOC"
+      ],
+      "preserve": [
+        "registered RESULTS_SIX_ARM.md stands",
+        "no retraining"
+      ],
       "evidence_class": "data/template inspection"
     },
     {
@@ -88,16 +127,25 @@
       "priority": 2,
       "name": "ConstitutionalAlignment NF4-vs-bf16 precision check on existing adapters",
       "objective": "Does applying the reflection adapters to an NF4 base (training precision) instead of bf16 (eval precision) restore the reasoning block?",
-      "repo": "same as Q2a", "sha": "8ef899ad9b913bf70159bde15071ec40a62d860f",
+      "repo": "same as Q2a",
+      "sha": "8ef899ad9b913bf70159bde15071ec40a62d860f",
       "owner": "unassigned",
       "model": "Qwen3-1.7B@70d244cc + six adapters (r32, q/k/v/o); adapter sha256 prefixes: F1_demo a2b0bcc0, F1_refl a048c9ff, F3c_refl c58a2195, F3_demo cedbef56, F3_refl 94448af4, neutral f8651192",
       "data": "20 benign prompts from the registered benign set (no harmful prompts needed for a format check)",
-      "prerequisites": ["Q2a result", "script written and reviewed", "transformers+peft+bitsandbytes venv (bluebeam-gpu, read-only)"],
+      "prerequisites": [
+        "Q2a result",
+        "script written and reviewed",
+        "transformers+peft+bitsandbytes venv (bluebeam-gpu, read-only)"
+      ],
       "work": "GPU",
       "status": "PREP",
       "resource_cap": "<= 6 GB VRAM, 6 adapters x 2 precisions x 20 prompts, greedy, <= 512 new tokens, <= 45 min",
       "stop_condition": "format-validity rate per arm x precision; no compliance judging",
-      "required_artifacts": ["per-row jsonl with raw text", "summary table", "env + hashes"],
+      "required_artifacts": [
+        "per-row jsonl with raw text",
+        "summary table",
+        "env + hashes"
+      ],
       "evidence_class": "real-model, post hoc"
     },
     {
@@ -109,12 +157,16 @@
       "branch": "origin/research/sovereign-learning-s0-20261028",
       "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
       "owner": "unassigned",
-      "prerequisites": ["git worktree of the branch (no install; torch tests skip without the neural extra)"],
+      "prerequisites": [
+        "git worktree of the branch (no install; torch tests skip without the neural extra)"
+      ],
       "work": "CPU",
       "status": "READY",
       "resource_cap": "1 core, < 1 GB RAM, < 5 min",
       "stop_condition": "unittest result recorded",
-      "required_artifacts": ["test log with SHA"],
+      "required_artifacts": [
+        "test log with SHA"
+      ],
       "evidence_class": "synthetic (codec round-trip; cannot detect a layout error shared by encoder and decoder)"
     },
     {
@@ -122,31 +174,44 @@
       "priority": 3,
       "name": "Bonsai 2 27B S0 real-row / projection parity (CPU)",
       "objective": "Decode real PTQ1_0 matrix rows from the GGUF, match against the PrismML fork's dequant, then one projection vs the PyTorch oracle.",
-      "repo": "HybridTRMLDT", "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
+      "repo": "HybridTRMLDT",
+      "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
       "owner": "unassigned",
       "model": "prism-ml/Ternary-Bonsai-2-27B-gguf PTQ1_0 (checkpoint sha PENDING)",
-      "prerequisites": ["GGUF on disk (download needs your approval; size not checked)", "PrismML llama.cpp source/build at c96baf4 with type 143 (tools/llama-prism-b10743 build: type-143 support unverified)", "GGUF tensor-offset reader (stub; not in branch)"],
+      "prerequisites": [
+        "GGUF on disk (download needs your approval; size not checked)",
+        "PrismML llama.cpp source/build at c96baf4 with type 143 (tools/llama-prism-b10743 build: type-143 support unverified)",
+        "GGUF tensor-offset reader (stub; not in branch)"
+      ],
       "work": "CPU",
       "status": "BLOCKED",
       "blocked_on": "checkpoint and pinned fork not present locally",
       "resource_cap": "<= 4 threads, mmap read, < 6 GB RAM (RAM is tight: ~1.6 GB available now)",
       "stop_condition": "first mismatch recorded and stop; or row + projection parity receipt",
-      "required_artifacts": ["parity receipt with file SHA, fork SHA, sign vector, tensor offsets"],
+      "required_artifacts": [
+        "parity receipt with file SHA, fork SHA, sign vector, tensor offsets"
+      ],
       "evidence_class": "real-model"
     },
     {
       "id": "Q3c",
       "priority": 3,
       "name": "Bonsai 2 27B GPU inference baseline (8K/32K peak VRAM, tokens/s)",
-      "repo": "HybridTRMLDT", "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
+      "repo": "HybridTRMLDT",
+      "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
       "owner": "unassigned",
-      "prerequisites": ["Q3b passes", "your approval of the proposed run"],
+      "prerequisites": [
+        "Q3b passes",
+        "your approval of the proposed run"
+      ],
       "work": "GPU",
       "status": "BLOCKED",
       "blocked_on": "Q3b",
       "resource_cap": "proposed: <= 10 GB VRAM at 32K (the S0 go criterion), one server, 32 fixed prompts",
       "stop_condition": "VRAM/throughput receipt; no training step in this row",
-      "required_artifacts": ["runtime config, peak VRAM, tokens/s, source hashes"],
+      "required_artifacts": [
+        "runtime config, peak VRAM, tokens/s, source hashes"
+      ],
       "evidence_class": "real-model"
     },
     {
@@ -165,9 +230,14 @@
       "priority": 4,
       "name": "Persona Holonomy v0.13 frozen Qwen workstation pilot",
       "repo": "patrickdugan/Persona-Holonmy-Bench",
-      "branch": "main", "sha": "6e038d5c3ddb70e73549465a6b14065675a546f0",
+      "branch": "main",
+      "sha": "6e038d5c3ddb70e73549465a6b14065675a546f0",
       "owner": "unassigned",
-      "prerequisites": ["choose the Qwen model + immutable revision (doc placeholder C:/models/qwen-local-hf does not exist)", "phb pilot-plan (CPU, no weights)", "pinned PercInterp source for sae-fit"],
+      "prerequisites": [
+        "choose the Qwen model + immutable revision (doc placeholder C:/models/qwen-local-hf does not exist)",
+        "phb pilot-plan (CPU, no weights)",
+        "pinned PercInterp source for sae-fit"
+      ],
       "work": "CPU plan, then GPU stages capture/fit/graph/select/map/evaluate",
       "status": "BLOCKED",
       "blocked_on": "model/revision not chosen; no pretrained-Qwen result exists yet",
@@ -227,7 +297,17 @@
     }
   ],
   "creative_queue": [
-    {"id": "C1", "name": "JRPG (Documents/GitHub/JRPG + worktrees anim-foundation, timing-windows)", "status": "PREP", "note": "not assessed in this pass"},
-    {"id": "C2", "name": "inner-war (OneDrive/GitHub/inner-war, inner-war-dist)", "status": "PREP", "note": "not assessed in this pass"}
+    {
+      "id": "C1",
+      "name": "JRPG (Documents/GitHub/JRPG + worktrees anim-foundation, timing-windows)",
+      "status": "PREP",
+      "note": "not assessed in this pass"
+    },
+    {
+      "id": "C2",
+      "name": "inner-war (OneDrive/GitHub/inner-war, inner-war-dist)",
+      "status": "PREP",
+      "note": "not assessed in this pass"
+    }
   ]
 }
