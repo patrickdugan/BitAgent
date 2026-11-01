@@ -35,7 +35,8 @@
       "Qwen/Qwen3-8B, prism-ml/Bonsai-8B-unpacked, Qwen3.5-4B (C:/Users/patri/models)": "present",
       "Bonsai-8B-Q1_0.gguf": "C:/Users/patri/models/bonsai-8b",
       "Bonsai-27B-Q1_0.gguf (gen 1)": "NOT FOUND (memory pointed at Codex/BitAgent-LatentBench/models; directory gone)",
-      "prism-ml/Ternary-Bonsai-2-27B-gguf PTQ1_0": "C:/Users/patri/models/ternary-bonsai-2-27b/Ternary-Bonsai-2-27B-PTQ1_0.gguf, repo rev 94dd51cdbbec5309ed8b76a12f3268bc4fdceb93, 5946648928 bytes, sha256 53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3 (matches HF LFS oid), downloaded 2026-10-31"
+      "prism-ml/Ternary-Bonsai-2-27B-gguf PTQ1_0": "C:/Users/patri/models/ternary-bonsai-2-27b/Ternary-Bonsai-2-27B-PTQ1_0.gguf, repo rev 94dd51cdbbec5309ed8b76a12f3268bc4fdceb93, 5946648928 bytes, sha256 53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3 (matches HF LFS oid), downloaded 2026-10-31",
+      "prism-ml/Ternary-Bonsai-2-27B-gguf PQ2_0": "C:/Users/patri/models/ternary-bonsai-2-27b/Ternary-Bonsai-2-27B-PQ2_0.gguf, 7206168928 bytes, sha256 3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1 (matches HF), downloaded 2026-11-01"
     }
   },
   "rows": [
@@ -111,7 +112,7 @@
         "write a read-only render script"
       ],
       "work": "CPU",
-      "status": "PREP",
+      "status": "DONE",
       "resource_cap": "1 core, < 2 GB RAM, no model weights",
       "stop_condition": "a per-arm table of assistant-prefix token sequences as trained vs as evaluated",
       "required_artifacts": [
@@ -121,7 +122,8 @@
         "registered RESULTS_SIX_ARM.md stands",
         "no retraining"
       ],
-      "evidence_class": "data/template inspection"
+      "evidence_class": "data/template inspection",
+      "result": "2026-11-01: cause found. Reflection rows are 3-turn (draft/critique/revision); trainer puts loss on all assistant turns and the Qwen3 template drops the think block before the last user turn, so turns 1-2 train with NO think block (5,319/5,319 rows per arm); eval prompt matches turn 1. Demonstration arms always trained with an (empty) think block and passed. ConstitutionalAlignment six-arm-run-20261024 @ d277f78 (pushed), RESULTS_POSTHOC_FORMAT_DIAGNOSIS.md. Post hoc."
     },
     {
       "id": "Q2b",
@@ -147,7 +149,8 @@
         "summary table",
         "env + hashes"
       ],
-      "evidence_class": "real-model, post hoc"
+      "evidence_class": "real-model, post hoc",
+      "note": "Deprioritised 2026-11-01: Q2a explains 100% of the format failure without precision; NF4-vs-bf16 is now a secondary check only."
     },
     {
       "id": "Q3a",
@@ -234,7 +237,8 @@
       ],
       "status": "PREP",
       "stop_condition": "parity_cli receipt on 32 prompts",
-      "evidence_class": "real-model"
+      "evidence_class": "real-model",
+      "note": "Pre-registered (HybridTRMLDT 3db9417). PQ2_0 GGUF downloaded (sha256 3907dc16... matches). Detached runner launched 2026-11-01 (PID 63980, work dir Documents/Codex/s0-logit-parity); it waits for >=10 GB free RAM for the CPU passes, then the CUDA pass under a vramorama 9G lease."
     },
     {
       "id": "Q3c",
@@ -275,15 +279,14 @@
       "repo": "patrickdugan/Persona-Holonmy-Bench",
       "branch": "main",
       "sha": "6e038d5c3ddb70e73549465a6b14065675a546f0",
-      "owner": "unassigned",
+      "owner": "another Claude session (1404e236, \"Qwen causal pilot on RTX 5080\"), running phb confirm h1_calibration on GPU 2026-11-01",
       "prerequisites": [
         "choose the Qwen model + immutable revision (doc placeholder C:/models/qwen-local-hf does not exist)",
         "phb pilot-plan (CPU, no weights)",
         "pinned PercInterp source for sae-fit"
       ],
       "work": "CPU plan, then GPU stages capture/fit/graph/select/map/evaluate",
-      "status": "BLOCKED",
-      "blocked_on": "model/revision not chosen; no pretrained-Qwen result exists yet",
+      "status": "EXTERNAL",
       "evidence_class": "only mock/fixture results so far"
     },
     {

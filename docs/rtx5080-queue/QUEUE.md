@@ -16,15 +16,15 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 |---|---|---|---|---|---|
 | Q1 | 1 | BrokenVerifier-Gym v0.3 CUDA dev sanity run | GPU | DONE | 2026-10-31: exit 0, identical to CPU preflight, strict coverage 0 |
 | Q1b | 1 | BrokenVerifier-Gym v0.3 sealed held-out (seed 50931, once) | GPU | DONE | 2026-10-31: run once; strict coverage 0; lenient shows no truth separation |
-| Q2a | 2 | ConstitutionalAlignment format diagnosis (chat-template render, tokenizer only) | CPU | PREP | find training render code; write script |
-| Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | PREP | Q2a; script review |
+| Q2a | 2 | ConstitutionalAlignment format diagnosis (chat-template render, tokenizer only) | CPU | DONE | 2026-11-01: multi-turn template drops think block on turns 1-2; explains all 3,200 invalid rows |
+| Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | PREP | deprioritised: Q2a explains the failure without precision |
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | DONE | 2026-10-31: 23/23 pass (torch); vectors hand-written, still synthetic |
 | Q3b | 3 | Bonsai 2 27B S0 real-row parity | CPU | DONE | 2026-10-31 PASS: bit-exact vs fork C dequant, 402 tensors; no forward pass |
 | Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | DONE | 2026-11-01 PASS on 3 weights; only gap is the fork's Q8_0 activation quantization |
-| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | PREP | needs a reference choice and a fork logit export |
+| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | PREP | pre-registered; runner launched, waiting for free RAM |
 | Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b3 + your approval |
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
-| Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | BLOCKED | model + revision not chosen |
+| Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
 | Q4c | 4 | Storyworld steering | TBD | BLOCKED | which repo is meant |
 | Q4d | 4 | Adict RMAX/HAB measurement | GPU | PREP | HAB retrain log stops mid-run (2026-10-12) |
 | Q4e | 4 | Exoself | TBD | BLOCKED | repo not found on C: or D: |
