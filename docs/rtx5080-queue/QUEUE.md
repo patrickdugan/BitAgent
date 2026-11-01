@@ -20,8 +20,9 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | PREP | Q2a; script review |
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | DONE | 2026-10-31: 23/23 pass (torch); vectors hand-written, still synthetic |
 | Q3b | 3 | Bonsai 2 27B S0 real-row parity | CPU | DONE | 2026-10-31 PASS: bit-exact vs fork C dequant, 402 tensors; no forward pass |
-| Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | PREP | needs one projection output captured from the fork runtime |
-| Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b2 |
+| Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | DONE | 2026-11-01 PASS on 3 weights; only gap is the fork's Q8_0 activation quantization |
+| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | PREP | needs a reference choice and a fork logit export |
+| Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b3 + your approval |
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | BLOCKED | model + revision not chosen |
 | Q4c | 4 | Storyworld steering | TBD | BLOCKED | which repo is meant |

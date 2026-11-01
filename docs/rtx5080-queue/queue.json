@@ -203,18 +203,37 @@
       "name": "Bonsai 2 27B S0 projection parity (one fork projection vs PyTorch oracle with real signs)",
       "repo": "HybridTRMLDT",
       "branch": "research/s0-real-row-parity-20261031",
-      "sha": "a82359b",
+      "sha": "dbd4c0f",
       "owner": "unassigned",
       "work": "CPU (oracle) + fork runtime output for one projection",
       "prerequisites": [
         "a way to capture one projection output from the fork runtime (llama eval callback / debug tool in the existing build, or a fork build)",
         "oracle built with explicit signs from metadata"
       ],
-      "status": "PREP",
+      "status": "DONE",
       "stop_condition": "first mismatch recorded, or projection parity receipt",
       "required_artifacts": [
         "projection parity receipt with tensor name, input hash, tolerance basis"
       ],
+      "evidence_class": "real weights + fork runtime kernels; synthetic inputs",
+      "result": "2026-11-01 PASS on 3 real weights (blk.0.attn_gate, blk.63.ffn_down haswell; blk.30.attn_qkv icelake): fork CPU runtime (adfffbe41 DLLs via ctypes) FWHT and F32 paths match the float64 oracle (<4e-6 rel); PTQ1_0 path differs only by Q8_0 activation quantization (ratio 1.000, ~0.5% of output rms, max abs ~0.026). Criteria committed before the run (ca059ec). Synthetic Gaussian inputs. Not covered: pin c96baf4 kernels, ssm_out (GDN perm), CUDA, real activations, logits."
+    },
+    {
+      "id": "Q3b3",
+      "priority": 3,
+      "name": "Bonsai 2 27B S0 full-model logit parity (32 fixed prompts)",
+      "repo": "HybridTRMLDT",
+      "branch": "research/s0-real-row-parity-20261031",
+      "sha": "dbd4c0f",
+      "owner": "unassigned",
+      "work": "CPU or GPU inference with the fork + reference logits",
+      "prerequisites": [
+        "decide the reference: there is no independent full-model oracle in the branch (packed_linear covers one projection)",
+        "logit export from llama-prism (existing adfffbe41 build or a pin build, which needs a toolchain install)",
+        "preregistered tolerance from the measured per-projection Q8_0 spread"
+      ],
+      "status": "PREP",
+      "stop_condition": "parity_cli receipt on 32 prompts",
       "evidence_class": "real-model"
     },
     {
@@ -230,7 +249,7 @@
       ],
       "work": "GPU",
       "status": "BLOCKED",
-      "blocked_on": "Q3b2 (projection parity) and S0 step 2 logits",
+      "blocked_on": "S0 step 2 full-model logits on 32 prompts (needs fork runtime logit export; pin build or existing build) and your approval of the GPU run",
       "resource_cap": "proposed: <= 10 GB VRAM at 32K (the S0 go criterion), one server, 32 fixed prompts",
       "stop_condition": "VRAM/throughput receipt; no training step in this row",
       "required_artifacts": [
