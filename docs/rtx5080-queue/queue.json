@@ -227,7 +227,7 @@
       "name": "Bonsai 2 27B S0 full-model logit parity (32 fixed prompts)",
       "repo": "HybridTRMLDT",
       "branch": "research/s0-real-row-parity-20261031",
-      "sha": "dbd4c0f",
+      "sha": "305f734",
       "owner": "unassigned",
       "work": "CPU or GPU inference with the fork + reference logits",
       "prerequisites": [
@@ -235,10 +235,11 @@
         "logit export from llama-prism (existing adfffbe41 build or a pin build, which needs a toolchain install)",
         "preregistered tolerance from the measured per-projection Q8_0 spread"
       ],
-      "status": "PREP",
+      "status": "DONE",
       "stop_condition": "parity_cli receipt on 32 prompts",
       "evidence_class": "real-model",
-      "note": "Pre-registered (HybridTRMLDT 3db9417); PQ2_0 downloaded and hash-checked. Not queued: the 2026-11-01 reboot was the user restarting during an OOM. Queue rule: one job of ours on vramorama at a time. Relaunch only after Adict HAB finishes, with the whole runner admitted by vramorama (outer lease --vram 1G --max-commit 80 --strict-fifo, -MinFreeRamGB 0; the CUDA pass takes its own 9G lease). 2026-11-02: launched as the single job of ours (outer vramorama lease 1G, --max-commit 80, --strict-fifo; CUDA pass takes its own 9G lease)."
+      "note": "Pre-registered (HybridTRMLDT 3db9417); PQ2_0 downloaded and hash-checked. Not queued: the 2026-11-01 reboot was the user restarting during an OOM. Queue rule: one job of ours on vramorama at a time. Relaunch only after Adict HAB finishes, with the whole runner admitted by vramorama (outer lease --vram 1G --max-commit 80 --strict-fifo, -MinFreeRamGB 0; the CUDA pass takes its own 9G lease). 2026-11-02: launched as the single job of ours (outer vramorama lease 1G, --max-commit 80, --strict-fifo; CUDA pass takes its own 9G lease).",
+      "result": "2026-11-02 PASS (amendment A1, CPU-only reference: -ngl 0 --device none --no-op-offload, no CUDA assignment in logs). wikitext-2 test 32x512, PTQ1_0 CPU ref PPL 7.4935. PQ2_0 CPU vs ref: top-1 99.326% +/-0.091, mean KLD 2.7e-4, max 0.84. PTQ1_0 full CUDA vs ref: top-1 99.326% +/-0.091, mean KLD 2.0e-4, max 0.12, RMS dp 0.465%. Primary criterion >=99% met by both. As-run (mixed CPU+CUDA reference, op offload) kept in receipts/logit_parity_20261102_asrun.json: PQ2 vs PTQ1 100%, CUDA vs mixed 99.510%. Observation: PQ2_0 and PTQ1_0 CPU kernels are not bit-identical (55/8160 top-1 flips); identical counts in both comparisons suggest the PTQ1_0 CPU kernel is the outlier, per-token data not recorded."
     },
     {
       "id": "Q3c",
@@ -248,12 +249,12 @@
       "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
       "owner": "unassigned",
       "prerequisites": [
-        "Q3b passes",
-        "your approval of the proposed run"
+        "Q3b3 passes (done 2026-11-02)",
+        "vramorama admits a ~10G lease without competing with Persona Holonomy"
       ],
       "work": "GPU",
       "status": "BLOCKED",
-      "blocked_on": "S0 step 2 full-model logits on 32 prompts (needs fork runtime logit export; pin build or existing build) and your approval of the GPU run",
+      "blocked_on": "Q3b3 passed 2026-11-02; remaining gate is GPU headroom (Persona Holonomy session on the GPU; vramorama lease required)",
       "resource_cap": "proposed: <= 10 GB VRAM at 32K (the S0 go criterion), one server, 32 fixed prompts",
       "stop_condition": "VRAM/throughput receipt; no training step in this row",
       "required_artifacts": [

@@ -21,8 +21,8 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | DONE | 2026-10-31: 23/23 pass (torch); vectors hand-written, still synthetic |
 | Q3b | 3 | Bonsai 2 27B S0 real-row parity | CPU | DONE | 2026-10-31 PASS: bit-exact vs fork C dequant, 402 tensors; no forward pass |
 | Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | DONE | 2026-11-01 PASS on 3 weights; only gap is the fork's Q8_0 activation quantization |
-| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | PREP | running 2026-11-02 as the single gated vramorama job |
-| Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b3 + your approval |
+| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | DONE | 2026-11-02 PASS (A1 CPU-only ref): PQ2 CPU and full CUDA both 99.326% top-1 vs PTQ1 CPU |
+| Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | GPU headroom: vramorama lease, behind Persona Holonomy |
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
 | Q4c | 4 | Storyworld steering: TSUN-01B scripted oracle + tests (GPTStoryworld `c8d4659`) | CPU | DONE | 2026-11-01: 8/8 policies match oracle; tests 8/8 + 9/9 |
