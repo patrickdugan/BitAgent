@@ -26,7 +26,7 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
 | Q4c | 4 | Storyworld steering | TBD | BLOCKED | which repo is meant |
-| Q4d | 4 | Adict RMAX/HAB measurement | GPU | PREP | HAB retrain log stops mid-run (2026-10-12) |
+| Q4d | 4 | Adict RMAX/HAB measurement | GPU | PREP | HAB retrain relaunched 2026-11-01, queued on an 11G lease; RMAX result uncommitted (Adict is on main) |
 | Q4e | 4 | Exoself | TBD | BLOCKED | repo not found on C: or D: |
 | X1 | – | Recurrent mechinterp (RMP, RC-01) | – | EXTERNAL | Silico |
 | D1 | – | ConstitutionalAlignment six-arm run | – | DONE | do not retrain |

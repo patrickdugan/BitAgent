@@ -297,7 +297,8 @@
       "owner": "unassigned",
       "status": "BLOCKED",
       "blocked_on": "which repo/experiment is meant",
-      "evidence_class": "n/a"
+      "evidence_class": "n/a",
+      "note": "2026-11-01: no storyworld-steering repo on GitHub under patrickdugan/MoralityLabAI guesses; locally only metta-storyworld (prompt-scaffold nav \"steering\", 2026-05) and nl-steering (residual steering, no storyworld) match."
     },
     {
       "id": "Q4d",
@@ -307,9 +308,9 @@
       "owner": "earlier session (2026-10-12)",
       "observed": "RMAX index written after 8079 s; log ends at 'training HAB' 2026-10-12 22:15 with no completion line",
       "status": "PREP",
-      "blocked_on": "decide whether the HAB retrain died; commit or discard the RMAX index from that session",
       "work": "GPU (vramorama leases per repo CLAUDE.md)",
-      "evidence_class": "real-model (small adapters)"
+      "evidence_class": "real-model (small adapters)",
+      "note": "2026-11-01: HAB _vq2 retrain had died (log stopped 2026-10-12 22:15 while waiting for a lease). Base checkpoint Qwen3.5-4B-Base@1001bb4d was missing from the HF cache; re-downloaded (shard sha256 df547074.../590fbaac... match HF). Resumable pilot relaunched detached (PID 52164, log out/trackb/g1_relaunch_20261101.log): train HAB under an 11G vramorama lease, then measure. Uncommitted RMAX vq2 index + log NOT committed: Adict is on main and the push was refused (never push to main)."
     },
     {
       "id": "Q4e",
@@ -318,7 +319,8 @@
       "repo": "not found on C: or D: (searched to depth 6-8)",
       "status": "BLOCKED",
       "blocked_on": "repo location",
-      "evidence_class": "n/a"
+      "evidence_class": "n/a",
+      "note": "2026-11-01: not on GitHub as patrickdugan|MoralityLabAI|AlephFunk/Exoself either."
     },
     {
       "id": "X1",
