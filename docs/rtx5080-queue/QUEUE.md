@@ -25,9 +25,11 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b3 + your approval |
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
-| Q4c | 4 | Storyworld steering | TBD | BLOCKED | which repo is meant |
+| Q4c | 4 | Storyworld steering: TSUN-01B scripted oracle + tests (GPTStoryworld `c8d4659`) | CPU | DONE | 2026-11-01: 8/8 policies match oracle; tests 8/8 + 9/9 |
+| Q4c2 | 4 | Storyworld steering: live GGUF run (gne, 24-unit recipe) | GPU | BLOCKED | model_hash null; claimed Qwen3.8-27B GGUF absent; gne not installed |
 | Q4d | 4 | Adict RMAX/HAB measurement | GPU | PREP | HAB retrain relaunched 2026-11-01, queued on an 11G lease; RMAX result uncommitted (Adict is on main) |
-| Q4e | 4 | Exoself | TBD | BLOCKED | repo not found on C: or D: |
+| Q4e | 4 | Exoself: ExoselfBench Dugan-v-Dugan (`18d9e024`) tests, validate, mock demo | CPU | DONE | 2026-11-01: 33/33 tests; validate OK (12 cases, 3 profiles); 180 mock turns |
+| Q4e2 | 4 | Exoself: live evaluation | – | BLOCKED | manuscripts unpinned/unreviewed; no model driver config |
 | X1 | – | Recurrent mechinterp (RMP, RC-01) | – | EXTERNAL | Silico |
 | D1 | – | ConstitutionalAlignment six-arm run | – | DONE | do not retrain |
 | D2 | – | BrokenVerifier v0.3 CPU fp32 dev preflight | – | DONE | negative result kept |

@@ -292,13 +292,25 @@
     {
       "id": "Q4c",
       "priority": 4,
-      "name": "Storyworld steering",
-      "repo": "unresolved: nl-steering (master 61bdbc0, 6 dirty incl. untracked scripts/p0_real.py), GPTStoryworld (35b49c3, 15k dirty paths), metta-storyworld (2a79170), TRMStoryworld (a1a4141)",
-      "owner": "unassigned",
+      "name": "Storyworld steering: TSUN-01B x GGUF Neuron Explorer (scripted CPU oracle + tests)",
+      "repo": "MoralityLabAI/GPTStoryworld (clean detached worktree C:/Users/patri/Documents/Codex/GPTStoryworld-steer; local checkout has ~15k dirty paths, untouched)",
+      "sha": "c8d4659",
+      "owner": "Claude",
+      "work": "CPU",
+      "status": "DONE",
+      "evidence_class": "synthetic (deterministic scripted oracle; model_inference_executed false)",
+      "result": "2026-11-01: scripted runner 8/8 policies matches_oracle=true (endings incl. success_protected, failure_silence, privacy_cost, failure_delay, failure_unverified); integrations/gguf_neuron_explorer tests 8/8 OK; storyworlds/tsun01b_last_train_home tests 9/9 OK. steering_protocol.json sha256 9ea10d95..."
+    },
+    {
+      "id": "Q4c2",
+      "priority": 4,
+      "name": "Storyworld steering: live GGUF run (gne serve, 24-unit recipe)",
+      "repo": "MoralityLabAI/GPTStoryworld",
+      "sha": "c8d4659",
+      "work": "GPU",
       "status": "BLOCKED",
-      "blocked_on": "which repo/experiment is meant",
-      "evidence_class": "n/a",
-      "note": "2026-11-01: no storyworld-steering repo on GitHub under patrickdugan/MoralityLabAI guesses; locally only metta-storyworld (prompt-scaffold nav \"steering\", 2026-05) and nl-steering (residual steering, no storyworld) match."
+      "blocked_on": "steering_protocol.json has model_hash null and status formal_fixture_unrun_on_model; the claimed 'Qwen3.8-27B GGUF' is not on disk (local Bonsai 2 27B is qwen35/PTQ1_0, not the recipe's checkpoint); gne (gguf-neuron-explorer) not installed; recipe compatibility and injection semantics need gne info/verify on the exact model; random-direction null control needs norm-matching evidence",
+      "evidence_class": "real-model when run"
     },
     {
       "id": "Q4d",
@@ -315,12 +327,25 @@
     {
       "id": "Q4e",
       "priority": 4,
-      "name": "Exoself",
-      "repo": "not found on C: or D: (searched to depth 6-8)",
+      "name": "Exoself: ExoselfBench Dugan-v-Dugan v0.1 (stdlib tests, validate, mock demo)",
+      "repo": "patrickdugan/ExoselfBench (clone C:/Users/patri/Documents/Codex/ExoselfBench)",
+      "sha": "18d9e0247d57d53f6506f7e0493e225f40514d64",
+      "owner": "Claude",
+      "work": "CPU",
+      "status": "DONE",
+      "evidence_class": "mock plumbing only (fidelity and reasoning scores null by design)",
+      "result": "2026-11-01: 33/33 tests OK; bench.py validate {cases:12, profiles:3, valid:true}; demo 180 mock turns, mode mock_plumbing_only, outputs in Dugan-v-Dugan/.local/demo-001 (gitignored)."
+    },
+    {
+      "id": "Q4e2",
+      "priority": 4,
+      "name": "Exoself: live evaluation (prompt / rag / adapter arms)",
+      "repo": "patrickdugan/ExoselfBench",
+      "sha": "18d9e024",
+      "work": "CPU/GPU depending on driver",
       "status": "BLOCKED",
-      "blocked_on": "repo location",
-      "evidence_class": "n/a",
-      "note": "2026-11-01: not on GitHub as patrickdugan|MoralityLabAI|AlephFunk/Exoself either."
+      "blocked_on": "source manifests unbound (sources.example.json: 3 profiles review_status unreviewed, no pinned UTF-8 manuscript exports or SHA-256); no backend.local.json / model driver; adapter arms need checkpoint + training-manifest hashes; scoring needs two reviewer IDs per response and author-fidelity judgments from Patrick on unseen cases",
+      "evidence_class": "real-model when run"
     },
     {
       "id": "X1",
