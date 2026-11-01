@@ -246,21 +246,22 @@
       "priority": 3,
       "name": "Bonsai 2 27B GPU inference baseline (8K/32K peak VRAM, tokens/s)",
       "repo": "HybridTRMLDT",
-      "sha": "0064ab4392f1318ceb244068a8874594465b9eca",
+      "sha": "1688515",
       "owner": "unassigned",
       "prerequisites": [
         "Q3b3 passes (done 2026-11-02)",
         "vramorama admits a ~10G lease without competing with Persona Holonomy"
       ],
       "work": "GPU",
-      "status": "BLOCKED",
-      "blocked_on": "Q3b3 passed 2026-11-02; remaining gate is GPU headroom (Persona Holonomy session on the GPU; vramorama lease required)",
+      "status": "DONE",
       "resource_cap": "proposed: <= 10 GB VRAM at 32K (the S0 go criterion), one server, 32 fixed prompts",
       "stop_condition": "VRAM/throughput receipt; no training step in this row",
       "required_artifacts": [
         "runtime config, peak VRAM, tokens/s, source hashes"
       ],
-      "evidence_class": "real-model"
+      "evidence_class": "real-model",
+      "branch": "research/s0-real-row-parity-20261031",
+      "result": "2026-11-02: llama-bench, PTQ1_0 (5.94 GB), build adfffbe41, -ngl 99 -fa on, r=3. Depth 8K: pp512 1234+/-33 t/s, tg128 40.5+/-24.4 (clock ramp, first test), peak VRAM 6,976 MiB. Depth 32K: pp512 950+/-54, tg128 47.7+/-0.9, peak 8,480 MiB (< 10 GB S0 go criterion). Receipts in s0_trainability/receipts/gpu_baseline_20261102."
     },
     {
       "id": "Q4a",
