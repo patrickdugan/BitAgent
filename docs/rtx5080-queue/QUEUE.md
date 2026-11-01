@@ -17,7 +17,7 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q1 | 1 | BrokenVerifier-Gym v0.3 CUDA dev sanity run | GPU | DONE | 2026-10-31: exit 0, identical to CPU preflight, strict coverage 0 |
 | Q1b | 1 | BrokenVerifier-Gym v0.3 sealed held-out (seed 50931, once) | GPU | DONE | 2026-10-31: run once; strict coverage 0; lenient shows no truth separation |
 | Q2a | 2 | ConstitutionalAlignment format diagnosis (chat-template render, tokenizer only) | CPU | DONE | 2026-11-01: multi-turn template drops think block on turns 1-2; explains all 3,200 invalid rows |
-| Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | PREP | deprioritised: Q2a explains the failure without precision |
+| Q2b | 2 | ConstitutionalAlignment NF4-vs-bf16 check on the 6 existing adapters | GPU | DONE | 2026-11-02: NF4 does not restore reasoning; it empties the think block in the demo arms too (their trained format) |
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | DONE | 2026-10-31: 23/23 pass (torch); vectors hand-written, still synthetic |
 | Q3b | 3 | Bonsai 2 27B S0 real-row parity | CPU | DONE | 2026-10-31 PASS: bit-exact vs fork C dequant, 402 tensors; no forward pass |
 | Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | DONE | 2026-11-01 PASS on 3 weights; only gap is the fork's Q8_0 activation quantization |

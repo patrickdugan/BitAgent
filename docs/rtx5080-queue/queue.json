@@ -131,7 +131,7 @@
       "name": "ConstitutionalAlignment NF4-vs-bf16 precision check on existing adapters",
       "objective": "Does applying the reflection adapters to an NF4 base (training precision) instead of bf16 (eval precision) restore the reasoning block?",
       "repo": "same as Q2a",
-      "sha": "8ef899ad9b913bf70159bde15071ec40a62d860f",
+      "sha": "17d05b0",
       "owner": "unassigned",
       "model": "Qwen3-1.7B@70d244cc + six adapters (r32, q/k/v/o); adapter sha256 prefixes: F1_demo a2b0bcc0, F1_refl a048c9ff, F3c_refl c58a2195, F3_demo cedbef56, F3_refl 94448af4, neutral f8651192",
       "data": "20 benign prompts from the registered benign set (no harmful prompts needed for a format check)",
@@ -141,7 +141,7 @@
         "transformers+peft+bitsandbytes venv (bluebeam-gpu, read-only)"
       ],
       "work": "GPU",
-      "status": "PREP",
+      "status": "DONE",
       "resource_cap": "<= 6 GB VRAM, 6 adapters x 2 precisions x 20 prompts, greedy, <= 512 new tokens, <= 45 min",
       "stop_condition": "format-validity rate per arm x precision; no compliance judging",
       "required_artifacts": [
@@ -150,7 +150,9 @@
         "env + hashes"
       ],
       "evidence_class": "real-model, post hoc",
-      "note": "Deprioritised 2026-11-01: Q2a explains 100% of the format failure without precision; NF4-vs-bf16 is now a secondary check only."
+      "note": "Deprioritised 2026-11-01: Q2a explains 100% of the format failure without precision; NF4-vs-bf16 is now a secondary check only.",
+      "branch": "six-arm-run-20261024",
+      "result": "2026-11-02 POST HOC: NF4 does NOT restore reasoning. 10 benign prompts x 2 tiers, greedy, 512 tok, transformers+peft. Reflection arms: empty think 20/20 under bf16 and NF4. Demonstration arms: bf16 reasoning 14/20 (F1), 16/20 (F3); NF4 empty think 20/20 both (their trained format per Q2a). Base: reasoning 17/20 bf16, 19/20 NF4. Reading: bf16 eval under-expresses the demo adapters; registered result unchanged."
     },
     {
       "id": "Q3a",
