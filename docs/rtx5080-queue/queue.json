@@ -238,7 +238,7 @@
       "status": "PREP",
       "stop_condition": "parity_cli receipt on 32 prompts",
       "evidence_class": "real-model",
-      "note": "Pre-registered (HybridTRMLDT 3db9417); PQ2_0 downloaded and hash-checked. Not queued: the 2026-11-01 reboot was the user restarting during an OOM. Queue rule: one job of ours on vramorama at a time. Relaunch only after Adict HAB finishes, with the whole runner admitted by vramorama (outer lease --vram 1G --max-commit 80 --strict-fifo, -MinFreeRamGB 0; the CUDA pass takes its own 9G lease)."
+      "note": "Pre-registered (HybridTRMLDT 3db9417); PQ2_0 downloaded and hash-checked. Not queued: the 2026-11-01 reboot was the user restarting during an OOM. Queue rule: one job of ours on vramorama at a time. Relaunch only after Adict HAB finishes, with the whole runner admitted by vramorama (outer lease --vram 1G --max-commit 80 --strict-fifo, -MinFreeRamGB 0; the CUDA pass takes its own 9G lease). 2026-11-02: launched as the single job of ours (outer vramorama lease 1G, --max-commit 80, --strict-fifo; CUDA pass takes its own 9G lease)."
     },
     {
       "id": "Q3c",
@@ -319,10 +319,11 @@
       "repo": "MoralityLabAI/Adict main ac9ca5b (dirty: g1_pilot.log modified, T_RMAX_s1_vq2.json untracked)",
       "owner": "earlier session (2026-10-12)",
       "observed": "RMAX index written after 8079 s; log ends at 'training HAB' 2026-10-12 22:15 with no completion line",
-      "status": "PREP",
+      "status": "DONE",
       "work": "GPU (vramorama leases per repo CLAUDE.md)",
-      "evidence_class": "real-model (small adapters)",
-      "note": "2026-11-01: HAB _vq2 retrain had died (log stopped 2026-10-12 22:15 while waiting for a lease). Base checkpoint Qwen3.5-4B-Base@1001bb4d was missing from the HF cache; re-downloaded (shard sha256 df547074.../590fbaac... match HF). Resumable pilot relaunched detached (PID 52164, log out/trackb/g1_relaunch_20261101.log): train HAB under an 11G vramorama lease, then measure. Uncommitted RMAX vq2 index + log NOT committed: Adict is on main and the push was refused (never push to main). 2026-11-02: the only queued job of ours (lease 0e62d0fe, waiting); vramorama holds it while the card is power-capped (15 W) and Persona Holonomy uses 13.2 GB. The 2026-11-01 16:06 reboot was the user restarting during an OOM; HAB had reached step 0."
+      "evidence_class": "real-model (Qwen3.5-4B-Base@1001bb4d + LoRA)",
+      "note": "2026-11-01: HAB _vq2 retrain had died (log stopped 2026-10-12 22:15 while waiting for a lease). Base checkpoint Qwen3.5-4B-Base@1001bb4d was missing from the HF cache; re-downloaded (shard sha256 df547074.../590fbaac... match HF). Resumable pilot relaunched detached (PID 52164, log out/trackb/g1_relaunch_20261101.log): train HAB under an 11G vramorama lease, then measure. Uncommitted RMAX vq2 index + log NOT committed: Adict is on main and the push was refused (never push to main). 2026-11-02: the only queued job of ours (lease 0e62d0fe, waiting); vramorama holds it while the card is power-capped (15 W) and Persona Holonomy uses 13.2 GB. The 2026-11-01 16:06 reboot was the user restarting during an OOM; HAB had reached step 0.",
+      "result": "2026-11-02: HAB two-query adapter (T_HAB_s1_vq2) trained 100 steps in 1835 s (val 0.9715 -> 0.4613) and measured in 1751 s: kappa 3.63, S_stated 0.01, OF -0.71, CG 0.16, VQ 1.00, assigned none (same as T_HAB_s1: does not land in the HAB region; CG too low). RMAX two-query (T_RMAX_s1_vq2) assigned RMAX. Adict commit 0394d33 on local main, NOT pushed (repo rule: no direct main push). Two earlier detached launches died silently at model load with no traceback; the attached run under vramorama succeeded."
     },
     {
       "id": "Q4e",

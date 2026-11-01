@@ -21,13 +21,13 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q3a | 3 | Bonsai 2 27B S0 codec unit checks at `0064ab4` | CPU | DONE | 2026-10-31: 23/23 pass (torch); vectors hand-written, still synthetic |
 | Q3b | 3 | Bonsai 2 27B S0 real-row parity | CPU | DONE | 2026-10-31 PASS: bit-exact vs fork C dequant, 402 tensors; no forward pass |
 | Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | DONE | 2026-11-01 PASS on 3 weights; only gap is the fork's Q8_0 activation quantization |
-| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | PREP | pre-registered; held until Adict HAB finishes (one queued job at a time) |
+| Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | PREP | running 2026-11-02 as the single gated vramorama job |
 | Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | BLOCKED | Q3b3 + your approval |
 | Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
 | Q4c | 4 | Storyworld steering: TSUN-01B scripted oracle + tests (GPTStoryworld `c8d4659`) | CPU | DONE | 2026-11-01: 8/8 policies match oracle; tests 8/8 + 9/9 |
 | Q4c2 | 4 | Storyworld steering: live GGUF run (gne, 24-unit recipe) | GPU | BLOCKED | model_hash null; claimed Qwen3.8-27B GGUF absent; gne not installed |
-| Q4d | 4 | Adict RMAX/HAB measurement | GPU | PREP | the one job queued on vramorama; waiting for the power cap to clear and 11 GB to free; RMAX result uncommitted (Adict main) |
+| Q4d | 4 | Adict RMAX/HAB two-query measurement | GPU | DONE | 2026-11-02: RMAX lands in RMAX; HAB unassigned again (CG 0.16); Adict 0394d33 local main, unpushed |
 | Q4e | 4 | Exoself: ExoselfBench Dugan-v-Dugan (`18d9e024`) tests, validate, mock demo | CPU | DONE | 2026-11-01: 33/33 tests; validate OK (12 cases, 3 profiles); 180 mock turns |
 | Q4e2 | 4 | Exoself: live evaluation | – | BLOCKED | manuscripts unpinned/unreviewed; no model driver config |
 | X1 | – | Recurrent mechinterp (RMP, RC-01) | – | EXTERNAL | Silico |
