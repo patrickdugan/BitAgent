@@ -313,8 +313,13 @@
       "sha": "c8d4659",
       "work": "GPU",
       "status": "BLOCKED",
-      "blocked_on": "steering_protocol.json has model_hash null and status formal_fixture_unrun_on_model; the claimed 'Qwen3.8-27B GGUF' is not on disk (local Bonsai 2 27B is qwen35/PTQ1_0, not the recipe's checkpoint); gne (gguf-neuron-explorer) not installed; recipe compatibility and injection semantics need gne info/verify on the exact model; random-direction null control needs norm-matching evidence",
-      "evidence_class": "real-model when run"
+      "blocked_on": "building/installing gne (llama-cpp-python CUDA from source + editable gne install) was refused by the auto-mode classifier as external code; the author's quantization is unknown (x.com post unreadable), so the Q3_K_XL choice is a fit-to-VRAM decision; after install: gne info, gne verify, then serve and run the harness; steering_protocol.json model_hash stays null until gne verify passes",
+      "evidence_class": "real-model when run",
+      "prep_done_2026_11_02": [
+        "Qwen3.8-27B exists (Qwen/Qwen3.8-27B); downloaded unsloth Qwen3.8-27B-UD-Q3_K_XL.gguf (13.1 GB, fits 16 GB VRAM) to WSL ~/models, sha256 8c2a45ff...ddb0 verified against HF lfs oid",
+        "CUDA toolkit 12.8 (nvcc V12.8.93, needed for sm_120) and uv 0.13.6 installed in WSL Ubuntu-24.04",
+        "gne cloned to WSL ~/gne/gguf-neuron-explorer @ 75be72d (upstream tested Qwen3.5-4B hybrid; 27B and qwen38 untested upstream)"
+      ]
     },
     {
       "id": "Q4d",

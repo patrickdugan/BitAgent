@@ -26,7 +26,7 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q4a | 4 | BitAgent / Hermes | TBD | BLOCKED | no defined experiment to run |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
 | Q4c | 4 | Storyworld steering: TSUN-01B scripted oracle + tests (GPTStoryworld `c8d4659`) | CPU | DONE | 2026-11-01: 8/8 policies match oracle; tests 8/8 + 9/9 |
-| Q4c2 | 4 | Storyworld steering: live GGUF run (gne, 24-unit recipe) | GPU | BLOCKED | model_hash null; claimed Qwen3.8-27B GGUF absent; gne not installed |
+| Q4c2 | 4 | Storyworld steering: live GGUF run (gne, 24-unit recipe) | GPU | BLOCKED | Qwen3.8-27B Q3_K_XL downloaded + CUDA 12.8 in WSL; gne build refused by classifier (needs your approval) |
 | Q4d | 4 | Adict RMAX/HAB two-query measurement | GPU | DONE | 2026-11-02: RMAX lands in RMAX; HAB unassigned again (CG 0.16); Adict 0394d33 local main, unpushed |
 | Q4e | 4 | Exoself: ExoselfBench Dugan-v-Dugan (`18d9e024`) tests, validate, mock demo | CPU | DONE | 2026-11-01: 33/33 tests; validate OK (12 cases, 3 profiles); 180 mock turns |
 | Q4e2 | 4 | Exoself: live evaluation | GPU | DONE | 2026-11-02: driver + pinned manuscripts; base/prompt/rag 30 calls each, valid, no probability movement; adapter arms + human scoring still open |
