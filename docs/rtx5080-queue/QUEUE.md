@@ -23,13 +23,13 @@ The source Page ("RTX 5080 Experiment Queue" in ChatGPT) sits behind a login and
 | Q3b2 | 3 | Bonsai 2 27B S0 projection parity (one projection, real signs) | CPU | DONE | 2026-11-01 PASS on 3 weights; only gap is the fork's Q8_0 activation quantization |
 | Q3b3 | 3 | Bonsai 2 27B S0 full-model logit parity (32 prompts) | CPU/GPU | DONE | 2026-11-02 PASS (A1 CPU-only ref): PQ2 CPU and full CUDA both 99.326% top-1 vs PTQ1 CPU |
 | Q3c | 3 | Bonsai 2 27B GPU inference baseline (8K/32K VRAM) | GPU | DONE | 2026-11-02: 32K peak 8,480 MiB, pp512 950 t/s, tg 47.7 t/s |
-| Q4a | 4 | BitAgent / Hermes | TBD | PREP | no open gate found locally |
+| Q4a | 4 | BitAgent / Hermes | TBD | BLOCKED | no defined experiment to run |
 | Q4b | 4 | Persona Holonomy v0.13 Qwen pilot | CPU→GPU | EXTERNAL | another Claude session is running the confirm runs on the GPU |
 | Q4c | 4 | Storyworld steering: TSUN-01B scripted oracle + tests (GPTStoryworld `c8d4659`) | CPU | DONE | 2026-11-01: 8/8 policies match oracle; tests 8/8 + 9/9 |
 | Q4c2 | 4 | Storyworld steering: live GGUF run (gne, 24-unit recipe) | GPU | BLOCKED | model_hash null; claimed Qwen3.8-27B GGUF absent; gne not installed |
 | Q4d | 4 | Adict RMAX/HAB two-query measurement | GPU | DONE | 2026-11-02: RMAX lands in RMAX; HAB unassigned again (CG 0.16); Adict 0394d33 local main, unpushed |
 | Q4e | 4 | Exoself: ExoselfBench Dugan-v-Dugan (`18d9e024`) tests, validate, mock demo | CPU | DONE | 2026-11-01: 33/33 tests; validate OK (12 cases, 3 profiles); 180 mock turns |
-| Q4e2 | 4 | Exoself: live evaluation | – | BLOCKED | manuscripts unpinned/unreviewed; no model driver config |
+| Q4e2 | 4 | Exoself: live evaluation | GPU | DONE | 2026-11-02: driver + pinned manuscripts; base/prompt/rag 30 calls each, valid, no probability movement; adapter arms + human scoring still open |
 | X1 | – | Recurrent mechinterp (RMP, RC-01) | – | EXTERNAL | Silico |
 | D1 | – | ConstitutionalAlignment six-arm run | – | DONE | do not retrain |
 | D2 | – | BrokenVerifier v0.3 CPU fp32 dev preflight | – | DONE | negative result kept |

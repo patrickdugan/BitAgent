@@ -271,8 +271,8 @@
       "name": "BitAgent / Hermes",
       "repo": "patrickdugan/BitAgent main 01da0ef2; hermes-lite bitagent-synthetic 48743730 (2 dirty files)",
       "owner": "unassigned",
-      "status": "PREP",
-      "blocked_on": "no open preparation gate found locally: runtime-control thread closed 2026-10-23; S0 notes the open-gate tier has no sealed transfer holdout (41/42 baseline leaves 2.4 pp headroom)",
+      "status": "BLOCKED",
+      "blocked_on": "no defined experiment: nothing to run until an objective and gate are named (runtime-control thread closed 2026-10-23; S0 open-gate tier lacks a sealed transfer holdout)",
       "work": "TBD",
       "evidence_class": "n/a"
     },
@@ -346,11 +346,15 @@
       "priority": 4,
       "name": "Exoself: live evaluation (prompt / rag / adapter arms)",
       "repo": "patrickdugan/ExoselfBench",
-      "sha": "18d9e024",
+      "sha": "edda2b8",
       "work": "CPU/GPU depending on driver",
-      "status": "BLOCKED",
-      "blocked_on": "source manifests unbound (sources.example.json: 3 profiles review_status unreviewed, no pinned UTF-8 manuscript exports or SHA-256); no backend.local.json / model driver; adapter arms need checkpoint + training-manifest hashes; scoring needs two reviewer IDs per response and author-fidelity judgments from Patrick on unseen cases",
-      "evidence_class": "real-model when run"
+      "status": "DONE",
+      "evidence_class": "real-model when run",
+      "result": "2026-11-02: unblocked and run live. Driver drivers/openai_compat_driver.py (loopback llama-server, json_schema output, adapter arms refused) on Ternary-Bonsai-2-27B-PTQ1_0 (sha256 53107f53...). Sources bound to UTF-8 exports of 'Five Book Drafts 2026-10-27' (DE v2.5 docx, FI v0.17n r1 docx, DI 02.11.5l PDF; source hashes match the package SHA256SUMS), review_status unreviewed (no record of author review). Arms base, prompt, rag: 2 cases x 30 calls each, all envelopes valid; mean |dp| 0.0 for relevant and sham in all three arms (model does not move probability on these cases); all decisions 'reject'. Outputs local in Dugan-v-Dugan/.local (gitignored).",
+      "still_open": [
+        "adapter / adapter_rag arms: no exoself adapters exist (need checkpoint + training-manifest hashes)",
+        "scoring: score.py needs two reviewer IDs per final response; author fidelity needs Patrick's judgments on unseen cases"
+      ]
     },
     {
       "id": "X1",
