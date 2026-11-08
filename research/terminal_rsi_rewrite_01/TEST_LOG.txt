@@ -1,0 +1,13 @@
+test_data_processing_200_random_pairs (test_rewrite.RewriteTests.test_data_processing_200_random_pairs) ... ok
+test_horizon_bound (test_rewrite.RewriteTests.test_horizon_bound) ... ok
+test_invalid_host_and_probabilities (test_rewrite.RewriteTests.test_invalid_host_and_probabilities) ... ok
+test_repeated_stationary_censoring (test_rewrite.RewriteTests.test_repeated_stationary_censoring) ... ok
+test_single_round_censoring (test_rewrite.RewriteTests.test_single_round_censoring) ... ok
+test_stratification (test_rewrite.RewriteTests.test_stratification) ... ok
+test_support_gap_fails_closed (test_rewrite.RewriteTests.test_support_gap_fails_closed) ... ok
+test_weight_norm_does_not_control_action_flip (test_rewrite.RewriteTests.test_weight_norm_does_not_control_action_flip) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.004s
+
+OK

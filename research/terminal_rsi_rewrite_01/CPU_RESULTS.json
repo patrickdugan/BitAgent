@@ -1,0 +1,58 @@
+{
+  "status": "finite_distribution_reference_only",
+  "model_run": false,
+  "wallet_effects": false,
+  "stationary_reweighting_toy": [
+    {
+      "round": 0,
+      "mix": {
+        "easy": 0.5,
+        "hard": 0.5
+      }
+    },
+    {
+      "round": 1,
+      "mix": {
+        "easy": 0.8,
+        "hard": 0.2
+      }
+    },
+    {
+      "round": 2,
+      "mix": {
+        "easy": 0.9411764705882353,
+        "hard": 0.058823529411764705
+      }
+    },
+    {
+      "round": 3,
+      "mix": {
+        "easy": 0.9846153846153847,
+        "hard": 0.015384615384615385
+      }
+    },
+    {
+      "round": 4,
+      "mix": {
+        "easy": 0.9961089494163424,
+        "hard": 0.0038910505836575876
+      }
+    },
+    {
+      "round": 5,
+      "mix": {
+        "easy": 0.9990243902439024,
+        "hard": 0.000975609756097561
+      }
+    }
+  ],
+  "quantization_coupling_example": {
+    "conditional_tv_assumption": 0.01,
+    "horizon": 50,
+    "trajectory_tv_upper_bound": 0.39499393286246337
+  },
+  "fixed_host_data_processing": {
+    "proposal_tv": 0.14999999999999997,
+    "enforced_action_tv": 0.04999999999999993
+  }
+}
