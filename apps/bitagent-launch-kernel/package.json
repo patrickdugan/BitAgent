@@ -90,6 +90,7 @@
     "test:marketing-cues": "tsx --test test/marketing-cue-eval.test.ts test/marketing-multiturn-eval.test.ts test/marketing-channel-policy.test.ts test/marketing-coach-skill.test.ts",
     "test:self-referral-benchmark": "tsx --test test/self-referral-avoidance-benchmark.test.ts",
     "test:referral-disposition-v2": "tsx --test test/referral-steering-disposition-v2.test.ts",
+    "test:authorization": "tsx --test test/authorization-receipt.test.ts test/authorization-adversarial.test.ts",
     "test:compliance": "tsx --test test/compliance-policy.test.ts test/compliance-controls.test.ts test/compliance-production-seams.test.ts",
     "test:live": "tsx --test test/live-testnet-agent.test.ts test/reserve-intake-candidate-broker.test.ts test/tradelayer-reserve-preflight.test.ts test/tradelayer-order-verifier.test.ts test/bitcoin-withdrawal-verifier.test.ts",
     "activity:feed": "tsx scripts/activity-feed.ts"

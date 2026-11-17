@@ -2777,3 +2777,28 @@ bitagent-dag-move skill ladder results (2026-10-05):
   the reported runs consistent;
 - the server and run chains were launched detached and stopped afterwards;
   nothing of this work remains on the GPU.
+
+Common authorization receipt for card, Lightning and on-chain (2026-11-17):
+
+- added `src/authorization/`: one principal-signed receipt carrying principal,
+  agent, instrument, destination, cumulative maximum amount, validity window
+  and a revocation handle, used by all three rails; `AuthorizationGate` holds
+  amounts against the cap, issues single-use executor tickets, and settles
+  only on evidence it verifies itself (processor HMAC for card captures,
+  preimage for Lightning, host chain observer with a wallet net debit for
+  on-chain); metered receipts accept provider-signed usage charges with
+  event, sequence and window dedupe per meter. Design and trust boundaries:
+  `docs/authorization-receipts.md`;
+- assumptions: the Lightning invoice decoder (host node), the on-chain
+  observer, the key store and the revocation registry are trusted host
+  components; Lightning settlements are charged the full fee allowance because
+  a preimage does not prove the routing fee;
+- unresolved: state is in memory only; no production card-processor, node or
+  observer adapters are wired; a frozen receipt cannot be unfrozen, and the
+  survival harness's `pay_invoice_capped` / `propose_psbt` capabilities do not
+  yet require a receipt;
+- `npm run test:authorization` (36 tests) passes. Of 32 defects seeded one at
+  a time into the gate, receipt, tool and parsing code, 30 fail at least one
+  test. The other two (dropping the per-receipt lock, reading the cap before
+  an await) are each covered by the other; seeded together, the race test
+  fails.
