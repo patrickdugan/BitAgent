@@ -37,6 +37,8 @@ agent tool --authorize(receipt, action)--> gate --ticket--> host --> executor
                                               |                       |
                                               |<------claim(ticket)---|  (single use; returns the gate's own order)
                                               |<------fail(ticket)----|  (rail refused; hold released)
+                                              |<-recordBroadcast------|  (on-chain: each txid the executor sent)
+                                              |<-closeCapture---------|  (card: processor released the remainder)
 agent tool --settle(attemptId, evidence)-->   |   verifies the rail's own proof, then records spend
 provider   --chargeMeter(receipt, event)-->   |   metered receipts only
 principal  --signed revocation--> RevocationRegistry (append-only; read by the gate on every call)
@@ -54,25 +56,36 @@ principal  --signed revocation--> RevocationRegistry (append-only; read by the g
 - **settle** accepts evidence only for a claimed attempt, and each settlement
   reference (card event id, payment hash, txid) settles one attempt across all
   receipts.
+- **recordBroadcast** (host, on-chain): the executor reports each txid it
+  broadcast for the attempt, including fee bumps. Only recorded txids settle
+  it, and a txid belongs to one attempt.
+- **closeCapture** (host, card): after a partial capture the uncaptured
+  remainder stays held, because the processor can still capture it. The
+  executor calls this once the processor has released it (final capture, void
+  or expiry).
 
 ## Rail evidence
 
 | Rail | Evidence from the tool | What the gate checks itself | Amount recorded |
 |---|---|---|---|
-| Card | processor capture webhook | processor HMAC, `reference == attemptId`, instrument, merchant, currency | captured amount |
+| Card | processor capture webhook | processor HMAC, `reference == attemptId` | captured amount; the uncaptured remainder stays held |
 | Lightning | `paymentHash`, `preimage` | `sha256(preimage) == paymentHash` of the invoice the host node decoded | invoice amount + the full fee allowance |
-| On-chain | `txid` only | host chain observer: outputs to the destination, fee, wallet net debit, confirmations | wallet net debit |
+| On-chain | `txid` only | recorded by the executor for this attempt; host chain observer: outputs to the destination, fee, wallet net debit, confirmations | wallet net debit |
 
 Lightning is charged the whole fee allowance because a preimage proves payment
-but not the routing fee, and a tool could under-report it. An on-chain tx that
-pays the right address but was not paid from the host wallet (no net debit) is
-refused, so a stranger's payment cannot be claimed.
+but not the routing fee, and a tool could under-report it. An on-chain txid
+must have been recorded by the executor for this attempt, so an older wallet
+payment to the same address cannot settle it, and the observer must still show
+a wallet net debit, so a stranger's payment cannot be claimed either.
 
 **Breaches.** Authentic evidence for this attempt that breaks the
-authorization (card overcapture, a second processor capture for the same
-attempt, on-chain overpayment, fee over the cap, a capture naming a different
-merchant, proof of payment for an attempt the executor reported as failed) is
-not ignored, because the money moved. The spend is recorded,
+authorization is not ignored, because the money moved: captures above the
+authorized amount (`card_overcapture`), a capture naming a different merchant,
+instrument or currency (`card_capture_mismatch`), a capture after the attempt
+was fully captured (`duplicate_capture`) or after the remainder was closed
+(`capture_after_close`), on-chain overpayment, a second confirmed transaction
+for one on-chain attempt (`duplicate_payment`), a fee over the cap, and proof of
+payment for an attempt the executor reported as failed. The spend is recorded,
 the breach is reported, and the receipt is **frozen**: no further
 authorizations or meter charges. Settlements of attempts already in flight are
 still recorded. Unfreezing is not implemented; the principal issues a new
@@ -101,7 +114,8 @@ card and meter HMAC verifiers, the ticket key, and the executor.
 
 Untrusted: everything arriving through `AuthorizationToolRegistry`. It exposes
 inspect, card charge, Lightning pay, on-chain send, settlement submit and
-meter submit. It has no claim, fail, cancel or revoke tool, and decisions it
+meter submit. It has no claim, fail, cancel, recordBroadcast, closeCapture or
+revoke tool, and decisions it
 returns never contain the executor ticket. All input is parsed into fresh
 objects with exact key sets, so later mutation by the caller has no effect,
 and `__proto__` keys are rejected.
@@ -130,9 +144,12 @@ each rail. `test/authorization-adversarial.test.ts` covers:
   tampered fields with and without a re-derived id, signatures without the
   domain prefix, re-encoded signatures, revoked principal keys; forged card
   captures, replayed captures for another attempt, double captures; wrong,
-  swapped or reused Lightning preimages; on-chain txids that are unknown, pay
-  the wrong address, underpay, come from a stranger, were reorged, or are
-  reused; forged and replayed executor tickets;
+  swapped or reused Lightning preimages; on-chain txids the executor did not
+  record (including an older genuine wallet payment to the same address),
+  and recorded ones that are unknown, pay the wrong address, underpay, come
+  from a stranger, were reorged, or belong to another attempt; captures that
+  disagree with the grant, partial captures, captures after close; forged and
+  replayed executor tickets;
 - **duplicated metering charges:** redelivery, concurrent bursts, reused
   event ids, reused sequences, overlapping windows, cross-receipt replay,
   retries after revocation;

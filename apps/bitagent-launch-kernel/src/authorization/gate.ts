@@ -44,6 +44,7 @@ import type {
 const TICKET_DOMAIN = "bitagent/authorization-ticket/v1\n";
 const GENESIS_HASH = "0".repeat(64);
 const DAY_MS = 86_400_000;
+const MAX_BROADCASTS = 16;
 
 export type AuthorizationGateOptions = {
   /** The agent this gate serves; receipts granted to any other agent are refused. */
@@ -70,10 +71,17 @@ type Attempt = {
   order: ExecutionOrder;
   amount: bigint;
   maxFee: bigint;
+  /** The hold authorized and bound into the ticket. */
   hold: bigint;
+  /** The part of the hold still counted in the ledger. */
+  outstanding: bigint;
   status: AttemptStatus;
   reservedRef?: string;
   settledAmount?: bigint;
+  /** On-chain: txids the executor reported broadcasting for this attempt. */
+  broadcastTxids: string[];
+  /** Card: the host reported that the processor released the uncaptured remainder. */
+  captureClosed: boolean;
   evidenceHashes: string[];
   breaches: BreachReason[];
 };
@@ -85,7 +93,7 @@ type MeterState = { events: Map<string, MeterRecord>; sequences: Set<number> };
 type Verdict =
   | { status: "settled"; amount: bigint; ref: string; breaches: BreachReason[] }
   | { status: "pending"; reasons: AuthorizationReason[] }
-  | { status: "rejected"; reasons: AuthorizationReason[]; freeze?: boolean };
+  | { status: "rejected"; reasons: AuthorizationReason[] };
 
 const PARSE_CODES = new Set<string>(["receipt_malformed", "action_malformed", "evidence_malformed", "meter_event_malformed"]);
 
@@ -107,6 +115,7 @@ export class AuthorizationGate {
   private readonly attempts = new Map<string, Attempt>();
   private readonly settlementRefs = new Map<string, string>();
   private readonly reservedRefs = new Map<string, string>();
+  private readonly broadcastOwners = new Map<string, string>();
   private readonly meters = new Map<string, MeterState>();
   private readonly locks = new Map<string, Promise<unknown>>();
   private readonly log: AuthorizationEvent[] = [];
@@ -207,6 +216,48 @@ export class AuthorizationGate {
       if (attempt.status !== "claimed") return { released: false, reasons: ["attempt_closed"] };
       this.close(attempt, this.ledgers.get(attempt.receiptId)!, "failed");
       this.record("attempt_failed", { attemptId: attempt.attemptId }, attempt);
+      return { released: true, reasons: [] };
+    });
+  }
+
+  /**
+   * On-chain executor reports a txid it broadcast for this attempt (a fee bump is another call).
+   * Only recorded txids can settle the attempt, so an unrelated wallet payment cannot.
+   */
+  async recordBroadcast(ticket: unknown, txid: unknown): Promise<{ recorded: boolean; reasons: AuthorizationReason[] }> {
+    const attempt = this.attemptForTicket(ticket);
+    if (!attempt) return { recorded: false, reasons: ["ticket_invalid"] };
+    if (typeof txid !== "string" || !HEX32.test(txid)) return { recorded: false, reasons: ["evidence_malformed"] };
+    return this.withLock(attempt.receiptId, () => {
+      if (attempt.order.rail !== "onchain") return { recorded: false, reasons: ["evidence_rail_mismatch"] };
+      if (attempt.status === "authorized") return { recorded: false, reasons: ["attempt_not_executed"] };
+      if (attempt.status === "cancelled") return { recorded: false, reasons: ["attempt_closed"] };
+      const owner = this.broadcastOwners.get(txid);
+      if (owner === attempt.attemptId) return { recorded: true, reasons: [] };
+      if (owner) return { recorded: false, reasons: ["txid_recorded_elsewhere"] };
+      if (attempt.broadcastTxids.length >= MAX_BROADCASTS) return { recorded: false, reasons: ["broadcast_limit_reached"] };
+      this.broadcastOwners.set(txid, attempt.attemptId);
+      attempt.broadcastTxids.push(txid);
+      this.record("attempt_broadcast", { txid }, attempt);
+      return { recorded: true, reasons: [] };
+    });
+  }
+
+  /**
+   * Card executor reports that the processor released the uncaptured remainder of a partially
+   * captured authorization (final capture, void or expiry). Its hold is released.
+   */
+  async closeCapture(ticket: unknown): Promise<{ released: boolean; reasons: AuthorizationReason[] }> {
+    const attempt = this.attemptForTicket(ticket);
+    if (!attempt) return { released: false, reasons: ["ticket_invalid"] };
+    return this.withLock(attempt.receiptId, () => {
+      if (attempt.order.rail !== "card") return { released: false, reasons: ["evidence_rail_mismatch"] };
+      if (attempt.status === "authorized" || attempt.status === "claimed") return { released: false, reasons: ["attempt_not_executed"] };
+      if (attempt.status !== "settled" || attempt.captureClosed) return { released: false, reasons: ["attempt_closed"] };
+      const released = attempt.outstanding;
+      this.release(attempt, this.ledgers.get(attempt.receiptId)!);
+      attempt.captureClosed = true;
+      this.record("capture_closed", { released: released.toString() }, attempt);
       return { released: true, reasons: [] };
     });
   }
@@ -330,8 +381,11 @@ export class AuthorizationGate {
       amount: built.amount,
       maxFee: built.maxFee,
       hold,
+      outstanding: hold,
       status: "authorized",
       reservedRef: built.reservedRef,
+      broadcastTxids: [],
+      captureClosed: false,
       evidenceHashes: [],
       breaches: []
     };
@@ -423,7 +477,8 @@ export class AuthorizationGate {
     if (evidence.rail !== attempt.order.rail) return reject(["evidence_rail_mismatch"]);
     if (attempt.status === "settled") {
       if (attempt.evidenceHashes.includes(evidenceHash)) return this.settledResult(attempt, ledger, true);
-      if (evidence.rail !== "card") return reject(["attempt_closed"]);
+      // A preimage settles its invoice once; a card or on-chain attempt can move money again.
+      if (evidence.rail === "lightning") return reject(["attempt_closed"]);
     } else if (attempt.status === "authorized") {
       return reject(["attempt_not_executed"]);
     } else if (attempt.status === "cancelled") {
@@ -436,27 +491,24 @@ export class AuthorizationGate {
       this.record("settlement_pending", { reasons: verdict.reasons }, attempt);
       return this.settlementResult("pending", verdict.reasons, attempt.attemptId, attempt.receiptId);
     }
-    if (verdict.status === "rejected") {
-      if (verdict.freeze) this.freeze(ledger, attempt, verdict.reasons);
-      return reject(verdict.reasons);
-    }
+    if (verdict.status === "rejected") return reject(verdict.reasons);
 
     // Synchronous commit: a reference settles at most one attempt across every receipt.
     if (this.settlementRefs.has(verdict.ref)) return reject(["settlement_reference_reused"]);
     this.settlementRefs.set(verdict.ref, attempt.attemptId);
     const breaches = [...verdict.breaches];
-    if (attempt.status === "settled") {
-      // A second authentic processor capture for the same attempt: the money moved twice.
-      breaches.push("duplicate_capture");
-      attempt.settledAmount = (attempt.settledAmount ?? 0n) + verdict.amount;
-    } else {
-      // A failed attempt's hold was already released; proof that it paid anyway is still recorded.
-      if (attempt.status === "failed") breaches.push("settled_after_failure");
-      else ledger.held -= attempt.hold;
-      attempt.status = "settled";
-      attempt.settledAmount = verdict.amount;
+    // A failed attempt's hold was already released; proof that it paid anyway is still recorded.
+    if (attempt.status === "failed") {
+      breaches.push("settled_after_failure");
+      attempt.captureClosed = true;
     }
+    if (attempt.status === "settled" && attempt.order.rail === "onchain") breaches.push("duplicate_payment");
+    attempt.status = "settled";
+    attempt.settledAmount = (attempt.settledAmount ?? 0n) + verdict.amount;
     ledger.spent += verdict.amount;
+    // The processor may still capture the rest of a card authorization, so that part stays held.
+    const residual = attempt.order.rail === "card" && !attempt.captureClosed ? attempt.amount - attempt.settledAmount : 0n;
+    this.release(attempt, ledger, residual > 0n ? residual : 0n);
     attempt.evidenceHashes.push(evidenceHash);
     attempt.breaches.push(...breaches);
     this.record("settlement_recorded", { ref: verdict.ref, amount: verdict.amount.toString(), breaches }, attempt);
@@ -486,12 +538,17 @@ export class AuthorizationGate {
     }
     if (!authentic) return { status: "rejected", reasons: ["card_signature_invalid"] };
     if (evidence.reference !== attempt.attemptId) return { status: "rejected", reasons: ["card_reference_mismatch"] };
-    if (evidence.instrumentId !== order.instrument.instrumentId || evidence.merchantId !== order.merchantId || evidence.currency !== order.currency) {
-      // Authentic and bound to this attempt, yet it disagrees with what was authorized.
-      return { status: "rejected", reasons: ["card_capture_mismatch"], freeze: true };
-    }
     const amount = BigInt(evidence.amountMinor);
-    return { status: "settled", amount, ref: `card:${evidence.processorEventId}`, breaches: amount > attempt.amount ? ["card_overcapture"] : [] };
+    const breaches: BreachReason[] = [];
+    // Authentic and bound to this attempt, so the money moved even if it disagrees with the grant.
+    if (evidence.instrumentId !== order.instrument.instrumentId || evidence.merchantId !== order.merchantId || evidence.currency !== order.currency) {
+      breaches.push("card_capture_mismatch");
+    }
+    const captured = attempt.status === "settled" ? attempt.settledAmount ?? 0n : 0n;
+    if (attempt.status === "settled" && attempt.captureClosed) breaches.push("capture_after_close");
+    else if (attempt.status === "settled" && captured >= attempt.amount) breaches.push("duplicate_capture");
+    else if (captured + amount > attempt.amount) breaches.push("card_overcapture");
+    return { status: "settled", amount, ref: `card:${evidence.processorEventId}`, breaches };
   }
 
   private async verifyOnchain(
@@ -499,6 +556,7 @@ export class AuthorizationGate {
     order: Extract<ExecutionOrder, { rail: "onchain" }>,
     evidence: OnchainSettlementEvidence
   ): Promise<Verdict> {
+    if (!attempt.broadcastTxids.includes(evidence.txid)) return { status: "rejected", reasons: ["txid_not_recorded"] };
     const observer = this.options.onchainObserverFor?.(order.instrument);
     if (!observer) return { status: "rejected", reasons: ["rail_unavailable"] };
     let paid = 0n;
@@ -621,9 +679,16 @@ export class AuthorizationGate {
   }
 
   private close(attempt: Attempt, ledger: Ledger, status: "failed" | "cancelled") {
-    ledger.held -= attempt.hold;
+    this.release(attempt, ledger);
     attempt.status = status;
     if (attempt.reservedRef && this.reservedRefs.get(attempt.reservedRef) === attempt.attemptId) this.reservedRefs.delete(attempt.reservedRef);
+  }
+
+  /** Lowers the attempt's outstanding hold to `keep` (never raises it). */
+  private release(attempt: Attempt, ledger: Ledger, keep = 0n) {
+    if (keep >= attempt.outstanding) return;
+    ledger.held -= attempt.outstanding - keep;
+    attempt.outstanding = keep;
   }
 
   private freeze(ledger: Ledger, attempt: Attempt, reasons: AuthorizationReason[]) {

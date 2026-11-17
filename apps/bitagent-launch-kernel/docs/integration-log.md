@@ -2802,3 +2802,13 @@ Common authorization receipt for card, Lightning and on-chain (2026-11-17):
   test. The other two (dropping the per-receipt lock, reading the cap before
   an await) are each covered by the other; seeded together, the race test
   fails.
+- independent review (Codex, read-only) found three accounting defects, each
+  reproduced as a failing test before the fix: an older wallet payment to the
+  same address could settle a live on-chain attempt, so the executor's real
+  spend went unrecorded (txids must now be recorded by the executor through
+  `recordBroadcast`); a partial card capture released the whole hold, so the
+  processor could capture the rest on top of new spending past the cap (the
+  remainder now stays held until `closeCapture`); a capture naming the wrong
+  merchant froze the receipt without recording the spend (now recorded as a
+  `card_capture_mismatch` breach). 38 tests pass; 8 of 8 defects seeded into
+  the new checks fail at least one test.

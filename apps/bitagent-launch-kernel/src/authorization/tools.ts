@@ -13,7 +13,8 @@ const objectField = { type: "object" };
 
 /**
  * The only payment surface an agent tool gets. Claiming, failing or cancelling an attempt,
- * revoking a receipt and reading executor tickets are host operations and are absent here.
+ * recording broadcasts, closing card captures, revoking a receipt and reading executor tickets
+ * are host operations and are absent here.
  */
 export const authorizationToolSchemas: Record<string, ToolSchema> = {
   "bitagent.authz.inspect": {

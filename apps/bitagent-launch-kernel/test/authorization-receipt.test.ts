@@ -51,7 +51,7 @@ test("one receipt shape carries principal, instrument, destination, max amount, 
 test("card: authorize, claim, settle with a processor-signed capture, then the one-shot receipt is consumed", async () => {
   const world = createWorld();
   const receipt = world.issue("card");
-  const { order, attemptId } = await authorizeAndClaim(world, receipt, cardAction({ amountMinor: "1200" }));
+  const { order, attemptId, ticket } = await authorizeAndClaim(world, receipt, cardAction({ amountMinor: "1200" }));
   assert.equal(order.rail, "card");
   assert.equal(order.rail === "card" && order.merchantId, MERCHANT);
 
@@ -59,7 +59,10 @@ test("card: authorize, claim, settle with a processor-signed capture, then the o
   assert.equal(settled.status, "settled");
   assert.equal(settled.settledAmount, "1150");
   assert.deepEqual(settled.breaches, []);
-  assert.equal(settled.remaining, "3850");
+  // The uncaptured 50 stays held until the host reports the processor released it.
+  assert.equal(settled.remaining, "3800");
+  assert.deepEqual(await world.gate.closeCapture(ticket), { released: true, reasons: [] });
+  assert.equal((await world.gate.inspect(receipt)).remaining, "3850");
 
   const again = await world.gate.authorize({ receipt, action: cardAction({ amountMinor: "100" }) });
   assert.deepEqual(again.reasons, ["receipt_consumed"]);
@@ -82,7 +85,7 @@ test("lightning: the host node decodes the invoice and the preimage settles it a
 test("on-chain: settlement waits for confirmations and counts the wallet's net debit", async () => {
   const world = createWorld({ minConfirmations: 2 });
   const receipt = world.issue("onchain");
-  const { attemptId } = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000", maxFeeSats: "1000" }));
+  const { attemptId, ticket } = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000", maxFeeSats: "1000" }));
   const txid = world.tx({
     state: "mempool",
     confirmations: 0,
@@ -90,6 +93,8 @@ test("on-chain: settlement waits for confirmations and counts the wallet's net d
     feeSats: "420",
     walletNetDebitSats: "150420"
   });
+  assert.deepEqual((await world.gate.settle({ attemptId, evidence: { rail: "onchain", txid } })).reasons, ["txid_not_recorded"]);
+  assert.deepEqual(await world.gate.recordBroadcast(ticket, txid), { recorded: true, reasons: [] });
   const pending = await world.gate.settle({ attemptId, evidence: { rail: "onchain", txid } });
   assert.equal(pending.status, "pending");
   assert.deepEqual(pending.reasons, ["tx_not_confirmed"]);
@@ -143,8 +148,12 @@ test("multi-use cap counts holds, partial captures and released failures", async
   assert.equal(claimB.claimed, true);
   assert.deepEqual(await world.gate.fail(b.ticket), { released: true, reasons: [] });
 
-  const status = await world.gate.inspect(receipt);
+  let status = await world.gate.inspect(receipt);
   assert.equal(status.spent, "1000");
+  assert.equal(status.held, "500");
+  assert.equal(status.remaining, "1500");
+  assert.deepEqual(await world.gate.closeCapture(a.ticket), { released: true, reasons: [] });
+  status = await world.gate.inspect(receipt);
   assert.equal(status.held, "0");
   assert.equal(status.remaining, "2000");
   assert.deepEqual(status.attempts.map((item) => item.status).sort(), ["failed", "settled"]);

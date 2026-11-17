@@ -167,8 +167,54 @@ test("authentic card captures that disagree with the authorization freeze the re
   const wrongReceipt = wrong.issue("card");
   const b = await authorizeAndClaim(wrong, wrongReceipt, cardAction());
   const mismatch = await wrong.gate.settle({ attemptId: b.attemptId, evidence: wrong.capture(b.attemptId, { merchantId: ATTACKER_MERCHANT }) });
-  assert.deepEqual(mismatch.reasons, ["card_capture_mismatch"]);
-  assert.equal((await wrong.gate.inspect(wrongReceipt)).frozen, true);
+  // The processor moved the money, so the spend is recorded even though the capture breaks the grant.
+  assert.equal(mismatch.status, "settled");
+  assert.deepEqual(mismatch.breaches, ["card_capture_mismatch"]);
+  const wrongStatus = await wrong.gate.inspect(wrongReceipt);
+  assert.equal(wrongStatus.spent, "1200");
+  assert.equal(wrongStatus.frozen, true);
+});
+
+test("a partial card capture keeps the uncaptured remainder held until it is captured or closed", async () => {
+  const world = createWorld();
+  const receipt = world.issue("card", { usage: { kind: "multi_use" }, maxAmount: { asset: "USD", unit: "minor", value: "1000" } });
+  const a = await authorizeAndClaim(world, receipt, cardAction({ amountMinor: "1000" }));
+  const settle = (evidence: unknown) => world.gate.settle({ attemptId: a.attemptId, evidence });
+
+  const first = await settle(world.capture(a.attemptId, { amountMinor: "100" }));
+  assert.equal(first.status, "settled");
+  assert.deepEqual(first.breaches, []);
+  assert.equal(first.remaining, "0");
+  // The processor can still capture the other 900, so the agent cannot spend it elsewhere.
+  assert.deepEqual((await world.gate.authorize({ receipt, action: cardAction({ amountMinor: "900" }) })).reasons, ["amount_exceeds_remaining"]);
+
+  const rest = await settle(world.capture(a.attemptId, { amountMinor: "900" }));
+  assert.equal(rest.status, "settled");
+  assert.deepEqual(rest.breaches, []);
+  assert.equal(rest.settledAmount, "1000");
+  let status = await world.gate.inspect(receipt);
+  assert.deepEqual([status.spent, status.held, status.frozen], ["1000", "0", false]);
+
+  const extra = await settle(world.capture(a.attemptId, { amountMinor: "1" }));
+  assert.deepEqual(extra.breaches, ["duplicate_capture"]);
+  status = await world.gate.inspect(receipt);
+  assert.deepEqual([status.spent, status.frozen], ["1001", true]);
+
+  // The host closes the remainder once the processor has released it; a capture after that is a breach.
+  const closing = createWorld();
+  const closingReceipt = closing.issue("card", { usage: { kind: "multi_use" }, maxAmount: { asset: "USD", unit: "minor", value: "1000" } });
+  const c = await authorizeAndClaim(closing, closingReceipt, cardAction({ amountMinor: "1000" }));
+  assert.deepEqual(await closing.gate.closeCapture(c.ticket), { released: false, reasons: ["attempt_not_executed"] });
+  await closing.gate.settle({ attemptId: c.attemptId, evidence: closing.capture(c.attemptId, { amountMinor: "100" }) });
+  assert.deepEqual(await closing.gate.closeCapture("forged.ticket"), { released: false, reasons: ["ticket_invalid"] });
+  assert.deepEqual(await closing.gate.closeCapture(c.ticket), { released: true, reasons: [] });
+  assert.deepEqual(await closing.gate.closeCapture(c.ticket), { released: false, reasons: ["attempt_closed"] });
+  assert.equal((await closing.gate.inspect(closingReceipt)).remaining, "900");
+  assert.equal((await closing.gate.authorize({ receipt: closingReceipt, action: cardAction({ amountMinor: "900" }) })).decision, "authorized");
+  const late = await closing.gate.settle({ attemptId: c.attemptId, evidence: closing.capture(c.attemptId, { amountMinor: "900" }) });
+  assert.equal(late.status, "settled");
+  assert.deepEqual(late.breaches, ["capture_after_close"]);
+  assert.equal((await closing.gate.inspect(closingReceipt)).frozen, true);
 });
 
 test("forged Lightning payment proofs: random preimage, another invoice's preimage, swapped hash", async () => {
@@ -197,10 +243,20 @@ test("forged on-chain payment receipts: unknown txid, wrong address, underpaymen
   const world = createWorld();
   const receipt = world.issue("onchain", { usage: { kind: "multi_use" }, maxAmount: { asset: "BTC", unit: "sat", value: "400000" } });
   const first = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000" }));
-  const settle = (attemptId: string, txid: string) => world.gate.settle({ attemptId, evidence: { rail: "onchain", txid } });
   const ours = (outputs: Array<{ vout: number; valueSats: string; address?: string }>, extra = {}) =>
     world.tx({ outputs, feeSats: "500", walletNetDebitSats: String(outputs.reduce((sum, item) => sum + Number(item.valueSats), 0) + 500), ...extra });
 
+  // A tool's txid is refused unless the executor recorded it for this attempt.
+  const unrecorded = ours([{ vout: 0, valueSats: "150000", address: DEST_ADDRESS }]);
+  assert.deepEqual((await world.gate.settle({ attemptId: first.attemptId, evidence: { rail: "onchain", txid: unrecorded } })).reasons, ["txid_not_recorded"]);
+
+  // Recorded txids are still checked against the chain, so an executor's mistaken report cannot settle either.
+  const settle = async (attemptId: string, txid: string) => {
+    const attempt = attemptId === first.attemptId ? first : second;
+    await world.gate.recordBroadcast(attempt.ticket, txid);
+    return world.gate.settle({ attemptId, evidence: { rail: "onchain", txid } });
+  };
+  let second: Awaited<ReturnType<typeof authorizeAndClaim>> = first;
   assert.deepEqual((await settle(first.attemptId, crypto.randomBytes(32).toString("hex"))).reasons, ["tx_not_found"]);
   assert.deepEqual((await settle(first.attemptId, ours([{ vout: 0, valueSats: "150000", address: ATTACKER_ADDRESS }]))).reasons, ["tx_output_missing"]);
   assert.deepEqual((await settle(first.attemptId, ours([{ vout: 0, valueSats: "149999", address: DEST_ADDRESS }]))).reasons, ["tx_output_missing"]);
@@ -214,8 +270,9 @@ test("forged on-chain payment receipts: unknown txid, wrong address, underpaymen
   const good = ours([{ vout: 0, valueSats: "150000", address: DEST_ADDRESS.toUpperCase() }]);
   assert.equal((await settle(first.attemptId, good)).status, "settled");
 
-  const second = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000" }));
-  assert.deepEqual((await settle(second.attemptId, good)).reasons, ["settlement_reference_reused"]);
+  second = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000" }));
+  assert.deepEqual(await world.gate.recordBroadcast(second.ticket, good), { recorded: false, reasons: ["txid_recorded_elsewhere"] });
+  assert.deepEqual((await world.gate.settle({ attemptId: second.attemptId, evidence: { rail: "onchain", txid: good } })).reasons, ["txid_not_recorded"]);
   const status = await world.gate.inspect(receipt);
   assert.equal(status.spent, "150500");
   assert.equal(status.held, "151000");
@@ -224,13 +281,47 @@ test("forged on-chain payment receipts: unknown txid, wrong address, underpaymen
 test("an authentic on-chain payment that overpays or overspends on fees is recorded and freezes the receipt", async () => {
   const world = createWorld();
   const receipt = world.issue("onchain", { usage: { kind: "multi_use" }, maxAmount: { asset: "BTC", unit: "sat", value: "400000" } });
-  const { attemptId } = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000", maxFeeSats: "1000" }));
+  const { attemptId, ticket } = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "150000", maxFeeSats: "1000" }));
   const txid = world.tx({ outputs: [{ vout: 0, valueSats: "160000", address: DEST_ADDRESS }], feeSats: "4000", walletNetDebitSats: "164000" });
+  await world.gate.recordBroadcast(ticket, txid);
   const result = await world.gate.settle({ attemptId, evidence: { rail: "onchain", txid } });
   assert.equal(result.status, "settled");
   assert.deepEqual(result.breaches, ["onchain_overpayment", "fee_exceeds_max"]);
   assert.equal(result.settledAmount, "164000");
   assert.deepEqual((await world.gate.authorize({ receipt, action: onchainAction({ amountSats: "1000" }) })).reasons, ["receipt_frozen"]);
+});
+
+test("an older wallet payment to the same address cannot settle a live on-chain attempt", async () => {
+  const world = createWorld();
+  const receipt = world.issue("onchain", { usage: { kind: "multi_use" }, maxAmount: { asset: "BTC", unit: "sat", value: "10000" } });
+  const a = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "5000", maxFeeSats: "1000" }));
+  const settle = (attemptId: string, txid: string) => world.gate.settle({ attemptId, evidence: { rail: "onchain", txid } });
+
+  // A genuine, confirmed wallet payment to the destination that this attempt did not broadcast.
+  const older = world.tx({ outputs: [{ vout: 0, valueSats: "5000", address: DEST_ADDRESS }], feeSats: "100", walletNetDebitSats: "5100" });
+  assert.deepEqual((await settle(a.attemptId, older)).reasons, ["txid_not_recorded"]);
+  assert.equal((await world.gate.inspect(receipt)).spent, "0");
+
+  // The executor's real transaction spends the whole allowance and is the only one that settles.
+  const real = world.tx({ outputs: [{ vout: 0, valueSats: "5000", address: DEST_ADDRESS }], feeSats: "1000", walletNetDebitSats: "6000" });
+  assert.deepEqual(await world.gate.recordBroadcast("forged.ticket", real), { recorded: false, reasons: ["ticket_invalid"] });
+  assert.deepEqual(await world.gate.recordBroadcast(a.ticket, real.toUpperCase()), { recorded: false, reasons: ["evidence_malformed"] });
+  assert.deepEqual(await world.gate.recordBroadcast(a.ticket, real), { recorded: true, reasons: [] });
+  const settled = await settle(a.attemptId, real);
+  assert.equal(settled.status, "settled");
+  assert.equal(settled.settledAmount, "6000");
+  assert.deepEqual((await world.gate.authorize({ receipt, action: onchainAction({ amountSats: "4800", maxFeeSats: "100" }) })).reasons, ["amount_exceeds_remaining"]);
+
+  // A txid belongs to one attempt, and a second transaction the executor sent for the same attempt is counted.
+  const b = await authorizeAndClaim(world, receipt, onchainAction({ amountSats: "3000", maxFeeSats: "500" }));
+  assert.deepEqual(await world.gate.recordBroadcast(b.ticket, real), { recorded: false, reasons: ["txid_recorded_elsewhere"] });
+  const resent = world.tx({ outputs: [{ vout: 0, valueSats: "5000", address: DEST_ADDRESS }], feeSats: "200", walletNetDebitSats: "5200" });
+  assert.deepEqual(await world.gate.recordBroadcast(a.ticket, resent), { recorded: true, reasons: [] });
+  const duplicate = await settle(a.attemptId, resent);
+  assert.equal(duplicate.status, "settled");
+  assert.deepEqual(duplicate.breaches, ["duplicate_payment"]);
+  const status = await world.gate.inspect(receipt);
+  assert.deepEqual([status.spent, status.frozen], ["11200", true]);
 });
 
 test("forged executor tickets are refused and a genuine ticket is single-use", async () => {
@@ -489,7 +580,10 @@ test("mutating the request or the receipt after authorization does not change th
 
 test("agent tools have no route to claim, cancel, fail, revoke, or read tickets", async () => {
   const world = createWorld();
-  for (const name of ["bitagent.authz.claim", "bitagent.authz.cancel", "bitagent.authz.fail", "bitagent.authz.revoke", "constructor", "__proto__", "toString", "hasOwnProperty"]) {
+  for (const name of [
+    "bitagent.authz.claim", "bitagent.authz.cancel", "bitagent.authz.fail", "bitagent.authz.revoke", "bitagent.authz.recordBroadcast",
+    "bitagent.authz.closeCapture", "constructor", "__proto__", "toString", "hasOwnProperty"
+  ]) {
     await rejectsTool(world, name, {}, "unknown_tool");
   }
   const result = await world.tools.call("bitagent.authz.card.charge", { receipt: world.issue("card"), action: cardAction() });

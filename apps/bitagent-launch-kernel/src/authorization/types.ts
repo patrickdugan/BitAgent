@@ -211,7 +211,13 @@ export type ActionReason =
   | "receipt_consumed"
   | "idempotency_conflict";
 
-export type ExecutionReason = "ticket_invalid" | "ticket_already_claimed" | "attempt_closed" | "unknown_attempt";
+export type ExecutionReason =
+  | "ticket_invalid"
+  | "ticket_already_claimed"
+  | "attempt_closed"
+  | "unknown_attempt"
+  | "txid_recorded_elsewhere"
+  | "broadcast_limit_reached";
 
 export type SettlementReason =
   | "attempt_not_executed"
@@ -219,17 +225,25 @@ export type SettlementReason =
   | "evidence_rail_mismatch"
   | "card_signature_invalid"
   | "card_reference_mismatch"
-  | "card_capture_mismatch"
   | "preimage_mismatch"
   | "settlement_reference_reused"
   | "observer_error"
+  | "txid_not_recorded"
   | "tx_not_found"
   | "tx_not_confirmed"
   | "tx_output_missing"
   | "tx_not_from_wallet"
   | "fee_unobservable";
 
-export type BreachReason = "card_overcapture" | "duplicate_capture" | "onchain_overpayment" | "fee_exceeds_max" | "settled_after_failure";
+export type BreachReason =
+  | "card_overcapture"
+  | "card_capture_mismatch"
+  | "duplicate_capture"
+  | "capture_after_close"
+  | "onchain_overpayment"
+  | "duplicate_payment"
+  | "fee_exceeds_max"
+  | "settled_after_failure";
 
 export type MeterReason =
   | "meter_event_malformed"
@@ -317,6 +331,8 @@ export type AuthorizationEventType =
   | "claim_refused"
   | "attempt_failed"
   | "attempt_cancelled"
+  | "attempt_broadcast"
+  | "capture_closed"
   | "settlement_recorded"
   | "settlement_pending"
   | "settlement_rejected"
