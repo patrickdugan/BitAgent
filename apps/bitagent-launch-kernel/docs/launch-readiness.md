@@ -1618,3 +1618,31 @@ Tx5 starter-order wallet candidate audit (2026-08-09):
   parity from two independent nodes, run a separately approved low-value
   testnet4 tx5 carrier, verify the resulting order through the independent
   TradeLayer source, then complete the already-gated PnL and withdrawal journey.
+
+## MVP revalidation (2026-08-15)
+
+Decision: **scripted MVP remains ready; testnet or funded release remains
+blocked.**
+
+- The local skill suite passed 18/18, the focused launch evaluator passed
+  51/51 with every reported safety score at 1.0, and the full launch suite
+  passed 197/198.
+- The one failing full-suite check is intentional fail-closed behavior: the
+  available `tradelayer.js` checkout has tracked source changes and its commit
+  and consensus-source hashes do not match the sealed candidate-11 manifest.
+  The release gate therefore reports `sourceVerified=false` and
+  `executable=false`; no source tree was reset or overwritten to make the gate
+  pass.
+- `npm run demo:onboard -- --help` now returns local setup requirements without
+  attempting a quote, moving funds, or creating an activity record. The direct
+  demo has the same safe help behavior.
+- The local Bonsai/Hermes V10 candidate was re-screened under the 79 C resource
+  cap. Its resource cleanup and authority boundaries passed, but it failed the
+  exact candidate-schema and read-only-tool-use gates. It remains unselected
+  and cannot affect workflow state.
+
+Before a real testnet journey, provide a separate clean TradeLayer worktree
+whose exact commit and consensus source list match the selected release
+manifest, then rerun the release gate and independent listener checks. A live
+wallet action still requires its own fresh simulation, exact effects and fees,
+wallet approval, host execution, and independent verification.
