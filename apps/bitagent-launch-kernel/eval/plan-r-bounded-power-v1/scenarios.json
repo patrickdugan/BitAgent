@@ -1,0 +1,205 @@
+{
+  "arms": {
+    "01_memory_off": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 1,
+      "memory_slots": 0,
+      "name": "01_memory_off",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "write_external"
+      ]
+    },
+    "01_memory_on": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 1,
+      "memory_slots": 2,
+      "name": "01_memory_on",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "write_external"
+      ]
+    },
+    "02_peer_exchange": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 1,
+      "max_instances": 1,
+      "memory_slots": 2,
+      "name": "02_peer_exchange",
+      "peer_enabled": true,
+      "peer_facts": 2,
+      "release_lag": 0,
+      "tool_grants": [
+        "write_external"
+      ]
+    },
+    "02_peer_sham": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 1,
+      "max_instances": 1,
+      "memory_slots": 2,
+      "name": "02_peer_sham",
+      "peer_enabled": false,
+      "peer_facts": 2,
+      "release_lag": 0,
+      "tool_grants": [
+        "write_external"
+      ]
+    },
+    "03_read_only": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 1,
+      "memory_slots": 2,
+      "name": "03_read_only",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": []
+    },
+    "03_write_tool": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 1,
+      "memory_slots": 2,
+      "name": "03_write_tool",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "write_external"
+      ]
+    },
+    "04_escrow_R1": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 5,
+      "local_facts": 3,
+      "max_instances": 1,
+      "memory_slots": 2,
+      "name": "04_escrow_R1",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "coordinate"
+      ]
+    },
+    "04_escrow_R2": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 5,
+      "local_facts": 3,
+      "max_instances": 2,
+      "memory_slots": 2,
+      "name": "04_escrow_R2",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "coordinate"
+      ]
+    },
+    "04_escrow_R2_lag": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 5,
+      "local_facts": 3,
+      "max_instances": 2,
+      "memory_slots": 2,
+      "name": "04_escrow_R2_lag",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 4,
+      "tool_grants": [
+        "coordinate"
+      ]
+    },
+    "05_frozen_only": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 2,
+      "memory_slots": 2,
+      "name": "05_frozen_only",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "coordinate",
+        "write_external"
+      ]
+    },
+    "05_full_gateway": {
+      "approved_actions": [
+        "compile",
+        "idle",
+        "read_a",
+        "read_b",
+        "receive_peer",
+        "release"
+      ],
+      "enforce_gateway": true,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 2,
+      "memory_slots": 2,
+      "name": "05_full_gateway",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "coordinate",
+        "write_external"
+      ]
+    },
+    "05_memory_capped": {
+      "approved_actions": [],
+      "enforce_gateway": false,
+      "horizon": 6,
+      "local_facts": 3,
+      "max_instances": 2,
+      "memory_slots": 1,
+      "name": "05_memory_capped",
+      "peer_enabled": false,
+      "peer_facts": 0,
+      "release_lag": 0,
+      "tool_grants": [
+        "coordinate",
+        "write_external"
+      ]
+    }
+  },
+  "description": "Twelve read-only synthetic Plan R arms matching PR-01; no external actions",
+  "model_pilot": {
+    "local_files_only": true,
+    "repo_id": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "safetensors_only": true,
+    "trust_remote_code": false
+  },
+  "schema": "bitagent.plan_r_synthetic_scenarios.v1",
+  "source_commit": "0c5fb52cd112eb95b7bbcfc438e6939fbbe7adba",
+  "source_pr": 3,
+  "source_repo": "MoralityLabAI/Compactification-Theory",
+  "symbolic_model_sha256": "113fc799a4c4948dfb7d50126fc5ff64e4b9077782d34919fb5132fdf3866abe"
+}

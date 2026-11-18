@@ -1,0 +1,49 @@
+name: Plan R bounded-power synthetic pilot
+
+on:
+  pull_request:
+    paths:
+      - "apps/bitagent-launch-kernel/eval/plan-r-bounded-power-v1/**"
+      - ".github/workflows/plan-r-bounded-power.yml"
+  push:
+    branches:
+      - "research/plan-r-shadow-gateway-v1-20261029"
+    paths:
+      - "apps/bitagent-launch-kernel/eval/plan-r-bounded-power-v1/**"
+      - ".github/workflows/plan-r-bounded-power.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plan-r-bounded-power-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  toy-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    defaults:
+      run:
+        working-directory: apps/bitagent-launch-kernel/eval/plan-r-bounded-power-v1
+    env:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      PIP_NO_INDEX: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Exact gateway oracle and offline test suite
+        run: |
+          node --test test_gate.mjs
+          python -m unittest -q test_pilot
+          python -O -m unittest -q test_pilot
+      - name: Mock matrix with independent host replay
+        run: |
+          python pilot.py --backend mock --seeds 0 --max-calls 96 --out-dir "${RUNNER_TEMP}/plan_r_mock"
+          python pilot.py --verify --out-dir "${RUNNER_TEMP}/plan_r_mock"
