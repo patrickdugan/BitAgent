@@ -1,0 +1,4 @@
+interface:
+  display_name: BitAgent Trading Systems Gym
+  short_description: Candidate-only TradingMoneyball-inspired offline strategy evaluation
+  default_prompt: Evaluate trading-system proposals with the BitAgent trading systems gym and preserve the wallet authority boundary.

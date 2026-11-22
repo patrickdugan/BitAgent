@@ -1,0 +1,15 @@
+{
+  "initial_equity": 10000,
+  "fee_bps": 4,
+  "slippage_bps": 2,
+  "impact_bps": 30,
+  "funding_bps_per_bar": 0,
+  "max_target_bps": 7000,
+  "max_order_fraction_nav": 0.75,
+  "max_participation": 0.1,
+  "max_total_cost_bps": 50,
+  "max_drawdown_bps": 3500,
+  "maintenance_margin_fraction": 0.1,
+  "latency_bars": 0,
+  "max_market_gap_seconds": 300
+}
