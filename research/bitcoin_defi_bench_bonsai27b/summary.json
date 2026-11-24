@@ -1,0 +1,251 @@
+{
+  "benchmark": "<USER>ckdugan/bitcoin-defi-bench (v0, vendor/spiral @ 9824c30ad402cc9bca768eca27d176e0e8788db5)",
+  "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "model_sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "runtime": "llama-prism-b10743 (0.2.0-dev commit adfffbe41), 100% pure GPU on RTX 5080 Laptop 16 GB (6.5 GiB VRAM used, 0 CPU offload)",
+  "goose_version": "1.53.0",
+  "runs": [
+    {
+      "family": "bonding",
+      "arm": "baseline",
+      "stem": "bonsai27b-bonding-baseline",
+      "tag": "bdb-bonding-baseline",
+      "seeds": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 12,
+        "llm_calls": 12,
+        "prompt_tokens_total": 6779,
+        "completion_tokens_total": 336,
+        "mean_prefill_tps": 541.37,
+        "peak_prefill_tps": 561.63,
+        "mean_decode_tps": 52.02,
+        "peak_decode_tps": 52.78,
+        "wall_s_sum": 21.94
+      },
+      "tasks": {}
+    },
+    {
+      "family": "bonding",
+      "arm": "goose+skill",
+      "stem": "bonsai27b-bonding-goose-skill",
+      "tag": "bdb-bonding-goose-skill",
+      "seeds": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 52,
+        "llm_calls": 103,
+        "prompt_tokens_total": 96736,
+        "completion_tokens_total": 4011,
+        "mean_prefill_tps": 531.44,
+        "peak_prefill_tps": 678.84,
+        "mean_decode_tps": 36.06,
+        "peak_decode_tps": 49.7,
+        "wall_s_sum": 661.02
+      },
+      "tasks": {}
+    },
+    {
+      "family": "dlc",
+      "arm": "baseline",
+      "stem": "bonsai27b-dlc-baseline",
+      "tag": "bdb-dlc-baseline",
+      "seeds": [
+        0,
+        1
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 52,
+        "llm_calls": 52,
+        "prompt_tokens_total": 111366,
+        "completion_tokens_total": 10820,
+        "mean_prefill_tps": 416.11,
+        "peak_prefill_tps": 695.26,
+        "mean_decode_tps": 40.26,
+        "peak_decode_tps": 52.26,
+        "wall_s_sum": 565.48
+      },
+      "tasks": {}
+    },
+    {
+      "family": "dlc",
+      "arm": "goose+skill",
+      "stem": "bonsai27b-dlc-goose-skill",
+      "tag": "bdb-dlc-goose-skill",
+      "seeds": [
+        0,
+        1
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 12,
+        "llm_calls": 24,
+        "prompt_tokens_total": 43570,
+        "completion_tokens_total": 165,
+        "mean_prefill_tps": 680.15,
+        "peak_prefill_tps": 733.6,
+        "mean_decode_tps": 33.42,
+        "peak_decode_tps": 42.95,
+        "wall_s_sum": 77.87
+      },
+      "tasks": {}
+    },
+    {
+      "family": "placement",
+      "arm": "baseline",
+      "stem": "bonsai27b-placement-baseline",
+      "tag": "bdb-placement-baseline",
+      "seeds": [
+        0,
+        1
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 14,
+        "llm_calls": 14,
+        "prompt_tokens_total": 46456,
+        "completion_tokens_total": 2296,
+        "mean_prefill_tps": 456.54,
+        "peak_prefill_tps": 762.24,
+        "mean_decode_tps": 26.58,
+        "peak_decode_tps": 32.02,
+        "wall_s_sum": 206.87
+      },
+      "tasks": {}
+    },
+    {
+      "family": "placement",
+      "arm": "goose+skill",
+      "stem": "bonsai27b-placement-goose-skill",
+      "tag": "bdb-placement-goose-skill",
+      "seeds": [
+        0,
+        1
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 14,
+        "llm_calls": 28,
+        "prompt_tokens_total": 101168,
+        "completion_tokens_total": 496,
+        "mean_prefill_tps": 538.81,
+        "peak_prefill_tps": 793.76,
+        "mean_decode_tps": 27.19,
+        "peak_decode_tps": 48.36,
+        "wall_s_sum": 697.29
+      },
+      "tasks": {}
+    },
+    {
+      "family": "netting",
+      "arm": "baseline",
+      "stem": "bonsai27b-netting-baseline",
+      "tag": "bdb-netting-baseline",
+      "seeds": [
+        0,
+        1
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 47,
+        "llm_calls": 47,
+        "prompt_tokens_total": 216618,
+        "completion_tokens_total": 16479,
+        "mean_prefill_tps": 521.58,
+        "peak_prefill_tps": 759.61,
+        "mean_decode_tps": 26.41,
+        "peak_decode_tps": 32.48,
+        "wall_s_sum": 1222.8
+      },
+      "tasks": {}
+    },
+    {
+      "family": "netting",
+      "arm": "goose+skill",
+      "stem": "bonsai27b-netting-goose-skill",
+      "tag": "bdb-netting-goose-skill",
+      "seeds": [
+        0,
+        1
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 12,
+        "llm_calls": 24,
+        "prompt_tokens_total": 71077,
+        "completion_tokens_total": 1546,
+        "mean_prefill_tps": 625.71,
+        "peak_prefill_tps": 790.66,
+        "mean_decode_tps": 30.08,
+        "peak_decode_tps": 42.46,
+        "wall_s_sum": 559.29
+      },
+      "tasks": {}
+    },
+    {
+      "family": "proof_budget",
+      "arm": "baseline",
+      "stem": "bonsai27b-proof_budget-baseline",
+      "tag": "bdb-proof_budget-baseline",
+      "seeds": [
+        0
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 327,
+        "llm_calls": 327,
+        "prompt_tokens_total": 185640,
+        "completion_tokens_total": 3913,
+        "mean_prefill_tps": 176.54,
+        "peak_prefill_tps": 442.7,
+        "mean_decode_tps": 23.65,
+        "peak_decode_tps": 34.39,
+        "wall_s_sum": 366.96
+      },
+      "tasks": {}
+    },
+    {
+      "family": "swap",
+      "arm": "baseline",
+      "stem": "bonsai27b-swap-baseline",
+      "tag": "bdb-swap-baseline",
+      "seeds": [
+        0
+      ],
+      "block": "development",
+      "agent_id": null,
+      "telemetry": {
+        "harness_turns": 8,
+        "llm_calls": 8,
+        "prompt_tokens_total": 9738,
+        "completion_tokens_total": 108,
+        "mean_prefill_tps": 359.18,
+        "peak_prefill_tps": 548.52,
+        "mean_decode_tps": 25.52,
+        "peak_decode_tps": 28.37,
+        "wall_s_sum": 13.45
+      },
+      "tasks": {}
+    }
+  ]
+}
