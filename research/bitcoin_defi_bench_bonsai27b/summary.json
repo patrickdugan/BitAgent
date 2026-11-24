@@ -17,7 +17,7 @@
         3
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-baseline@990131bfd0bb",
       "telemetry": {
         "harness_turns": 12,
         "llm_calls": 12,
@@ -29,7 +29,248 @@
         "peak_decode_tps": 52.78,
         "wall_s_sum": 21.94
       },
-      "tasks": {}
+      "tasks": {
+        "bonding/fast": {
+          "random": {
+            "episodes": 4,
+            "mean": -12.4867,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.625,
+              "capital_sats": 644238.491,
+              "cost_sats": 698984.026,
+              "delta_blocks": 150.0,
+              "slashed_sats": 10945.535
+            }
+          },
+          "ghost_required_bond": {
+            "episodes": 4,
+            "mean": -13.5419,
+            "metrics": {
+              "admitted": 0.0,
+              "assert_fee_sats": 0.0,
+              "bond_over_value": 0.5,
+              "capital_sats": 0.0,
+              "cost_sats": 1647987.6758,
+              "delta_blocks": 144.0,
+              "slashed_sats": 0.0
+            }
+          },
+          "plug_in": {
+            "episodes": 4,
+            "mean": -12.3671,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 31200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 266306.1991,
+              "cost_sats": 362860.3149,
+              "delta_blocks": 13.5,
+              "slashed_sats": 8197.5197
+            }
+          },
+          "half_rate": {
+            "episodes": 4,
+            "mean": -12.0924,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 276248.3856,
+              "cost_sats": 328597.5689,
+              "delta_blocks": 27.0,
+              "slashed_sats": 8549.1833
+            }
+          },
+          "oracle": {
+            "episodes": 4,
+            "mean": -12.0804,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 270264.9825,
+              "cost_sats": 322595.1125,
+              "delta_blocks": 12.0,
+              "slashed_sats": 8530.1301
+            }
+          },
+          "bonsai-2-27b-baseline@990131bfd0bb": {
+            "episodes": 4,
+            "mean": -12.5637,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 31200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 373890.6697,
+              "cost_sats": 470464.366,
+              "delta_blocks": 325.5,
+              "slashed_sats": 8217.1003
+            }
+          }
+        },
+        "bonding/slow": {
+          "random": {
+            "episodes": 4,
+            "mean": -13.7261,
+            "metrics": {
+              "admitted": 0.25,
+              "assert_fee_sats": 16200.0,
+              "bond_over_value": 1.5625,
+              "capital_sats": 7607.821,
+              "cost_sats": 2077664.0531,
+              "delta_blocks": 103.5,
+              "slashed_sats": 84.9739
+            }
+          },
+          "ghost_required_bond": {
+            "episodes": 4,
+            "mean": -13.9353,
+            "metrics": {
+              "admitted": 0.0,
+              "assert_fee_sats": 0.0,
+              "bond_over_value": 0.5,
+              "capital_sats": 0.0,
+              "cost_sats": 2108939.5215,
+              "delta_blocks": 144.0,
+              "slashed_sats": 0.0
+            }
+          },
+          "plug_in": {
+            "episodes": 4,
+            "mean": -13.1336,
+            "metrics": {
+              "admitted": 0.5,
+              "assert_fee_sats": 19200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 368083.068,
+              "cost_sats": 594289.4347,
+              "delta_blocks": 96.0,
+              "slashed_sats": 0.1183
+            }
+          },
+          "half_rate": {
+            "episodes": 4,
+            "mean": -12.6039,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 47400.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 435738.1555,
+              "cost_sats": 491561.4138,
+              "delta_blocks": 198.0,
+              "slashed_sats": 8423.2583
+            }
+          },
+          "oracle": {
+            "episodes": 4,
+            "mean": -12.5279,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 47400.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 377270.1427,
+              "cost_sats": 433021.9887,
+              "delta_blocks": 90.0,
+              "slashed_sats": 8351.846
+            }
+          },
+          "bonsai-2-27b-baseline@990131bfd0bb": {
+            "episodes": 4,
+            "mean": -13.051,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 31800.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 167925.7336,
+              "cost_sats": 1548070.5548,
+              "delta_blocks": 327.0,
+              "slashed_sats": 8430.5886
+            }
+          }
+        },
+        "bonding/strict": {
+          "random": {
+            "episodes": 4,
+            "mean": -12.9442,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 38400.0,
+              "bond_over_value": 1.625,
+              "capital_sats": 512949.139,
+              "cost_sats": 600537.764,
+              "delta_blocks": 180.0,
+              "slashed_sats": 3156.9577
+            }
+          },
+          "ghost_required_bond": {
+            "episodes": 4,
+            "mean": -13.7226,
+            "metrics": {
+              "admitted": 0.0,
+              "assert_fee_sats": 0.0,
+              "bond_over_value": 0.5,
+              "capital_sats": 0.0,
+              "cost_sats": 1797184.8692,
+              "delta_blocks": 144.0,
+              "slashed_sats": 0.0
+            }
+          },
+          "plug_in": {
+            "episodes": 4,
+            "mean": -12.7609,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 37200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 116959.9676,
+              "cost_sats": 1226923.2578,
+              "delta_blocks": 42.0,
+              "slashed_sats": 1505.0678
+            }
+          },
+          "half_rate": {
+            "episodes": 4,
+            "mean": -12.3705,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 54000.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 315666.985,
+              "cost_sats": 371321.5503,
+              "delta_blocks": 90.0,
+              "slashed_sats": 1654.5653
+            }
+          },
+          "oracle": {
+            "episodes": 4,
+            "mean": -12.3474,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 54000.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 305904.9589,
+              "cost_sats": 361558.7986,
+              "delta_blocks": 42.0,
+              "slashed_sats": 1653.8398
+            }
+          },
+          "bonsai-2-27b-baseline@990131bfd0bb": {
+            "episodes": 4,
+            "mean": -12.8256,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 39000.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 404907.5101,
+              "cost_sats": 538629.3233,
+              "delta_blocks": 325.5,
+              "slashed_sats": 1611.0052
+            }
+          }
+        }
+      }
     },
     {
       "family": "bonding",
@@ -43,7 +284,7 @@
         3
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-goose-skill@54e4a3ea54f0",
       "telemetry": {
         "harness_turns": 52,
         "llm_calls": 103,
@@ -55,7 +296,248 @@
         "peak_decode_tps": 49.7,
         "wall_s_sum": 661.02
       },
-      "tasks": {}
+      "tasks": {
+        "bonding/fast": {
+          "random": {
+            "episodes": 4,
+            "mean": -12.4867,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.625,
+              "capital_sats": 644238.491,
+              "cost_sats": 698984.026,
+              "delta_blocks": 150.0,
+              "slashed_sats": 10945.535
+            }
+          },
+          "ghost_required_bond": {
+            "episodes": 4,
+            "mean": -13.5419,
+            "metrics": {
+              "admitted": 0.0,
+              "assert_fee_sats": 0.0,
+              "bond_over_value": 0.5,
+              "capital_sats": 0.0,
+              "cost_sats": 1647987.6758,
+              "delta_blocks": 144.0,
+              "slashed_sats": 0.0
+            }
+          },
+          "plug_in": {
+            "episodes": 4,
+            "mean": -12.3671,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 31200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 266306.1991,
+              "cost_sats": 362860.3149,
+              "delta_blocks": 13.5,
+              "slashed_sats": 8197.5197
+            }
+          },
+          "half_rate": {
+            "episodes": 4,
+            "mean": -12.0924,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 276248.3856,
+              "cost_sats": 328597.5689,
+              "delta_blocks": 27.0,
+              "slashed_sats": 8549.1833
+            }
+          },
+          "oracle": {
+            "episodes": 4,
+            "mean": -12.0804,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 270264.9825,
+              "cost_sats": 322595.1125,
+              "delta_blocks": 12.0,
+              "slashed_sats": 8530.1301
+            }
+          },
+          "bonsai-2-27b-goose-skill@54e4a3ea54f0": {
+            "episodes": 4,
+            "mean": -12.0924,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 43800.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 276248.3856,
+              "cost_sats": 328597.5689,
+              "delta_blocks": 27.0,
+              "slashed_sats": 8549.1833
+            }
+          }
+        },
+        "bonding/slow": {
+          "random": {
+            "episodes": 4,
+            "mean": -13.7261,
+            "metrics": {
+              "admitted": 0.25,
+              "assert_fee_sats": 16200.0,
+              "bond_over_value": 1.5625,
+              "capital_sats": 7607.821,
+              "cost_sats": 2077664.0531,
+              "delta_blocks": 103.5,
+              "slashed_sats": 84.9739
+            }
+          },
+          "ghost_required_bond": {
+            "episodes": 4,
+            "mean": -13.9353,
+            "metrics": {
+              "admitted": 0.0,
+              "assert_fee_sats": 0.0,
+              "bond_over_value": 0.5,
+              "capital_sats": 0.0,
+              "cost_sats": 2108939.5215,
+              "delta_blocks": 144.0,
+              "slashed_sats": 0.0
+            }
+          },
+          "plug_in": {
+            "episodes": 4,
+            "mean": -13.1336,
+            "metrics": {
+              "admitted": 0.5,
+              "assert_fee_sats": 19200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 368083.068,
+              "cost_sats": 594289.4347,
+              "delta_blocks": 96.0,
+              "slashed_sats": 0.1183
+            }
+          },
+          "half_rate": {
+            "episodes": 4,
+            "mean": -12.6039,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 47400.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 435738.1555,
+              "cost_sats": 491561.4138,
+              "delta_blocks": 198.0,
+              "slashed_sats": 8423.2583
+            }
+          },
+          "oracle": {
+            "episodes": 4,
+            "mean": -12.5279,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 47400.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 377270.1427,
+              "cost_sats": 433021.9887,
+              "delta_blocks": 90.0,
+              "slashed_sats": 8351.846
+            }
+          },
+          "bonsai-2-27b-goose-skill@54e4a3ea54f0": {
+            "episodes": 4,
+            "mean": -12.6039,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 47400.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 435738.1555,
+              "cost_sats": 491561.4138,
+              "delta_blocks": 198.0,
+              "slashed_sats": 8423.2583
+            }
+          }
+        },
+        "bonding/strict": {
+          "random": {
+            "episodes": 4,
+            "mean": -12.9442,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 38400.0,
+              "bond_over_value": 1.625,
+              "capital_sats": 512949.139,
+              "cost_sats": 600537.764,
+              "delta_blocks": 180.0,
+              "slashed_sats": 3156.9577
+            }
+          },
+          "ghost_required_bond": {
+            "episodes": 4,
+            "mean": -13.7226,
+            "metrics": {
+              "admitted": 0.0,
+              "assert_fee_sats": 0.0,
+              "bond_over_value": 0.5,
+              "capital_sats": 0.0,
+              "cost_sats": 1797184.8692,
+              "delta_blocks": 144.0,
+              "slashed_sats": 0.0
+            }
+          },
+          "plug_in": {
+            "episodes": 4,
+            "mean": -12.7609,
+            "metrics": {
+              "admitted": 0.75,
+              "assert_fee_sats": 37200.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 116959.9676,
+              "cost_sats": 1226923.2578,
+              "delta_blocks": 42.0,
+              "slashed_sats": 1505.0678
+            }
+          },
+          "half_rate": {
+            "episodes": 4,
+            "mean": -12.3705,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 54000.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 315666.985,
+              "cost_sats": 371321.5503,
+              "delta_blocks": 90.0,
+              "slashed_sats": 1654.5653
+            }
+          },
+          "oracle": {
+            "episodes": 4,
+            "mean": -12.3474,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 54000.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 305904.9589,
+              "cost_sats": 361558.7986,
+              "delta_blocks": 42.0,
+              "slashed_sats": 1653.8398
+            }
+          },
+          "bonsai-2-27b-goose-skill@54e4a3ea54f0": {
+            "episodes": 4,
+            "mean": -12.3705,
+            "metrics": {
+              "admitted": 1.0,
+              "assert_fee_sats": 54000.0,
+              "bond_over_value": 1.0,
+              "capital_sats": 315666.985,
+              "cost_sats": 371321.5503,
+              "delta_blocks": 90.0,
+              "slashed_sats": 1654.5653
+            }
+          }
+        }
+      }
     },
     {
       "family": "dlc",
@@ -67,7 +549,7 @@
         1
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-baseline@f8e232934439",
       "telemetry": {
         "harness_turns": 52,
         "llm_calls": 52,
@@ -79,7 +561,239 @@
         "peak_decode_tps": 52.26,
         "wall_s_sum": 565.48
       },
-      "tasks": {}
+      "tasks": {
+        "dlc/mobile_signer": {
+          "spec_default": {
+            "episodes": 2,
+            "mean": -15.2472,
+            "metrics": {
+              "capital_sats": 188554.0788,
+              "cets": 1000281.0,
+              "collateral_sats": 88805915.0,
+              "cost_sats": 4189679.0274,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 0.6984,
+              "signing_sats": 4001124.0,
+              "tracking_sats": 0.2502
+            }
+          },
+          "uniform_tuned": {
+            "episodes": 2,
+            "mean": -11.7175,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 4986.0,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 142047.4795,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 19944.0,
+              "tracking_sats": 24845.4862
+            }
+          },
+          "two_band": {
+            "episodes": 2,
+            "mean": -11.6607,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 2900.5,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 133766.2515,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 11602.0,
+              "tracking_sats": 24906.2582
+            }
+          },
+          "exact": {
+            "episodes": 2,
+            "mean": -11.6181,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 4010.5,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 130831.6948,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 16042.0,
+              "tracking_sats": 17531.7015
+            }
+          },
+          "bonsai-2-27b-baseline@f8e232934439": {
+            "episodes": 2,
+            "mean": -12.5616,
+            "metrics": {
+              "capital_sats": 75334.4404,
+              "cets": 17764.5,
+              "collateral_sats": 61255803.0,
+              "cost_sats": 303980.9368,
+              "offered": 1.0,
+              "probes_used": 5.0,
+              "shortfall_sats": 28964.4821,
+              "signing_sats": 71058.0,
+              "tracking_sats": 128624.0143
+            }
+          }
+        },
+        "dlc/stable_30d": {
+          "spec_default": {
+            "episodes": 2,
+            "mean": -13.7287,
+            "metrics": {
+              "capital_sats": 15227.2171,
+              "cets": 902151.0,
+              "collateral_sats": 7171850.5,
+              "cost_sats": 917378.5238,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 0.0564,
+              "signing_sats": 902151.0,
+              "tracking_sats": 0.2502
+            }
+          },
+          "uniform_tuned": {
+            "episodes": 2,
+            "mean": -9.587,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 4394.5,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 14733.6495,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 4394.5,
+              "tracking_sats": 2484.5384
+            }
+          },
+          "two_band": {
+            "episodes": 2,
+            "mean": -9.4508,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 2427.5,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 12854.0982,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 2427.5,
+              "tracking_sats": 2571.9871
+            }
+          },
+          "exact": {
+            "episodes": 2,
+            "mean": -9.4379,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 2192.0,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 12683.1789,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 2192.0,
+              "tracking_sats": 2636.5677
+            }
+          },
+          "bonsai-2-27b-baseline@f8e232934439": {
+            "episodes": 2,
+            "mean": -12.5291,
+            "metrics": {
+              "capital_sats": 15227.2171,
+              "cets": 14255.5,
+              "collateral_sats": 7171850.5,
+              "cost_sats": 276258.4134,
+              "offered": 1.0,
+              "probes_used": 6.0,
+              "shortfall_sats": 0.0564,
+              "signing_sats": 14255.5,
+              "tracking_sats": 246775.6398
+            }
+          }
+        },
+        "dlc/stable_90d": {
+          "spec_default": {
+            "episodes": 2,
+            "mean": -13.9018,
+            "metrics": {
+              "capital_sats": 88020.6288,
+              "cets": 957990.5,
+              "collateral_sats": 13463876.0,
+              "cost_sats": 1091013.9505,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 45002.5777,
+              "signing_sats": 957990.5,
+              "tracking_sats": 0.2441
+            }
+          },
+          "uniform_tuned": {
+            "episodes": 2,
+            "mean": -11.8708,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 10697.5,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 145156.1875,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 10697.5,
+              "tracking_sats": 2484.4849
+            }
+          },
+          "two_band": {
+            "episodes": 2,
+            "mean": -11.8594,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 8988.0,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 143516.7403,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 8988.0,
+              "tracking_sats": 2554.5377
+            }
+          },
+          "exact": {
+            "episodes": 2,
+            "mean": -11.8504,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 6559.5,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 142212.2934,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 6559.5,
+              "tracking_sats": 3678.5908
+            }
+          },
+          "bonsai-2-27b-baseline@f8e232934439": {
+            "episodes": 2,
+            "mean": -12.8384,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 403.0,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 377129.1873,
+              "offered": 1.0,
+              "probes_used": 5.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 403.0,
+              "tracking_sats": 244751.9847
+            }
+          }
+        }
+      }
     },
     {
       "family": "dlc",
@@ -91,7 +805,7 @@
         1
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-goose-skill@79df3233103b",
       "telemetry": {
         "harness_turns": 12,
         "llm_calls": 24,
@@ -103,7 +817,239 @@
         "peak_decode_tps": 42.95,
         "wall_s_sum": 77.87
       },
-      "tasks": {}
+      "tasks": {
+        "dlc/mobile_signer": {
+          "spec_default": {
+            "episodes": 2,
+            "mean": -15.2472,
+            "metrics": {
+              "capital_sats": 188554.0788,
+              "cets": 1000281.0,
+              "collateral_sats": 88805915.0,
+              "cost_sats": 4189679.0274,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 0.6984,
+              "signing_sats": 4001124.0,
+              "tracking_sats": 0.2502
+            }
+          },
+          "uniform_tuned": {
+            "episodes": 2,
+            "mean": -11.7175,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 4986.0,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 142047.4795,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 19944.0,
+              "tracking_sats": 24845.4862
+            }
+          },
+          "two_band": {
+            "episodes": 2,
+            "mean": -11.6607,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 2900.5,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 133766.2515,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 11602.0,
+              "tracking_sats": 24906.2582
+            }
+          },
+          "exact": {
+            "episodes": 2,
+            "mean": -11.6181,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 4010.5,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 130831.6948,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 16042.0,
+              "tracking_sats": 17531.7015
+            }
+          },
+          "bonsai-2-27b-goose-skill@79df3233103b": {
+            "episodes": 2,
+            "mean": -11.6181,
+            "metrics": {
+              "capital_sats": 78634.7651,
+              "cets": 4010.5,
+              "collateral_sats": 62058882.0,
+              "cost_sats": 130831.6948,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 18623.2282,
+              "signing_sats": 16042.0,
+              "tracking_sats": 17531.7015
+            }
+          }
+        },
+        "dlc/stable_30d": {
+          "spec_default": {
+            "episodes": 2,
+            "mean": -13.7287,
+            "metrics": {
+              "capital_sats": 15227.2171,
+              "cets": 902151.0,
+              "collateral_sats": 7171850.5,
+              "cost_sats": 917378.5238,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 0.0564,
+              "signing_sats": 902151.0,
+              "tracking_sats": 0.2502
+            }
+          },
+          "uniform_tuned": {
+            "episodes": 2,
+            "mean": -9.587,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 4394.5,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 14733.6495,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 4394.5,
+              "tracking_sats": 2484.5384
+            }
+          },
+          "two_band": {
+            "episodes": 2,
+            "mean": -9.4508,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 2427.5,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 12854.0982,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 2427.5,
+              "tracking_sats": 2571.9871
+            }
+          },
+          "exact": {
+            "episodes": 2,
+            "mean": -9.4379,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 2192.0,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 12683.1789,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 2192.0,
+              "tracking_sats": 2636.5677
+            }
+          },
+          "bonsai-2-27b-goose-skill@79df3233103b": {
+            "episodes": 2,
+            "mean": -9.4379,
+            "metrics": {
+              "capital_sats": 6350.3322,
+              "cets": 2192.0,
+              "collateral_sats": 5011808.5,
+              "cost_sats": 12683.1789,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 1504.2789,
+              "signing_sats": 2192.0,
+              "tracking_sats": 2636.5677
+            }
+          }
+        },
+        "dlc/stable_90d": {
+          "spec_default": {
+            "episodes": 2,
+            "mean": -13.9018,
+            "metrics": {
+              "capital_sats": 88020.6288,
+              "cets": 957990.5,
+              "collateral_sats": 13463876.0,
+              "cost_sats": 1091013.9505,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 45002.5777,
+              "signing_sats": 957990.5,
+              "tracking_sats": 0.2441
+            }
+          },
+          "uniform_tuned": {
+            "episodes": 2,
+            "mean": -11.8708,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 10697.5,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 145156.1875,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 10697.5,
+              "tracking_sats": 2484.4849
+            }
+          },
+          "two_band": {
+            "episodes": 2,
+            "mean": -11.8594,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 8988.0,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 143516.7403,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 8988.0,
+              "tracking_sats": 2554.5377
+            }
+          },
+          "exact": {
+            "episodes": 2,
+            "mean": -11.8504,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 6559.5,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 142212.2934,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 6559.5,
+              "tracking_sats": 3678.5908
+            }
+          },
+          "bonsai-2-27b-goose-skill@79df3233103b": {
+            "episodes": 2,
+            "mean": -11.8504,
+            "metrics": {
+              "capital_sats": 119528.0199,
+              "cets": 6559.5,
+              "collateral_sats": 16019475.5,
+              "cost_sats": 142212.2934,
+              "offered": 1.0,
+              "probes_used": 0.0,
+              "shortfall_sats": 12446.1827,
+              "signing_sats": 6559.5,
+              "tracking_sats": 3678.5908
+            }
+          }
+        }
+      }
     },
     {
       "family": "placement",
@@ -115,7 +1061,7 @@
         1
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-baseline@0850cc47c450",
       "telemetry": {
         "harness_turns": 14,
         "llm_calls": 14,
@@ -127,7 +1073,122 @@
         "peak_decode_tps": 32.02,
         "wall_s_sum": 206.87
       },
-      "tasks": {}
+      "tasks": {
+        "placement/shift": {
+          "none": {
+            "episodes": 6,
+            "mean": 86.3636,
+            "metrics": {
+              "delivered": 95.0,
+              "demands": 110.0,
+              "failed_attempts": 31.5,
+              "placed_sats": 0.0,
+              "volume_share": 76.5238
+            }
+          },
+          "random": {
+            "episodes": 6,
+            "mean": 86.6667,
+            "metrics": {
+              "delivered": 95.3333,
+              "demands": 110.0,
+              "failed_attempts": 33.0,
+              "placed_sats": 120000.0,
+              "volume_share": 76.8754
+            }
+          },
+          "failure_aware": {
+            "episodes": 6,
+            "mean": 87.1212,
+            "metrics": {
+              "delivered": 95.8333,
+              "demands": 110.0,
+              "failed_attempts": 31.0,
+              "placed_sats": 120000.0,
+              "volume_share": 77.7193
+            }
+          },
+          "oracle": {
+            "episodes": 6,
+            "mean": 94.697,
+            "metrics": {
+              "delivered": 104.1667,
+              "demands": 110.0,
+              "failed_attempts": 13.0,
+              "placed_sats": 120000.0,
+              "volume_share": 91.0112
+            }
+          },
+          "bonsai-2-27b-baseline@0850cc47c450": {
+            "episodes": 6,
+            "mean": 87.1212,
+            "metrics": {
+              "delivered": 95.8333,
+              "demands": 110.0,
+              "failed_attempts": 31.0,
+              "placed_sats": 100000.0,
+              "volume_share": 77.7193
+            }
+          }
+        },
+        "placement/stationary": {
+          "none": {
+            "episodes": 6,
+            "mean": 83.1818,
+            "metrics": {
+              "delivered": 91.5,
+              "demands": 110.0,
+              "failed_attempts": 39.8333,
+              "placed_sats": 0.0,
+              "volume_share": 73.6094
+            }
+          },
+          "random": {
+            "episodes": 6,
+            "mean": 83.7879,
+            "metrics": {
+              "delivered": 92.1667,
+              "demands": 110.0,
+              "failed_attempts": 41.3333,
+              "placed_sats": 120000.0,
+              "volume_share": 74.0603
+            }
+          },
+          "failure_aware": {
+            "episodes": 6,
+            "mean": 92.7273,
+            "metrics": {
+              "delivered": 102.0,
+              "demands": 110.0,
+              "failed_attempts": 20.0,
+              "placed_sats": 120000.0,
+              "volume_share": 87.5017
+            }
+          },
+          "oracle": {
+            "episodes": 6,
+            "mean": 95.4545,
+            "metrics": {
+              "delivered": 105.0,
+              "demands": 110.0,
+              "failed_attempts": 12.5,
+              "placed_sats": 120000.0,
+              "volume_share": 92.0371
+            }
+          },
+          "bonsai-2-27b-baseline@0850cc47c450": {
+            "episodes": 6,
+            "mean": 93.4848,
+            "metrics": {
+              "delivered": 102.8333,
+              "demands": 110.0,
+              "failed_attempts": 20.1667,
+              "placed_sats": 100000.0,
+              "volume_share": 88.602
+            }
+          }
+        }
+      }
     },
     {
       "family": "placement",
@@ -139,7 +1200,7 @@
         1
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-goose-skill@d4e6e1ff6dc5",
       "telemetry": {
         "harness_turns": 14,
         "llm_calls": 28,
@@ -151,7 +1212,122 @@
         "peak_decode_tps": 48.36,
         "wall_s_sum": 697.29
       },
-      "tasks": {}
+      "tasks": {
+        "placement/shift": {
+          "none": {
+            "episodes": 6,
+            "mean": 86.3636,
+            "metrics": {
+              "delivered": 95.0,
+              "demands": 110.0,
+              "failed_attempts": 31.5,
+              "placed_sats": 0.0,
+              "volume_share": 76.5238
+            }
+          },
+          "random": {
+            "episodes": 6,
+            "mean": 86.6667,
+            "metrics": {
+              "delivered": 95.3333,
+              "demands": 110.0,
+              "failed_attempts": 33.0,
+              "placed_sats": 120000.0,
+              "volume_share": 76.8754
+            }
+          },
+          "failure_aware": {
+            "episodes": 6,
+            "mean": 87.1212,
+            "metrics": {
+              "delivered": 95.8333,
+              "demands": 110.0,
+              "failed_attempts": 31.0,
+              "placed_sats": 120000.0,
+              "volume_share": 77.7193
+            }
+          },
+          "oracle": {
+            "episodes": 6,
+            "mean": 94.697,
+            "metrics": {
+              "delivered": 104.1667,
+              "demands": 110.0,
+              "failed_attempts": 13.0,
+              "placed_sats": 120000.0,
+              "volume_share": 91.0112
+            }
+          },
+          "bonsai-2-27b-goose-skill@d4e6e1ff6dc5": {
+            "episodes": 6,
+            "mean": 87.2727,
+            "metrics": {
+              "delivered": 96.0,
+              "demands": 110.0,
+              "failed_attempts": 31.0,
+              "placed_sats": 120000.0,
+              "volume_share": 77.8041
+            }
+          }
+        },
+        "placement/stationary": {
+          "none": {
+            "episodes": 6,
+            "mean": 83.1818,
+            "metrics": {
+              "delivered": 91.5,
+              "demands": 110.0,
+              "failed_attempts": 39.8333,
+              "placed_sats": 0.0,
+              "volume_share": 73.6094
+            }
+          },
+          "random": {
+            "episodes": 6,
+            "mean": 83.7879,
+            "metrics": {
+              "delivered": 92.1667,
+              "demands": 110.0,
+              "failed_attempts": 41.3333,
+              "placed_sats": 120000.0,
+              "volume_share": 74.0603
+            }
+          },
+          "failure_aware": {
+            "episodes": 6,
+            "mean": 92.7273,
+            "metrics": {
+              "delivered": 102.0,
+              "demands": 110.0,
+              "failed_attempts": 20.0,
+              "placed_sats": 120000.0,
+              "volume_share": 87.5017
+            }
+          },
+          "oracle": {
+            "episodes": 6,
+            "mean": 95.4545,
+            "metrics": {
+              "delivered": 105.0,
+              "demands": 110.0,
+              "failed_attempts": 12.5,
+              "placed_sats": 120000.0,
+              "volume_share": 92.0371
+            }
+          },
+          "bonsai-2-27b-goose-skill@d4e6e1ff6dc5": {
+            "episodes": 6,
+            "mean": 93.6364,
+            "metrics": {
+              "delivered": 103.0,
+              "demands": 110.0,
+              "failed_attempts": 18.8333,
+              "placed_sats": 120000.0,
+              "volume_share": 88.7292
+            }
+          }
+        }
+      }
     },
     {
       "family": "netting",
@@ -163,7 +1339,7 @@
         1
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-baseline@67bc4b03d048",
       "telemetry": {
         "harness_turns": 47,
         "llm_calls": 47,
@@ -175,7 +1351,158 @@
         "peak_decode_tps": 32.48,
         "wall_s_sum": 1222.8
       },
-      "tasks": {}
+      "tasks": {
+        "netting/bilateral_dense": {
+          "gross": {
+            "episodes": 2,
+            "mean": -5.2236,
+            "metrics": {
+              "cost_sats": 195.4196,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 1954196.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 26.0
+            }
+          },
+          "bilateral_net": {
+            "episodes": 2,
+            "mean": -4.5543,
+            "metrics": {
+              "cost_sats": 96.8146,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 968146.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 15.0
+            }
+          },
+          "min_cost_flow": {
+            "episodes": 2,
+            "mean": -3.5675,
+            "metrics": {
+              "cost_sats": 36.1992,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 361991.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 5.5
+            }
+          },
+          "bonsai-2-27b-baseline@67bc4b03d048": {
+            "episodes": 2,
+            "mean": -5.9167,
+            "metrics": {
+              "cost_sats": 390.8392,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 0.0,
+              "probes_used": 8.0,
+              "settled": 0.0,
+              "transfers": 0.0
+            }
+          }
+        },
+        "netting/multilateral_sparse": {
+          "gross": {
+            "episodes": 2,
+            "mean": -4.5697,
+            "metrics": {
+              "cost_sats": 103.8851,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 1038850.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 35.0
+            }
+          },
+          "bilateral_net": {
+            "episodes": 2,
+            "mean": -4.3795,
+            "metrics": {
+              "cost_sats": 86.4588,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 864588.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 28.5
+            }
+          },
+          "min_cost_flow": {
+            "episodes": 2,
+            "mean": -4.1982,
+            "metrics": {
+              "cost_sats": 74.7301,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 747300.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 25.5
+            }
+          },
+          "bonsai-2-27b-baseline@67bc4b03d048": {
+            "episodes": 2,
+            "mean": -5.2629,
+            "metrics": {
+              "cost_sats": 207.7701,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 0.0,
+              "probes_used": 4.0,
+              "settled": 0.0,
+              "transfers": 0.0
+            }
+          }
+        },
+        "netting/tight_links": {
+          "gross": {
+            "episodes": 2,
+            "mean": -6.2901,
+            "metrics": {
+              "cost_sats": 577.1775,
+              "ghost_volume_sats": 263534.5,
+              "gross_volume_sats": 764619.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 49.0
+            }
+          },
+          "bilateral_net": {
+            "episodes": 2,
+            "mean": -5.9796,
+            "metrics": {
+              "cost_sats": 427.03,
+              "ghost_volume_sats": 192711.0,
+              "gross_volume_sats": 608791.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 37.5
+            }
+          },
+          "min_cost_flow": {
+            "episodes": 2,
+            "mean": -4.9928,
+            "metrics": {
+              "cost_sats": 170.7008,
+              "ghost_volume_sats": 70505.0,
+              "gross_volume_sats": 367413.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 24.5
+            }
+          },
+          "bonsai-2-27b-baseline@67bc4b03d048": {
+            "episodes": 2,
+            "mean": -6.9833,
+            "metrics": {
+              "cost_sats": 1154.3549,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 0.0,
+              "probes_used": 6.5,
+              "settled": 0.0,
+              "transfers": 0.0
+            }
+          }
+        }
+      }
     },
     {
       "family": "netting",
@@ -187,7 +1514,7 @@
         1
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-goose-skill@ad06fed4c03d",
       "telemetry": {
         "harness_turns": 12,
         "llm_calls": 24,
@@ -199,7 +1526,158 @@
         "peak_decode_tps": 42.46,
         "wall_s_sum": 559.29
       },
-      "tasks": {}
+      "tasks": {
+        "netting/bilateral_dense": {
+          "gross": {
+            "episodes": 2,
+            "mean": -5.2236,
+            "metrics": {
+              "cost_sats": 195.4196,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 1954196.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 26.0
+            }
+          },
+          "bilateral_net": {
+            "episodes": 2,
+            "mean": -4.5543,
+            "metrics": {
+              "cost_sats": 96.8146,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 968146.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 15.0
+            }
+          },
+          "min_cost_flow": {
+            "episodes": 2,
+            "mean": -3.5675,
+            "metrics": {
+              "cost_sats": 36.1992,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 361991.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 5.5
+            }
+          },
+          "bonsai-2-27b-goose-skill@ad06fed4c03d": {
+            "episodes": 2,
+            "mean": -3.5675,
+            "metrics": {
+              "cost_sats": 36.1992,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 361991.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 5.5
+            }
+          }
+        },
+        "netting/multilateral_sparse": {
+          "gross": {
+            "episodes": 2,
+            "mean": -4.5697,
+            "metrics": {
+              "cost_sats": 103.8851,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 1038850.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 35.0
+            }
+          },
+          "bilateral_net": {
+            "episodes": 2,
+            "mean": -4.3795,
+            "metrics": {
+              "cost_sats": 86.4588,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 864588.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 28.5
+            }
+          },
+          "min_cost_flow": {
+            "episodes": 2,
+            "mean": -4.1982,
+            "metrics": {
+              "cost_sats": 74.7301,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 747300.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 25.5
+            }
+          },
+          "bonsai-2-27b-goose-skill@ad06fed4c03d": {
+            "episodes": 2,
+            "mean": -4.1982,
+            "metrics": {
+              "cost_sats": 74.7301,
+              "ghost_volume_sats": 0.0,
+              "gross_volume_sats": 747300.5,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 25.5
+            }
+          }
+        },
+        "netting/tight_links": {
+          "gross": {
+            "episodes": 2,
+            "mean": -6.2901,
+            "metrics": {
+              "cost_sats": 577.1775,
+              "ghost_volume_sats": 263534.5,
+              "gross_volume_sats": 764619.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 49.0
+            }
+          },
+          "bilateral_net": {
+            "episodes": 2,
+            "mean": -5.9796,
+            "metrics": {
+              "cost_sats": 427.03,
+              "ghost_volume_sats": 192711.0,
+              "gross_volume_sats": 608791.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 37.5
+            }
+          },
+          "min_cost_flow": {
+            "episodes": 2,
+            "mean": -4.9928,
+            "metrics": {
+              "cost_sats": 170.7008,
+              "ghost_volume_sats": 70505.0,
+              "gross_volume_sats": 367413.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 24.5
+            }
+          },
+          "bonsai-2-27b-goose-skill@ad06fed4c03d": {
+            "episodes": 2,
+            "mean": -4.9928,
+            "metrics": {
+              "cost_sats": 170.7008,
+              "ghost_volume_sats": 70505.0,
+              "gross_volume_sats": 367413.0,
+              "probes_used": 0.0,
+              "settled": 1.0,
+              "transfers": 24.5
+            }
+          }
+        }
+      }
     },
     {
       "family": "proof_budget",
@@ -210,7 +1688,7 @@
         0
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-baseline@69bf993a109e",
       "telemetry": {
         "harness_turns": 327,
         "llm_calls": 327,
@@ -222,7 +1700,266 @@
         "peak_decode_tps": 34.39,
         "wall_s_sum": 366.96
       },
-      "tasks": {}
+      "tasks": {
+        "proof_budget/bursty": {
+          "every_arrival": {
+            "episodes": 1,
+            "mean": -14.213,
+            "metrics": {
+              "cost_sats": 1488046.05,
+              "forfeit_sats": 1483692.0,
+              "forfeited": 35.0,
+              "mean_batch": 3.5417,
+              "proofs": 48.0,
+              "proven": 170.0,
+              "prover_sats": 4354.05,
+              "staleness_sats": 0.0
+            }
+          },
+          "random_interval": {
+            "episodes": 1,
+            "mean": -8.2874,
+            "metrics": {
+              "cost_sats": 3973.5038,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 11.3889,
+              "proofs": 18.0,
+              "proven": 205.0,
+              "prover_sats": 1998.4469,
+              "staleness_sats": 1975.057
+            }
+          },
+          "threshold": {
+            "episodes": 1,
+            "mean": -8.0243,
+            "metrics": {
+              "cost_sats": 3054.1563,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 14.6429,
+              "proofs": 14.0,
+              "proven": 205.0,
+              "prover_sats": 1789.7281,
+              "staleness_sats": 1264.4281
+            }
+          },
+          "fixed_interval": {
+            "episodes": 1,
+            "mean": -8.1945,
+            "metrics": {
+              "cost_sats": 3621.0297,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 9.7619,
+              "proofs": 21.0,
+              "proven": 205.0,
+              "prover_sats": 2291.4609,
+              "staleness_sats": 1329.5688
+            }
+          },
+          "optimal_batching": {
+            "episodes": 1,
+            "mean": -7.8023,
+            "metrics": {
+              "cost_sats": 2446.1497,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 15.7692,
+              "proofs": 13.0,
+              "proven": 205.0,
+              "prover_sats": 1681.0078,
+              "staleness_sats": 765.1419
+            }
+          },
+          "bonsai-2-27b-baseline@69bf993a109e": {
+            "episodes": 1,
+            "mean": -13.8953,
+            "metrics": {
+              "cost_sats": 1083099.4009,
+              "forfeit_sats": 1078735.0,
+              "forfeited": 22.0,
+              "mean_batch": 3.9783,
+              "proofs": 46.0,
+              "proven": 183.0,
+              "prover_sats": 4302.425,
+              "staleness_sats": 61.9759
+            }
+          }
+        },
+        "proof_budget/few_proofs": {
+          "every_arrival": {
+            "episodes": 1,
+            "mean": -16.119,
+            "metrics": {
+              "cost_sats": 10009089.2,
+              "forfeit_sats": 10008115.0,
+              "forfeited": 246.0,
+              "mean_batch": 1.9167,
+              "proofs": 12.0,
+              "proven": 23.0,
+              "prover_sats": 974.2,
+              "staleness_sats": 0.0
+            }
+          },
+          "random_interval": {
+            "episodes": 1,
+            "mean": -13.7352,
+            "metrics": {
+              "cost_sats": 922857.3572,
+              "forfeit_sats": 917655.0,
+              "forfeited": 29.0,
+              "mean_batch": 20.0,
+              "proofs": 12.0,
+              "proven": 240.0,
+              "prover_sats": 1715.6656,
+              "staleness_sats": 3486.6916
+            }
+          },
+          "threshold": {
+            "episodes": 1,
+            "mean": -15.2533,
+            "metrics": {
+              "cost_sats": 4211322.5078,
+              "forfeit_sats": 4208695.0,
+              "forfeited": 106.0,
+              "mean_batch": 13.5833,
+              "proofs": 12.0,
+              "proven": 163.0,
+              "prover_sats": 1530.525,
+              "staleness_sats": 1096.9829
+            }
+          },
+          "fixed_interval": {
+            "episodes": 1,
+            "mean": -8.4383,
+            "metrics": {
+              "cost_sats": 4620.4886,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 22.4167,
+              "proofs": 12.0,
+              "proven": 269.0,
+              "prover_sats": 1758.675,
+              "staleness_sats": 2861.8136
+            }
+          },
+          "optimal_batching": {
+            "episodes": 1,
+            "mean": -8.2916,
+            "metrics": {
+              "cost_sats": 3990.2741,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 22.4167,
+              "proofs": 12.0,
+              "proven": 269.0,
+              "prover_sats": 1755.75,
+              "staleness_sats": 2234.5241
+            }
+          },
+          "bonsai-2-27b-baseline@69bf993a109e": {
+            "episodes": 1,
+            "mean": -15.9718,
+            "metrics": {
+              "cost_sats": 8638769.7866,
+              "forfeit_sats": 8637498.0,
+              "forfeited": 209.0,
+              "mean_batch": 5.4545,
+              "proofs": 11.0,
+              "proven": 60.0,
+              "prover_sats": 1093.725,
+              "staleness_sats": 178.0616
+            }
+          }
+        },
+        "proof_budget/steady": {
+          "every_arrival": {
+            "episodes": 1,
+            "mean": -15.6828,
+            "metrics": {
+              "cost_sats": 6470498.75,
+              "forfeit_sats": 6466472.0,
+              "forfeited": 158.0,
+              "mean_batch": 2.5,
+              "proofs": 48.0,
+              "proven": 120.0,
+              "prover_sats": 4026.75,
+              "staleness_sats": 0.0
+            }
+          },
+          "random_interval": {
+            "episodes": 1,
+            "mean": -8.549,
+            "metrics": {
+              "cost_sats": 5161.7339,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 9.5862,
+              "proofs": 29.0,
+              "proven": 278.0,
+              "prover_sats": 3264.6266,
+              "staleness_sats": 1897.1073
+            }
+          },
+          "threshold": {
+            "episodes": 1,
+            "mean": -8.3664,
+            "metrics": {
+              "cost_sats": 4300.2772,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 13.9,
+              "proofs": 20.0,
+              "proven": 278.0,
+              "prover_sats": 2572.325,
+              "staleness_sats": 1727.9522
+            }
+          },
+          "fixed_interval": {
+            "episodes": 1,
+            "mean": -8.4053,
+            "metrics": {
+              "cost_sats": 4470.6118,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 11.5833,
+              "proofs": 24.0,
+              "proven": 278.0,
+              "prover_sats": 3005.675,
+              "staleness_sats": 1464.9368
+            }
+          },
+          "optimal_batching": {
+            "episodes": 1,
+            "mean": -8.2304,
+            "metrics": {
+              "cost_sats": 3753.1636,
+              "forfeit_sats": 0.0,
+              "forfeited": 0.0,
+              "mean_batch": 15.4444,
+              "proofs": 18.0,
+              "proven": 278.0,
+              "prover_sats": 2361.6,
+              "staleness_sats": 1391.5635
+            }
+          },
+          "bonsai-2-27b-baseline@69bf993a109e": {
+            "episodes": 1,
+            "mean": -15.2727,
+            "metrics": {
+              "cost_sats": 4294075.7024,
+              "forfeit_sats": 4289715.0,
+              "forfeited": 105.0,
+              "mean_batch": 3.7609,
+              "proofs": 46.0,
+              "proven": 173.0,
+              "prover_sats": 4131.825,
+              "staleness_sats": 228.8774
+            }
+          }
+        }
+      }
     },
     {
       "family": "swap",
@@ -233,7 +1970,7 @@
         0
       ],
       "block": "development",
-      "agent_id": null,
+      "agent_id": "bonsai-2-27b-baseline@b6ee5a36b846",
       "telemetry": {
         "harness_turns": 8,
         "llm_calls": 8,
@@ -245,7 +1982,236 @@
         "peak_decode_tps": 28.37,
         "wall_s_sum": 13.45
       },
-      "tasks": {}
+      "tasks": {
+        "swap/calm": {
+          "idle": {
+            "episodes": 1,
+            "mean": 0.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 0.0,
+              "funded": 0.0,
+              "host_refund": 0.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 0.0,
+              "refunded": 0.0,
+              "revealed": 0.0
+            }
+          },
+          "trusting": {
+            "episodes": 1,
+            "mean": 4108.0,
+            "metrics": {
+              "claim_broadcasts": 1.0,
+              "completed": 1.0,
+              "fees_sats": 5292.0,
+              "funded": 1.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 2.0,
+              "refunded": 0.0,
+              "revealed": 1.0
+            }
+          },
+          "no_depth": {
+            "episodes": 1,
+            "mean": 3403.0,
+            "metrics": {
+              "claim_broadcasts": 1.0,
+              "completed": 1.0,
+              "fees_sats": 5997.0,
+              "funded": 1.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 2.0,
+              "refunded": 0.0,
+              "revealed": 1.0
+            }
+          },
+          "estimate_fee": {
+            "episodes": 1,
+            "mean": 3967.0,
+            "metrics": {
+              "claim_broadcasts": 1.0,
+              "completed": 1.0,
+              "fees_sats": 5433.0,
+              "funded": 1.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 2.0,
+              "refunded": 0.0,
+              "revealed": 1.0
+            }
+          },
+          "workflow": {
+            "episodes": 1,
+            "mean": 3262.0,
+            "metrics": {
+              "claim_broadcasts": 1.0,
+              "completed": 1.0,
+              "fees_sats": 6138.0,
+              "funded": 1.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 2.0,
+              "refunded": 0.0,
+              "revealed": 1.0
+            }
+          },
+          "oracle": {
+            "episodes": 1,
+            "mean": 4108.0,
+            "metrics": {
+              "claim_broadcasts": 1.0,
+              "completed": 1.0,
+              "fees_sats": 5292.0,
+              "funded": 1.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 2.0,
+              "refunded": 0.0,
+              "revealed": 1.0
+            }
+          },
+          "bonsai-2-27b-baseline@b6ee5a36b846": {
+            "episodes": 1,
+            "mean": 0.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 0.0,
+              "funded": 0.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 0.0,
+              "refunded": 0.0,
+              "revealed": 0.0
+            }
+          }
+        },
+        "swap/spiky": {
+          "idle": {
+            "episodes": 1,
+            "mean": 0.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 0.0,
+              "funded": 0.0,
+              "host_refund": 0.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 0.0,
+              "refunded": 0.0,
+              "revealed": 0.0
+            }
+          },
+          "trusting": {
+            "episodes": 1,
+            "mean": -4190.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 4190.0,
+              "funded": 1.0,
+              "host_refund": 1.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 1.0,
+              "refunded": 1.0,
+              "revealed": 0.0
+            }
+          },
+          "no_depth": {
+            "episodes": 1,
+            "mean": -4190.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 4190.0,
+              "funded": 1.0,
+              "host_refund": 1.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 1.0,
+              "refunded": 1.0,
+              "revealed": 0.0
+            }
+          },
+          "estimate_fee": {
+            "episodes": 1,
+            "mean": -4190.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 4190.0,
+              "funded": 1.0,
+              "host_refund": 1.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 1.0,
+              "refunded": 1.0,
+              "revealed": 0.0
+            }
+          },
+          "workflow": {
+            "episodes": 1,
+            "mean": -4190.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 4190.0,
+              "funded": 1.0,
+              "host_refund": 1.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 1.0,
+              "refunded": 1.0,
+              "revealed": 0.0
+            }
+          },
+          "oracle": {
+            "episodes": 1,
+            "mean": 0.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 0.0,
+              "funded": 0.0,
+              "host_refund": 0.0,
+              "incident": 1.0,
+              "lost": 0.0,
+              "passes": 0.0,
+              "refunded": 0.0,
+              "revealed": 0.0
+            }
+          },
+          "bonsai-2-27b-baseline@b6ee5a36b846": {
+            "episodes": 1,
+            "mean": 0.0,
+            "metrics": {
+              "claim_broadcasts": 0.0,
+              "completed": 0.0,
+              "fees_sats": 0.0,
+              "funded": 0.0,
+              "host_refund": 0.0,
+              "incident": 0.0,
+              "lost": 0.0,
+              "passes": 0.0,
+              "refunded": 0.0,
+              "revealed": 0.0
+            }
+          }
+        }
+      }
     }
   ]
 }

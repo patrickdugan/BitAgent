@@ -10,6 +10,22 @@
 
 | Family | Task Cell | Seeds | Floor | Reference Heuristic | Bare Bonsai 2 27B Baseline | Goose 1.53.0 + Official Skill | Oracle / Ceiling |
 |---|---|---:|---:|---:|---:|---:|---:|
+| `bonding` | `bonding/fast` | `0,1,2,3` | -12.49 | -12.37 | -12.56 | **-12.09** | -12.08 |
+| `bonding` | `bonding/slow` | `0,1,2,3` | -13.73 | -13.13 | -13.05 | **-12.60** | -12.53 |
+| `bonding` | `bonding/strict` | `0,1,2,3` | -12.94 | -12.76 | -12.83 | **-12.37** | -12.35 |
+| `dlc` | `dlc/mobile_signer` | `0,1` | -15.25 | -11.72 | -12.56 | **-11.62** | -11.62 |
+| `dlc` | `dlc/stable_30d` | `0,1` | -13.73 | -9.59 | -12.53 | **-9.44** | -9.44 |
+| `dlc` | `dlc/stable_90d` | `0,1` | -13.90 | -11.87 | -12.84 | **-11.85** | -11.85 |
+| `placement` | `placement/stationary` | `0,1` | 83.79 | 92.73 | 93.48 | **93.64** | 95.45 |
+| `placement` | `placement/shift` | `0,1` | 86.67 | 87.12 | 87.12 | **87.27** | 94.70 |
+| `netting` | `netting/bilateral_dense` | `0,1` | -5.22 | -4.55 | -5.92 | **-3.57** | -3.57 |
+| `netting` | `netting/multilateral_sparse` | `0,1` | -4.57 | -4.38 | -5.26 | **-4.20** | -4.20 |
+| `netting` | `netting/tight_links` | `0,1` | -6.29 | -5.98 | -6.98 | **-4.99** | -4.99 |
+| `proof_budget` | `proof_budget/steady` | `0` | — | — | -15.27 | _baseline only_ | — |
+| `proof_budget` | `proof_budget/bursty` | `0` | — | — | -13.90 | _baseline only_ | — |
+| `proof_budget` | `proof_budget/few_proofs` | `0` | — | — | -15.97 | _baseline only_ | — |
+| `swap` | `swap/calm` | `0` | 0.00 | 3262.00 | 0.00 | _baseline only_ | 3262.00 |
+| `swap` | `swap/spiky` | `0` | 0.00 | -4190.00 | 0.00 | _baseline only_ | -4190.00 |
 
 ## Telemetry (Tokens, Turns, and Pure-GPU TPS)
 
