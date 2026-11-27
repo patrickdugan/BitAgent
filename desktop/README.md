@@ -45,11 +45,33 @@ system prompt, the model writes `<tool_call>{"name": ..., "arguments": {...}}</t
 results come back as `<tool_response>` text. Those calls are parsed into goose tool requests,
 so approval and dispatch work the same way in both modes.
 
-Live check, 2026-11-27, Inkling 2 Mini on squid5080 (`bitagent-cli --once "What is BitAgent?
-Check with your tools, then answer in two sentences." --model inkling-2-mini`): one
-`bitagent_overview` call and a two-sentence answer drawn from its result, two inference calls,
-3.7 s. In text mode the same prompt gave an empty answer: squid consumed the model's native
-tool-call tokens, and with no `tools` in the request it returned no `tool_calls`.
+With Inkling in text mode, squid consumes the model's native tool-call tokens and, with no
+`tools` in the request, returns an empty reply, so Inkling stays in native mode.
+
+## Live checks (2026-11-27)
+
+`bitagent-cli --once` against BitAgent's MCP server, receipts read by hand. Prompts:
+**overview** = "What is BitAgent? Check with your tools, then answer in two sentences.";
+**limits** = "Help me set money limits: my budget is 50,000 sats, nothing borrowed, 6 months
+emergency fund, no high-interest debt."
+
+| model | served on | prompt | tool calls | outcome | time |
+|---|---|---|---|---|---|
+| Inkling 2 Mini | GPU, squid5080 | overview | `bitagent_overview` | two sentences drawn from the result | 3.7 s |
+| Inkling 2 Mini | GPU, squid5080 | practice run, `--approve all` | `bitagent_practice_start` | reported the server's `practice_unavailable` error | 3.5 s |
+| Bonsai 2 9B | CPU, 8 threads | overview | `bitagent_overview` | correct, grounded | 532 s |
+| Bonsai 2 9B | CPU | limits | `bitagent_money_plan` (only the stated fields) | summary matches the server's limits | 702 s |
+| Bonsai 2 4B | CPU | overview | `bitagent_overview` | correct, grounded | 301 s |
+| Bonsai 2 4B | CPU | limits | `bitagent_money_plan` (only the stated fields) | summary matches the server's limits | 199 s |
+| Bonsai 2 2B | CPU | overview | `bitagent_overview` | correct, grounded | 79-137 s |
+| Bonsai 2 2B | CPU | limits | `bitagent_money_plan` twice; the first was rejected | invented `strategyShareBps: 1`, summary contradicts itself | 50 s |
+
+CPU time is mostly prompt processing of the ~4K-token system prompt (instructions plus eight
+tool schemas). Bonsai 2.5 27B, Bonsai 2 27B and Bonsai 8B have not had a live run, and neither
+has the GPU path for llama models. During these checks a 2,500 MiB lease waited 20 minutes
+behind a queued 15 GB lease and the start timed out, which released the lease.
+`practice_unavailable` means the launch kernel cannot find UTXO-Ref and tradelayer.js. That is
+the kernel's environment, not this app.
 
 ## The agent
 
