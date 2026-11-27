@@ -1,0 +1,173 @@
+{
+  "defaultModel": "bonsai-2.5-27b",
+  "contextTokens": 16384,
+  "maxTokens": 3072,
+  "maxTurns": 12,
+  "bitagent": {
+    "kernelDir": "../apps/bitagent-launch-kernel",
+    "node": "node",
+    "mcpArgs": ["node_modules/tsx/dist/cli.mjs", "scripts/chatgpt-plugin-server.ts", "--stdio"],
+    "webUrl": "http://127.0.0.1:8790/"
+  },
+  "programs": {
+    "llamaServer": "~/tools/llama-prism-b12178/bin/llama-server.exe",
+    "bash": "C:/Program Files/Git/bin/bash.exe",
+    "squidServe": "~/tools/squid5080/serve.sh",
+    "squidStop": "~/tools/squid5080/stop.sh",
+    "vramorama": "~/AppData/Local/Programs/vramorama/vramorama.exe",
+    "gpuOwner": "bitagent-desktop"
+  },
+  "models": [
+    {
+      "id": "inkling-2-mini",
+      "label": "Inkling 2 Mini",
+      "family": "Inkling (squid5080 fast runner)",
+      "runtime": "squid5080",
+      "port": 18090,
+      "servedModel": "inkling-2-mini",
+      "tools": "text",
+      "vramMiB": 15000,
+      "maxTokens": 4096,
+      "source": "thinkingmachines/Inkling-2-Mini @ c9d02830 on the squid5090 engine ported to the RTX 5080 (/opt/squid5080 in WSL Ubuntu-24.04)",
+      "notes": "Needs the GPU to itself (15 GB lease); loads in 4-9 min, then about 250 tok/s. squid5090 has no OpenAI tool calling, so tools go through the text protocol."
+    },
+    {
+      "id": "bonsai-2.5-27b",
+      "label": "Ternary Bonsai 2.5 27B (MTP)",
+      "family": "Ternary Bonsai 2.5",
+      "runtime": "llama",
+      "port": 18101,
+      "servedModel": "bonsai-2.5-27b",
+      "tools": "native",
+      "gguf": "~/models/ternary-bonsai-2.5-27b/Ternary-Bonsai-2.5-27B-PTQ1_0-mtp.gguf",
+      "args": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0", "--min-p", "0", "--spec-type", "draft-mtp", "--spec-draft-n-max", "3", "--spec-draft-p-min", "0.1", "--reasoning-format", "deepseek", "--reasoning-budget", "1024"],
+      "vramMiB": 10000,
+      "source": "prism-ml/Ternary-Bonsai-2.5-27B-GGUF @ 28a7093c, PrismML llama.cpp prism-b12178",
+      "notes": "About 120 tok/s with MTP on the 5080. MTP decoding is not byte-identical to plain decoding; use plain GGUFs for evals.",
+      "download": [
+        {
+          "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2.5-27B-GGUF/resolve/28a7093cc25bc151cc2b284c5570f12ce343fdcf/Ternary-Bonsai-2.5-27B-PTQ1_0-mtp.gguf",
+          "path": "~/models/ternary-bonsai-2.5-27b/Ternary-Bonsai-2.5-27B-PTQ1_0-mtp.gguf",
+          "bytes": 6232818944,
+          "sha256": "e0fc5f3d47b9c926d52677d303b19df356a2376614b3e1cb9973865fc04ca431"
+        }
+      ]
+    },
+    {
+      "id": "bonsai-2-27b",
+      "label": "Ternary Bonsai 2 27B",
+      "family": "Ternary Bonsai 2",
+      "runtime": "llama",
+      "port": 18102,
+      "servedModel": "bonsai-2-27b",
+      "tools": "native",
+      "gguf": "~/models/ternary-bonsai-2-27b/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "args": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0", "--min-p", "0", "--reasoning-format", "deepseek", "--reasoning-budget", "1024"],
+      "vramMiB": 10000,
+      "source": "prism-ml/Ternary-Bonsai-2-27B-gguf @ 839bd570, PrismML llama.cpp prism-b12178",
+      "download": [
+        {
+          "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf/resolve/839bd57023c1558945afea70a74fa83c054f35f9/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+          "path": "~/models/ternary-bonsai-2-27b/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+          "bytes": 5946648928,
+          "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3"
+        }
+      ]
+    },
+    {
+      "id": "bonsai-2-9b",
+      "label": "Ternary Bonsai 2 9B",
+      "family": "Ternary Bonsai 2",
+      "runtime": "llama",
+      "port": 18103,
+      "servedModel": "bonsai-2-9b",
+      "tools": "native",
+      "gguf": "~/models/ternary-bonsai-2-9b/Ternary-Bonsai-2-9B-PTQ1_0.gguf",
+      "args": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0", "--min-p", "0", "--reasoning-format", "deepseek", "--reasoning-budget", "1024"],
+      "vramMiB": 5000,
+      "source": "prism-ml/Ternary-Bonsai-2-9B-gguf @ 82265ccc, PrismML llama.cpp prism-b12178",
+      "download": [
+        {
+          "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-9B-gguf/resolve/82265ccc78ddaac4700286a35e9badcc32376dd9/Ternary-Bonsai-2-9B-PTQ1_0.gguf",
+          "path": "~/models/ternary-bonsai-2-9b/Ternary-Bonsai-2-9B-PTQ1_0.gguf",
+          "bytes": 1997486976,
+          "sha256": "3561df7ac7d26a71ffa991ac2db740b10841c3a350aa2676ccd3ff5d428b4e8b"
+        }
+      ]
+    },
+    {
+      "id": "bonsai-2-4b",
+      "label": "Ternary Bonsai 2 4B",
+      "family": "Ternary Bonsai 2",
+      "runtime": "llama",
+      "port": 18104,
+      "servedModel": "bonsai-2-4b",
+      "tools": "native",
+      "gguf": "~/models/ternary-bonsai-2-4b/Ternary-Bonsai-2-4B-PTQ1_0.gguf",
+      "args": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0", "--min-p", "0", "--reasoning-format", "deepseek", "--reasoning-budget", "1024"],
+      "vramMiB": 3500,
+      "source": "prism-ml/Ternary-Bonsai-2-4B-gguf @ 50ebba61, PrismML llama.cpp prism-b12178",
+      "download": [
+        {
+          "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-4B-gguf/resolve/50ebba61be85e5be07e8083db468ace0fc1bac43/Ternary-Bonsai-2-4B-PTQ1_0.gguf",
+          "path": "~/models/ternary-bonsai-2-4b/Ternary-Bonsai-2-4B-PTQ1_0.gguf",
+          "bytes": 949549920,
+          "sha256": "56711263ec9a9ffeaa74a3a0e58dece8127cf9268404746c721113ca76994d60"
+        }
+      ]
+    },
+    {
+      "id": "bonsai-2-2b",
+      "label": "Ternary Bonsai 2 2B",
+      "family": "Ternary Bonsai 2",
+      "runtime": "llama",
+      "port": 18105,
+      "servedModel": "bonsai-2-2b",
+      "tools": "native",
+      "gguf": "~/models/ternary-bonsai-2-2b/Ternary-Bonsai-2-2B-PTQ1_0.gguf",
+      "args": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0", "--min-p", "0", "--reasoning-format", "deepseek", "--reasoning-budget", "1024"],
+      "vramMiB": 2500,
+      "source": "prism-ml/Ternary-Bonsai-2-2B-gguf @ a6032a50, PrismML llama.cpp prism-b12178",
+      "download": [
+        {
+          "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-2B-gguf/resolve/a6032a5089ac27e96be3a80c7b42d1ad0bd89887/Ternary-Bonsai-2-2B-PTQ1_0.gguf",
+          "path": "~/models/ternary-bonsai-2-2b/Ternary-Bonsai-2-2B-PTQ1_0.gguf",
+          "bytes": 429183456,
+          "sha256": "36061ad406df8a4903a6db005be350c50fabfaf717f9ef0acf4b76adcd9929fa"
+        }
+      ]
+    },
+    {
+      "id": "bonsai-8b",
+      "label": "Bonsai 8B (1-bit)",
+      "family": "Bonsai 1-bit",
+      "runtime": "llama",
+      "port": 18106,
+      "servedModel": "bonsai-8b",
+      "tools": "native",
+      "gguf": "~/models/bonsai-8b/Bonsai-8B-Q1_0.gguf",
+      "args": ["-fa", "on", "--min-p", "0", "--reasoning-format", "deepseek", "--reasoning-budget", "1024"],
+      "vramMiB": 3500,
+      "source": "prism-ml/Bonsai-8B-gguf @ 48516770 (the Android app's pinned base), PrismML llama.cpp prism-b12178",
+      "notes": "Plain base model. The BitAgent DAG LoRA (AlephFunk/bitagent-bonsai8b-dagv2-lora-v3) stays unloaded while its manifest says operatorReady: false.",
+      "download": [
+        {
+          "url": "https://huggingface.co/prism-ml/Bonsai-8B-gguf/resolve/48516770dd04643643e9f9019a2a349cf26c5dbd/Bonsai-8B-Q1_0.gguf",
+          "path": "~/models/bonsai-8b/Bonsai-8B-Q1_0.gguf",
+          "bytes": 1158654496,
+          "sha256": "284a335aa3fb2ced3b1b01fcb40b08aa783e3b70832767f0dd2e3fdfa134bd54"
+        }
+      ]
+    },
+    {
+      "id": "custom-openai",
+      "label": "Other local server (port 8080)",
+      "family": "External",
+      "runtime": "external",
+      "port": 8080,
+      "servedModel": "local",
+      "tools": "native",
+      "notes": "Any OpenAI-compatible server you start yourself, such as llama-server or LM Studio. Edit port and servedModel in models.json."
+    }
+  ]
+}

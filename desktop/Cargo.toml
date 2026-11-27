@@ -1,0 +1,44 @@
+[package]
+name = "bitagent-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "BitAgent Desktop, a Goose GDK app: a goose-agent state machine over BitAgent's candidate-only MCP tools, driven by a local Inkling 2 Mini (squid5080) or Ternary Bonsai model"
+license = "MIT"
+publish = false
+
+[lib]
+name = "bitagent_desktop"
+path = "src/lib.rs"
+
+# The window.
+[[bin]]
+name = "bitagent-desktop"
+path = "src/main.rs"
+
+# The same agent headless, for Goose-harness runs and CI.
+[[bin]]
+name = "bitagent-cli"
+path = "src/bin/bitagent-cli.rs"
+
+[dependencies]
+# Goose GDK, pinned to the release the goblin GDK apps (HybridTRMLDT MCP/goose_gdk_app) build against.
+goose-agent = "=0.1.0-alpha.14"
+goose-providers = "=0.1.0-alpha.14"
+goose-provider-types = "=0.1.0-alpha.14"
+rmcp = { version = "3.11", default-features = false }
+anyhow = "1"
+async-trait = "0.1"
+# goose-provider-types calls chrono::Utc::now() without enabling chrono's clock feature itself.
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+eframe = "0.37"
+futures-util = "0.3"
+reqwest = { version = "0.13", default-features = false, features = ["native-tls", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.11"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "process", "io-util", "sync", "time", "fs"] }
+tokio-util = "0.7"
+uuid = { version = "1", features = ["v4"] }
+
+[profile.release]
+strip = true
