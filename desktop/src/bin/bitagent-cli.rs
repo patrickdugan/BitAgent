@@ -1,7 +1,7 @@
 //! bitagent-cli: the BitAgent Desktop agent without the window, for Goose-harness runs and CI.
 //!
 //!   bitagent-cli --list-models
-//!   bitagent-cli --once "What is BitAgent?" [--model ID] [--start-server] [--approve read-only|ask|all]
+//!   bitagent-cli --once "What is BitAgent?" [--model ID] [--start-server [--cpu]] [--approve read-only|ask|all]
 //!   bitagent-cli --download ID
 //!
 //! `--once` prints one JSON receipt (and appends it to `--out` when given).
@@ -18,7 +18,7 @@ use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
 const USAGE: &str = "usage: bitagent-cli (--list-models | --once PROMPT | --download ID) [--config FILE] [--model ID] \
-[--base-url URL] [--served-model NAME] [--tool-mode native|text] [--approve read-only|ask|all] [--start-server] \
+[--base-url URL] [--served-model NAME] [--tool-mode native|text] [--approve read-only|ask|all] [--start-server [--cpu]] \
 [--max-tokens N] [--max-turns N] [--timeout-secs N] [--node PATH] [--kernel-dir DIR] [--out FILE]";
 
 #[derive(Default)]
@@ -33,6 +33,7 @@ struct Args {
     tool_mode: Option<ToolMode>,
     approve: Option<ApprovePolicy>,
     start_server: bool,
+    cpu: bool,
     max_tokens: Option<i32>,
     max_turns: Option<u32>,
     timeout_secs: Option<u64>,
@@ -66,6 +67,7 @@ fn parse_args() -> Result<Args> {
                 args.approve = Some(ApprovePolicy::parse(&raw).ok_or_else(|| anyhow!("--approve {raw}: read-only, ask or all"))?);
             }
             "--start-server" => args.start_server = true,
+            "--cpu" => args.cpu = true,
             "--max-tokens" => args.max_tokens = Some(value()?.parse()?),
             "--max-turns" => args.max_turns = Some(value()?.parse()?),
             "--timeout-secs" => args.timeout_secs = Some(value()?.parse()?),
@@ -115,7 +117,7 @@ async fn once(mut catalog: Catalog, args: &Args, prompt: &str) -> Result<i32> {
     let started = Instant::now();
     let mut server = None;
     if args.start_server && !models::probe(&model).await {
-        let mut process = models::start(&catalog, &model)?;
+        let mut process = models::start(&catalog, &model, args.cpu)?;
         eprintln!("[bitagent-cli] starting {} (log {})", model.id, process.log.display());
         if let Err(error) = models::wait_ready(&model, &mut process, Duration::from_secs(20 * 60)).await {
             models::stop(&catalog, &model, Some(process))?;

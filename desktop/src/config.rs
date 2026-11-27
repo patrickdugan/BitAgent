@@ -77,6 +77,9 @@ pub struct ModelSpec {
     pub source: Option<String>,
     #[serde(default)]
     pub notes: Option<String>,
+    /// Small enough to serve on the CPU with `programs.llamaServerCpu` when the GPU queue is busy.
+    #[serde(default)]
+    pub cpu: bool,
 }
 
 impl ModelSpec {
@@ -107,6 +110,11 @@ pub struct Programs {
     pub bash: String,
     pub squid_serve: String,
     pub squid_stop: String,
+    /// A llama-server build without a GPU backend, for models marked `cpu`.
+    #[serde(default)]
+    pub llama_server_cpu: Option<String>,
+    #[serde(default = "default_cpu_threads")]
+    pub cpu_threads: u32,
     #[serde(default)]
     pub vramorama: Option<String>,
     #[serde(default = "default_owner")]
@@ -115,6 +123,10 @@ pub struct Programs {
 
 fn default_owner() -> String {
     "bitagent-desktop".into()
+}
+
+fn default_cpu_threads() -> u32 {
+    8
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -238,6 +250,9 @@ mod tests {
             assert!(ports.insert(model.port), "{} reuses port {}", model.id, model.port);
             if model.runtime != Runtime::External {
                 assert!(model.vram_mib.is_some(), "{} has no vramMiB", model.id);
+            }
+            if model.cpu {
+                assert_eq!(model.runtime, Runtime::Llama, "{} is marked cpu but is not a llama model", model.id);
             }
             if model.runtime == Runtime::Llama {
                 let gguf = model.gguf.as_deref().expect("llama models name a gguf");

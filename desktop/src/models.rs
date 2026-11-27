@@ -5,7 +5,7 @@
 //! takes its own 15 GB lease. `external` servers are only probed.
 
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
@@ -96,6 +96,15 @@ pub struct ServerProcess {
     pub child: Child,
     pub log: PathBuf,
     pub started: Instant,
+    pub cpu: bool,
+}
+
+/// The CPU llama-server, when the model allows CPU serving and the build is on disk.
+pub fn cpu_server(catalog: &Catalog, model: &ModelSpec) -> Option<PathBuf> {
+    if !model.cpu || model.runtime != Runtime::Llama {
+        return None;
+    }
+    catalog.programs.llama_server_cpu.as_ref().map(|raw| catalog.program(raw)).filter(|path| path.exists())
 }
 
 fn hidden(command: &mut Command) -> &mut Command {
@@ -107,8 +116,9 @@ fn hidden(command: &mut Command) -> &mut Command {
     command
 }
 
-/// The command line that serves `model`.
-pub fn server_command(catalog: &Catalog, model: &ModelSpec) -> Result<Vec<String>> {
+/// The command line that serves `model`: on the GPU behind a vramorama lease, or with `cpu` on the
+/// CPU build, which needs no lease.
+pub fn server_command(catalog: &Catalog, model: &ModelSpec, cpu: bool) -> Result<Vec<String>> {
     let programs = &catalog.programs;
     match model.runtime {
         Runtime::External => bail!("{} is an external server; start it yourself", model.id),
@@ -120,7 +130,15 @@ pub fn server_command(catalog: &Catalog, model: &ModelSpec) -> Result<Vec<String
         Runtime::Llama => {
             let gguf = model.gguf.as_ref().ok_or_else(|| anyhow!("{} has no gguf", model.id))?;
             let mut command = Vec::new();
-            if let Some(vramorama) = programs.vramorama.as_ref().map(|v| catalog.program(v)).filter(|v| v.exists()) {
+            let server = if cpu {
+                cpu_server(catalog, model).ok_or_else(|| {
+                    anyhow!("{} cannot start on the CPU: it needs \"cpu\": true and an existing programs.llamaServerCpu", model.id)
+                })?
+            } else {
+                catalog.program(&programs.llama_server)
+            };
+            let vramorama = programs.vramorama.as_ref().map(|v| catalog.program(v)).filter(|v| v.exists());
+            if let Some(vramorama) = vramorama.filter(|_| !cpu) {
                 command.extend([
                     vramorama.display().to_string(),
                     "run".into(),
@@ -132,7 +150,7 @@ pub fn server_command(catalog: &Catalog, model: &ModelSpec) -> Result<Vec<String
                 ]);
             }
             command.extend([
-                catalog.program(&programs.llama_server).display().to_string(),
+                server.display().to_string(),
                 "-m".into(),
                 catalog.expand(gguf).display().to_string(),
                 "--host".into(),
@@ -141,8 +159,13 @@ pub fn server_command(catalog: &Catalog, model: &ModelSpec) -> Result<Vec<String
                 model.port.to_string(),
                 "-c".into(),
                 catalog.context_tokens(model).to_string(),
-                "-ngl".into(),
-                "99".into(),
+            ]);
+            if cpu {
+                command.extend(["-t".into(), programs.cpu_threads.to_string()]);
+            } else {
+                command.extend(["-ngl".into(), "99".into()]);
+            }
+            command.extend([
                 "-np".into(),
                 "1".into(),
                 "--jinja".into(),
@@ -155,23 +178,29 @@ pub fn server_command(catalog: &Catalog, model: &ModelSpec) -> Result<Vec<String
     }
 }
 
-pub fn start(catalog: &Catalog, model: &ModelSpec) -> Result<ServerProcess> {
-    let missing = missing(catalog, model);
+pub fn start(catalog: &Catalog, model: &ModelSpec, cpu: bool) -> Result<ServerProcess> {
+    let missing: Vec<String> = missing(catalog, model)
+        .into_iter()
+        .filter(|path| !(cpu && Path::new(path) == catalog.program(&catalog.programs.llama_server)))
+        .collect();
     if !missing.is_empty() {
         bail!("model_missing: {} needs {}", model.id, missing.join(", "));
     }
-    let argv = server_command(catalog, model)?;
+    let argv = server_command(catalog, model, cpu)?;
     let log = state_dir().join("logs").join(format!("{}.log", model.id));
     let mut file = std::fs::File::create(&log).with_context(|| format!("creating {}", log.display()))?;
     writeln!(file, "$ {}", argv.join(" "))?;
     let stderr = file.try_clone()?;
     let mut command = Command::new(&argv[0]);
     command.args(&argv[1..]).stdin(Stdio::null()).stdout(file).stderr(stderr);
+    if let Some(dir) = Path::new(&argv[0]).parent().filter(|_| cpu) {
+        command.current_dir(dir);
+    }
     if model.runtime == Runtime::Squid5080 {
         command.env("MSYS_NO_PATHCONV", "1");
     }
     let child = hidden(&mut command).spawn().with_context(|| format!("server_start_error: spawning {}", argv[0]))?;
-    Ok(ServerProcess { model_id: model.id.clone(), child, log, started: Instant::now() })
+    Ok(ServerProcess { model_id: model.id.clone(), child, log, started: Instant::now(), cpu })
 }
 
 /// Stop a model's server: squid through its stop script, a started process by killing its tree.

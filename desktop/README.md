@@ -28,8 +28,15 @@ a file.
 
 **Start** launches the model's server. A llama.cpp server runs behind a vramorama lease when
 `programs.vramorama` exists, so it queues behind other GPU jobs instead of competing with them.
-Inkling runs through `~/tools/squid5080/serve.sh`, which takes its own lease. The window stops
-every server it started when it closes. Logs go to `%LOCALAPPDATA%\BitAgentDesktop\logs`.
+vramorama admits leases in arrival order, so a small lease still waits behind a large one queued
+earlier. Inkling runs through `~/tools/squid5080/serve.sh`, which takes its own lease. The window
+stops every server it started when it closes. Logs go to `%LOCALAPPDATA%\BitAgentDesktop\logs`.
+
+**Start on CPU** (`bitagent-cli --start-server --cpu`) serves the models marked `"cpu": true`
+(Bonsai 2 9B/4B/2B and Bonsai 8B) with `programs.llamaServerCpu` and no GPU lease. That build is
+`llama-prism-b12178/bin` copied without `ggml-cuda.dll`, `cublas64_12.dll` and
+`cublasLt64_12.dll`. Keep `cudart64_12.dll`, which `llama-server-impl.dll` imports. With no CUDA
+backend, `llama-server --list-devices` prints `(none)` and the GPU is never touched.
 
 Tool calls are native OpenAI `tools`/`tool_calls` on both runners: llama-server with `--jinja`,
 and squid5090, which parses Inkling's own tool-call tokens. For a server without tool calling,

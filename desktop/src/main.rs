@@ -162,8 +162,8 @@ impl DesktopApp {
         });
     }
 
-    fn start_server(&self, model: &ModelSpec) {
-        let result = models::start(&self.catalog, model);
+    fn start_server(&self, model: &ModelSpec, cpu: bool) {
+        let result = models::start(&self.catalog, model, cpu);
         let mut shared = self.shared.lock().unwrap();
         match result {
             Ok(process) => {
@@ -252,14 +252,16 @@ impl DesktopApp {
     fn model_details(&mut self, ui: &mut egui::Ui) {
         let model = self.model();
         let ctx = ui.ctx().clone();
-        let (health, loading_for, download) = {
+        let (health, loading_for, on_cpu, download) = {
             let shared = self.shared.lock().unwrap();
             (
                 shared.health.get(&model.id).cloned(),
                 shared.servers.get(&model.id).map(|p| p.started.elapsed()),
+                shared.servers.get(&model.id).is_some_and(|p| p.cpu),
                 shared.downloads.get(&model.id).copied(),
             )
         };
+        let device = if on_cpu { " on CPU" } else { "" };
         let running = loading_for.is_some();
         ui.label(egui::RichText::new(&model.label).strong());
         egui::Grid::new("model_facts").num_columns(2).spacing([8.0, 2.0]).show(ui, |ui| {
@@ -279,8 +281,8 @@ impl DesktopApp {
             }
             ui.label("status");
             ui.label(match (&health, loading_for) {
-                (Some(Health::Ready), _) => "ready".to_string(),
-                (_, Some(elapsed)) => format!("queued or loading ({}s)", elapsed.as_secs()),
+                (Some(Health::Ready), _) => format!("ready{device}"),
+                (_, Some(elapsed)) => format!("queued or loading{device} ({}s)", elapsed.as_secs()),
                 (Some(h), None) => h.word().to_string(),
                 (None, None) => "checking".to_string(),
             });
@@ -302,7 +304,15 @@ impl DesktopApp {
             let ready = health == Some(Health::Ready);
             let startable = health == Some(Health::Down) && !running && model.runtime != ServerKind::External;
             if ui.add_enabled(startable, egui::Button::new("Start")).clicked() {
-                self.start_server(&model);
+                self.start_server(&model, false);
+            }
+            if models::cpu_server(&self.catalog, &model).is_some() {
+                let start_cpu = ui
+                    .add_enabled(startable, egui::Button::new("Start on CPU"))
+                    .on_hover_text("No GPU lease: slower, but runs while the GPU queue is busy");
+                if start_cpu.clicked() {
+                    self.start_server(&model, true);
+                }
             }
             let stoppable = running || (ready && model.runtime == ServerKind::Squid5080);
             if ui.add_enabled(stoppable, egui::Button::new("Stop")).clicked() {
