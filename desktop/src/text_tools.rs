@@ -1,4 +1,5 @@
-//! The text tool protocol, for servers without OpenAI tool calling (squid5090 serving Inkling 2 Mini).
+//! The text tool protocol, for OpenAI-compatible servers without tool calling (`"tools": "text"`
+//! in models.json, or `bitagent-cli --tool-mode text`).
 //!
 //! The request preparer lists the tools in the system prompt, sends no `tools` field, and shows the
 //! model earlier calls and results as `<tool_call>` / `<tool_response>` text. `TextToolCalls` turns a

@@ -25,11 +25,11 @@
       "runtime": "squid5080",
       "port": 18090,
       "servedModel": "inkling-2-mini",
-      "tools": "text",
+      "tools": "native",
       "vramMiB": 15000,
       "maxTokens": 4096,
       "source": "thinkingmachines/Inkling-2-Mini @ c9d02830 on the squid5090 engine ported to the RTX 5080 (/opt/squid5080 in WSL Ubuntu-24.04)",
-      "notes": "Needs the GPU to itself (15 GB lease); loads in 4-9 min, then about 250 tok/s. squid5090 has no OpenAI tool calling, so tools go through the text protocol."
+      "notes": "Needs the GPU to itself (15 GB lease); loads in 4-9 min, then about 250 tok/s. squid5090 parses Inkling's native tool-call tokens into OpenAI tool_calls."
     },
     {
       "id": "bonsai-2.5-27b",

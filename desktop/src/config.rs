@@ -13,10 +13,10 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ToolMode {
-    /// OpenAI `tools` in the request and `tool_calls` in the reply (llama-server `--jinja`).
+    /// OpenAI `tools` in the request and `tool_calls` in the reply (llama-server `--jinja`, squid5090).
     Native,
     /// Tools listed in the system prompt, calls written as `<tool_call>{json}</tool_call>`
-    /// (for servers without OpenAI tool calling, such as squid5090).
+    /// (for servers without OpenAI tool calling).
     Text,
 }
 
@@ -250,6 +250,6 @@ mod tests {
             }
         }
         assert_eq!(catalog.model("bonsai-8b").and_then(|m| m.vram_mib), Some(3500));
-        assert_eq!(catalog.model("inkling-2-mini").map(|m| m.tools), Some(ToolMode::Text));
+        assert_eq!(catalog.model("inkling-2-mini").map(|m| m.runtime), Some(Runtime::Squid5080));
     }
 }

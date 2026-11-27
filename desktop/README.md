@@ -17,7 +17,7 @@ a file.
 
 | id | model | runner | tool calls | GPU lease |
 |---|---|---|---|---|
-| `inkling-2-mini` | Inkling 2 Mini | squid5080 fast runner (squid5090 on the RTX 5080, in WSL) | text protocol | 15,000 MiB |
+| `inkling-2-mini` | Inkling 2 Mini | squid5080 fast runner (squid5090 on the RTX 5080, in WSL) | native | 15,000 MiB |
 | `bonsai-2.5-27b` | Ternary Bonsai 2.5 27B, PTQ1_0 + MTP | PrismML llama.cpp prism-b12178 | native | 10,000 MiB |
 | `bonsai-2-27b` | Ternary Bonsai 2 27B, PTQ1_0 | prism-b12178 | native | 10,000 MiB |
 | `bonsai-2-9b` | Ternary Bonsai 2 9B, PTQ1_0 | prism-b12178 | native | 5,000 MiB |
@@ -31,11 +31,18 @@ a file.
 Inkling runs through `~/tools/squid5080/serve.sh`, which takes its own lease. The window stops
 every server it started when it closes. Logs go to `%LOCALAPPDATA%\BitAgentDesktop\logs`.
 
-squid5090 has no OpenAI tool calling, so Inkling gets BitAgent's tools through a text protocol.
-The tools are listed in the system prompt, the model writes
-`<tool_call>{"name": ..., "arguments": {...}}</tool_call>`, and results come back as
-`<tool_response>` text. Calls are parsed into goose tool requests, so approval and dispatch are
-the same as in native mode.
+Tool calls are native OpenAI `tools`/`tool_calls` on both runners: llama-server with `--jinja`,
+and squid5090, which parses Inkling's own tool-call tokens. For a server without tool calling,
+set `"tools": "text"` (or `bitagent-cli --tool-mode text`). The tools are then listed in the
+system prompt, the model writes `<tool_call>{"name": ..., "arguments": {...}}</tool_call>`, and
+results come back as `<tool_response>` text. Those calls are parsed into goose tool requests,
+so approval and dispatch work the same way in both modes.
+
+Live check, 2026-11-27, Inkling 2 Mini on squid5080 (`bitagent-cli --once "What is BitAgent?
+Check with your tools, then answer in two sentences." --model inkling-2-mini`): one
+`bitagent_overview` call and a two-sentence answer drawn from its result, two inference calls,
+3.7 s. In text mode the same prompt gave an empty answer: squid consumed the model's native
+tool-call tokens, and with no `tools` in the request it returned no `tool_calls`.
 
 ## The agent
 

@@ -380,6 +380,7 @@ impl Agent {
             "inputTokens": usage.iter().filter_map(|u| u.usage.input_tokens).sum::<i64>(),
             "outputTokens": usage.iter().filter_map(|u| u.usage.output_tokens).sum::<i64>(),
             "seconds": started.elapsed().as_secs_f64(), "error": error,
+            "conversation": serde_json::to_value(conversation.messages()).unwrap_or(Value::Null),
         })
     }
 }
